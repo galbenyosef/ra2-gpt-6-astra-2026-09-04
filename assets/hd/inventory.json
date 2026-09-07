@@ -1,0 +1,46 @@
+{
+  "description": "User-approved authored HD runtime samples. Meshy models based on RA2 visual references; PNG sprites baked from these models. No extracted original SHP/VXL/TMP artwork is included here.",
+  "masters": "Original generated models and reference inputs remain in local ignored caches; these are selected runtime outputs, not reversible master replacements.",
+  "files": [
+    {
+      "file": "models/apocalypse-tank/30k.glb",
+      "bytes": 8412984,
+      "sha256": "56f0b8839e603d9b16999819e785682345c5ca52ad556699550db4365cf9998b"
+    },
+    {
+      "file": "models/apocalypse-tank/200k-draco.glb",
+      "bytes": 8986972,
+      "sha256": "69383c58d02c48994815ea736e911a56e50fc9811465afe2af504693f2ca24d8"
+    },
+    {
+      "file": "models/apocalypse-tank/80k-webp.glb",
+      "bytes": 4566860,
+      "sha256": "00d9260e8d633c34405861a5a362f4e895c422f57649992dd52070ac8e819f7d"
+    },
+    {
+      "file": "sprites/nanrct.png",
+      "bytes": 522071,
+      "sha256": "57fb6fa66eb7bb062d18a555b06b2d7a5486bdf5826f66fb2d911a80943870f3"
+    },
+    {
+      "file": "sprites/mtnk.png",
+      "bytes": 1096970,
+      "sha256": "2b814ace7aa10df62b4422911896487997f13cf13fd605c897d6186e6c59bcfc"
+    },
+    {
+      "file": "sprites/gacnst.png",
+      "bytes": 745808,
+      "sha256": "15bed526ce19567800c0bc58e2837f40a3f796932de65a4b5bbce4bce80a57f5"
+    },
+    {
+      "file": "sprites/manifest.json",
+      "bytes": 1757,
+      "sha256": "88741692fd884fa2dc42b2c7a4363332eddbd16ff6e98a0faba4ac1ac22cbab9"
+    },
+    {
+      "file": "sprites/tany.png",
+      "bytes": 111097,
+      "sha256": "cc18d3a515eb801e2b6df4ec2db32837f984d181c47e4b98eda6f12296834ba2"
+    }
+  ]
+}
