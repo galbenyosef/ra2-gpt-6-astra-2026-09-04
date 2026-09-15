@@ -68,7 +68,7 @@ function updateSelection(){
  $('selection').textContent=selected.length?selected.map(e=>`${CATALOG[e!.type].name} · ${Math.ceil(e!.hp)}/${e!.maxHp}`).join('、'):'点击单位或框选一组';
  const e=selected[0],presentation=e&&renderer.entityPresentation?.(e),sprite=presentation?.sprite||(e&&assets.sprite(CATALOG[e.type].sprite));
  const action=presentation?.action||(e&&sprite?spriteAnimation(sprite,e,game.time).action:'ready');
- const labels:Record<string,string>={ready:'待命',walk:'移动',fireup:'开火',hit:'受击',deployed:'部署',prone:'卧倒／起身',pronefire:'卧倒射击',fireprone:'卧倒射击',down:'卧倒',up:'起身',swim:'游泳'};
+ const labels:Record<string,string>={ready:'待命',walk:'移动',fireup:'开火',hit:'受击',deployed:'部署',prone:'卧倒／起身',pronefire:'卧倒射击',fireprone:'卧倒射击',down:'卧倒',up:'起身',swim:'游泳',tread:'踩水',wetattack:'水中射击',crawl:'匍匐',idle1:'待机 1',idle2:'待机 2',wetidle1:'水中待机 1',wetidle2:'水中待机 2',die1:'倒地 1',die2:'倒地 2',wetdie1:'水中死亡 1',wetdie2:'水中死亡 2',cheer:'欢呼',paradrop:'伞降'};
  $('action').textContent=e?(e.repairing?'维修中':labels[action]||action):'等待选择';
  const canvas=$('pose-preview') as HTMLCanvasElement,ctx=canvas.getContext('2d')!;ctx.clearRect(0,0,canvas.width,canvas.height);
  if(e&&sprite){const image=(renderer as any).coloredSprite(sprite,game.getPlayer(e.owner)?.color||'#aaaaaa');if(image){const frame=presentation?.frame??spriteAnimation(sprite,e,game.time).frame,sample=spriteFrame(sprite,frame),w=sample.width,h=sample.height,scale=Math.min((canvas.width-24)/w,(canvas.height-16)/h);ctx.drawImage(image,sample.x,sample.y,w,h,(canvas.width-w*scale)/2,(canvas.height-h*scale)/2,w*scale,h*scale);}}
@@ -128,5 +128,6 @@ $('loop').onclick=()=>{automatic=!automatic;resetScenario();};
 $('reset').onclick=resetScenario;
 resetScenario();
 home();let last=performance.now(),ui=0;function frame(now:number){const dt=paused?0:Math.min((now-last)/1000,.05)*speed;last=now;if(dt>0)updateLoop();game.step(dt);demos?.update(game.time);comparisons?.update();inspector.update(game.time);renderer.update(dt);ui+=dt;if(ui>.1){ui=0;updateSelection();inspectLoops();}requestAnimationFrame(frame);}requestAnimationFrame(frame);
+document.title='谭雅骨骼动作 · Canvas 对照';
 $('status').textContent='已就绪 · 自动循环演示 · 可暂停、慢放或切换手动操作';
 (window as any).__hd={inspector,get comparisons(){return comparisons?.pairs;},get demos(){return demos?.entities;},get automatic(){return automatic;},get game(){return game;},renderer,assets,get actors(){return actors;},get targets(){return targets;},hd,original,ready:true,animation:(id:number)=>{const e=game.getEntity(id);return e?spriteAnimation(assets.sprite(CATALOG[e.type].sprite)!,e,game.time):undefined;}};

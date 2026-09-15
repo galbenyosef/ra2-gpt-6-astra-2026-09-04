@@ -1,0 +1,162 @@
+{
+  "sourceTask": "01a0a574-e2df-72e1-b22d-0cc4b42b6f2f",
+  "sourceSha256": "7774dd0b2b825931d90f610bdfce620173f133096e148a885f22e1b2ce463a2c",
+  "sha256": "d68658cc91a5862ac57c377f5dd5f5297248123cb665c47aeb11d05e6eb7f7ce",
+  "bytes": 3450396,
+  "triangles": 29827,
+  "joints": 24,
+  "clips": 26,
+  "sequences": {
+    "ready": [
+      0,
+      1,
+      1
+    ],
+    "guard": [
+      0,
+      1,
+      1
+    ],
+    "walk": [
+      8,
+      6,
+      6
+    ],
+    "idle1": [
+      56,
+      15,
+      0
+    ],
+    "idle2": [
+      71,
+      15,
+      0
+    ],
+    "crawl": [
+      86,
+      6,
+      6
+    ],
+    "prone": [
+      86,
+      1,
+      6
+    ],
+    "die1": [
+      134,
+      15,
+      0
+    ],
+    "die2": [
+      149,
+      15,
+      0
+    ],
+    "fireup": [
+      164,
+      6,
+      6
+    ],
+    "fireprone": [
+      212,
+      6,
+      6
+    ],
+    "down": [
+      260,
+      2,
+      2
+    ],
+    "up": [
+      276,
+      2,
+      2
+    ],
+    "wetidle1": [
+      292,
+      15,
+      0
+    ],
+    "wetidle2": [
+      307,
+      15,
+      0
+    ],
+    "wetdie1": [
+      322,
+      20,
+      0
+    ],
+    "wetdie2": [
+      342,
+      20,
+      0
+    ],
+    "tread": [
+      410,
+      6,
+      6
+    ],
+    "swim": [
+      506,
+      6,
+      6
+    ],
+    "wetattack": [
+      554,
+      6,
+      6
+    ],
+    "paradrop": [
+      602,
+      1,
+      0
+    ],
+    "cheer": [
+      603,
+      8,
+      0
+    ],
+    "panic": [
+      8,
+      6,
+      6
+    ],
+    "die3": [
+      0,
+      1,
+      1
+    ],
+    "die4": [
+      0,
+      1,
+      1
+    ],
+    "die5": [
+      0,
+      1,
+      1
+    ]
+  },
+  "fps": 12,
+  "unmappedSourceRanges": [
+    [
+      362,
+      409
+    ],
+    [
+      458,
+      505
+    ],
+    [
+      611,
+      618
+    ]
+  ],
+  "limitations": [
+    "Poses reconstructed by reference, not pixel-exact original motion capture",
+    "Preview clock is 12 fps, not original-executable timing verification",
+    "Original PBR normal and roughness maps not returned by rigging service",
+    "Pistols remain part of the skinned mesh; individual fingers and weapon drops need separate rigging"
+  ]
+}

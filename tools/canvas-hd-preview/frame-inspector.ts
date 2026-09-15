@@ -12,13 +12,15 @@ export function createFrameInspector(renderer:BattlefieldRenderer,source:()=>Ent
  let playing=false,epoch=0,step=0,time=0;
  const count=()=>action.value==='all'?catalog.frames:catalog.sequences?.[action.value]?.[1]||1;
  const active=()=>action.value!=='auto';
- const configure=()=>{step=0;slider.max=String(count()-1);slider.value='0';playing=false;play.textContent='循环此动作';if(active()){renderer.setSelection([source().id]);renderer.center(source().x,source().y);renderer.zoom=2;}update(time);};
+ const home=new Map<number,{x:number,y:number}>();
+ const unmapped=new Set<number>(hd.unmappedFrames||[]);
+ const configure=()=>{const actor=source();if(!home.has(actor.id))home.set(actor.id,{x:actor.x,y:actor.y});const wet=action.value==='swim'||action.value==='tread'||action.value.startsWith('wet');const position=wet?{x:18.3,y:11.5}:home.get(actor.id)!;Object.assign(actor,position);actor.path=[];actor.order={kind:'idle'};step=0;slider.max=String(count()-1);slider.value='0';playing=false;play.textContent='循环此动作';if(active()){renderer.setSelection([source().id]);renderer.center(source().x,source().y);renderer.zoom=2;}update(time);};
  action.onchange=configure;facing.onchange=()=>update(time);
  slider.oninput=()=>{playing=false;play.textContent='循环此动作';step=Number(slider.value);update(time);};
  play.onclick=()=>{if(!active())return;playing=!playing;epoch=time-step/12;play.textContent=playing?'停在这一帧':'循环此动作';};
  for(const [id,delta]of [['frame-prev',-1],['frame-next',1]] as const)document.getElementById(id)!.onclick=()=>{playing=false;play.textContent='循环此动作';step=(step+delta+count())%count();update(time);};
  function index(){const seq=catalog.sequences?.[action.value];return action.value==='all'?step:seq?seq[0]+Number(facing.value)*seq[2]+step:0;}
- function update(now:number){time=now;if(playing)step=Math.floor(Math.max(0,time-epoch)*12)%count();slider.value=String(step);readout.textContent=active()?`${labels[action.value]||'源帧'} · ${step+1} / ${count()} · 原始帧号 ${index()} · ${aligned?'高清与原版同步':'完整原版动作参考；高清替换尚未接入'}`:'选择动作后，地图中央的谭雅与右侧原版同步逐帧显示';}
- function install(){const previous=renderer.entityPresentation;renderer.entityPresentation=e=>{const view=previous?.(e),actor=source();if(!active()||(e.id!==actor.id&&e.id!==-actor.id-1))return view;return {...view,sprite:e.id<0||!aligned?original:renderer.assets.sprite('tany'),frame:index(),action:action.value,label:e.id<0?'原版':aligned?'高清':'原版参考'};};}
+ function update(now:number){time=now;if(playing)step=Math.floor(Math.max(0,time-epoch)*12)%count();slider.value=String(step);readout.textContent=active()?`${labels[action.value]||'源帧'} · ${step+1} / ${count()} · 原始帧号 ${index()} · ${aligned&&!unmapped.has(index())?'骨骼烘焙与原版同步':'原版未命名帧参考'}`:'选择动作后，地图中央的谭雅与右侧原版同步逐帧显示';}
+ function install(){const previous=renderer.entityPresentation;renderer.entityPresentation=e=>{const view=previous?.(e),actor=source();if(!active()||(e.id!==actor.id&&e.id!==-actor.id-1))return view;return {...view,sprite:e.id<0||!aligned||unmapped.has(index())?original:renderer.assets.sprite('tany'),frame:index(),action:action.value,label:e.id<0?'原版':aligned&&!unmapped.has(index())?'高清骨骼':'原版参考'};};}
  return {install,update,get active(){return active();},get frame(){return index();}};
 }

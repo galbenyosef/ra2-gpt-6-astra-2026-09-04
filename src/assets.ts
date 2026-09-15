@@ -12,6 +12,8 @@ export interface Sprite {
   animationClock?: 'source';
   /** Packed source rectangle and foot anchor, all measured in source pixels. */
   frameRects?: Array<[number,number,number,number,number,number]>;
+  /** Unnamed source slots retain original-art inspection instead of fabricated poses. */
+  unmappedFrames?: number[];
   hdMotion?: 'infantry' | 'vehicle' | 'building';
   src: string; width: number; height: number; frameWidth: number; frameHeight: number;
   frames: number; columns: number; anchorX: number; anchorY: number; remapMaskSrc?: string; sequences?: Record<string, [number,number,number]>; facings?: number; foundation?: [number,number]; kind?: string;

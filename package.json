@@ -12,7 +12,9 @@
     "assets:check": "node --import tsx scripts/setup-assets.ts --check",
     "repo:check": "node --import tsx scripts/check-source-only.ts",
     "repo:hooks": "git config core.hooksPath .githooks",
-    "viewer:glb": "node scripts/glb-viewer.mjs"
+    "viewer:glb": "node scripts/glb-viewer.mjs",
+    "viewer:motion": "node tools/tanya-motion/server.mjs",
+    "motion:test": "node --test tools/tanya-motion/motion.test.mjs"
   },
   "devDependencies": {
     "@playwright/test": "^1.55.0",

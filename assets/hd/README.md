@@ -93,3 +93,20 @@ every timing rule of the original executable. Static GLBs are unchanged.
 
 Run `node tools/canvas-hd-preview/test-frame-inspector.mjs` against a preview with
 original resources installed to verify all 619 frame IDs and the inspector.
+
+### Skeletal Tanya reconstruction (current)
+
+`models/tanya/tanya-actions.glb` now contains the shared 24-joint rig and 26 clips
+(21 distinct named actions plus original aliases/placeholders), about 3.45 MB.
+The static `30k.glb` remains a material/source comparison. The new `tany.png` and
+its remap mask replace the former ordinary Tanya draft: 515 named source slots
+within the 619-frame layout, with 104 unnamed slots shown as original references
+in the inspector. All named poses use bone animation, including prone/water shots,
+crawl, down/up, swim/tread, idle, death, parachute and cheer.
+
+This supersedes the earlier text describing Tanya as unrigged. Existing legacy
+`tany-actions` draft files are retained for reproducibility but are not selected
+when the new source-aligned atlas is active. Rebuild through `viewer:motion`'s local
+bake button, not the legacy vertex-pose baker. Original terrain and original SHP
+remain external. Read `models/tanya/motion-manifest.json` for measured output and
+limitations; original FPS conventions beyond the preview clock are not verified.

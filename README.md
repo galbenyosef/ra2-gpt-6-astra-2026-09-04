@@ -231,3 +231,14 @@ node --test tools/canvas-hd-preview/procedural-poses.test.mjs
 
 The first check also supports a cache-free checkout. The second needs original art
 for its before/after screenshots. Results go to ignored `.cache/viewer-tests/`.
+
+### Tanya skeletal action preview
+
+Run `npm run viewer:motion` with `RA2_ORIGINAL_ASSETS` pointing to installed original
+assets, then open port 4179. The 3D viewer compares authored skeletal poses against
+original SHP frames; `/canvas/` displays the baked result on original terrain beside
+the original unit. The model has 24 joints and 26 clips (including aliases), with
+standing/prone/water shooting, crawl, down/up, swimming/treading, idle, death,
+parachute and cheer sequences. Poses are reconstructed references, not exact
+recovery of the source 3D animation. See [motion tooling](tools/tanya-motion/README.md)
+and run `npm run motion:test` for the delivered motion/mapping checks.

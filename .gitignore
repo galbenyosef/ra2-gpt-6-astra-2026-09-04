@@ -35,3 +35,6 @@ __pycache__/
 
 # Optional model optimization tool dependencies.
 /tools/model-opt/node_modules
+
+# Isolated development checkouts.
+/.worktrees/
