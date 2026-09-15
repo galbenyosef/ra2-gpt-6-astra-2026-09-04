@@ -1,4 +1,4 @@
 interface:
-  display_name: "RA2 高清素材 → 轻量 GLB"
-  short_description: "生成约 3 万面 RA2 模型，保留高清参考图与生成记录，按需验证 Canvas 动作、交互与换色"
-  default_prompt: "用 $ra2-hd-blender 为指定 RA2 素材生成或优化带贴图 GLB，默认入库高清参考图、生成记录和约 3 万面游戏档；原始 GLB 按需本地留存，避免重复导出占空间。"
+  display_name: "RA2 高清模型与动作"
+  short_description: "约 3 万面游戏模型，按原版适配骨骼或机械动作，验证 Canvas 对比与换色"
+  default_prompt: "用 $ra2-hd-blender 为指定 RA2 单位制作轻量模型，按实际原版动作适配骨骼或机械部件，在现有 Canvas 地图对照验证，并保留精简的可恢复输入与记录。"
