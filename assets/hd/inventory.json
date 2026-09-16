@@ -1,46 +1,151 @@
 {
-  "description": "User-approved authored HD runtime samples. Meshy models based on RA2 visual references; PNG sprites baked from these models. No extracted original SHP/VXL/TMP artwork is included here.",
-  "masters": "Original generated models and reference inputs remain in local ignored caches; these are selected runtime outputs, not reversible master replacements.",
+  "description": "Authored optimized runtime models and sprites; archived master-record.json paths refer to the separate local archive, not distributed files.",
   "files": [
     {
+      "file": "models/allied-construction-yard/30k.glb",
+      "bytes": 3906464,
+      "sha256": "0144b14d87a3b8b585e95d0136ad2e19c80cac226e9de51fef99c1d1672c0026"
+    },
+    {
+      "file": "models/allied-construction-yard/30k.json",
+      "bytes": 1601,
+      "sha256": "edef31f739009f9ac1fd72729cbab1066779f4dfefea2edf15c765b800deee10"
+    },
+    {
+      "file": "models/allied-construction-yard/master-record.json",
+      "bytes": 2105,
+      "sha256": "85c4c49a7f9aeaa26ff377a921e00c6f5bbd973fb8ead7d318ca4b42119da9cf"
+    },
+    {
+      "file": "models/allied-construction-yard/prompt.txt",
+      "bytes": 1474,
+      "sha256": "d8db94117566ebc95c372e231c1fc304ac442d3eccaafa7ca06f04aa39d5bfc4"
+    },
+    {
       "file": "models/apocalypse-tank/30k.glb",
-      "bytes": 8412984,
-      "sha256": "56f0b8839e603d9b16999819e785682345c5ca52ad556699550db4365cf9998b"
+      "bytes": 3643592,
+      "sha256": "7f7478085a719fce892c858e17aa3a1051af2dc5ba0d79c124d2e640778f16e3"
     },
     {
-      "file": "models/apocalypse-tank/200k-draco.glb",
-      "bytes": 8986972,
-      "sha256": "69383c58d02c48994815ea736e911a56e50fc9811465afe2af504693f2ca24d8"
+      "file": "models/apocalypse-tank/30k.json",
+      "bytes": 1557,
+      "sha256": "29603f96eb6df37bf911208cae5ed8d1a2501a772c7c8c298363fd951eb56d77"
     },
     {
-      "file": "models/apocalypse-tank/80k-webp.glb",
-      "bytes": 4566860,
-      "sha256": "00d9260e8d633c34405861a5a362f4e895c422f57649992dd52070ac8e819f7d"
+      "file": "models/apocalypse-tank/master-record.json",
+      "bytes": 2030,
+      "sha256": "96d1e98c196c82e7321be2a7bcdf679bd3b61b7ad4706a81243befa911724019"
     },
     {
-      "file": "sprites/nanrct.png",
-      "bytes": 522071,
-      "sha256": "57fb6fa66eb7bb062d18a555b06b2d7a5486bdf5826f66fb2d911a80943870f3"
+      "file": "models/apocalypse-tank/prompt.txt",
+      "bytes": 1386,
+      "sha256": "39088d2d703031bf7efd01ad1755ad133b666d017fd1bfff1946a3c65b55573d"
     },
     {
-      "file": "sprites/mtnk.png",
-      "bytes": 1096970,
-      "sha256": "2b814ace7aa10df62b4422911896487997f13cf13fd605c897d6186e6c59bcfc"
+      "file": "models/soviet-nuclear-power-plant/30k.glb",
+      "bytes": 3976264,
+      "sha256": "e27fb0157111f1c0cb02a5f3b81c6ebc545567f0b559047c34b617d56a976647"
+    },
+    {
+      "file": "models/soviet-nuclear-power-plant/30k.json",
+      "bytes": 1602,
+      "sha256": "d6459085c77657985ca15ab8b55e1f63303d6398a2cccd7037173e47e0d9a415"
+    },
+    {
+      "file": "models/soviet-nuclear-power-plant/master-record.json",
+      "bytes": 2109,
+      "sha256": "5d7a6b48d16753a78e9536cebb8b9a7cd181352cf9e7ac8a6ee656ecf40afe46"
+    },
+    {
+      "file": "models/soviet-nuclear-power-plant/prompt.txt",
+      "bytes": 1714,
+      "sha256": "2f5dcbd9170a56b8d8fd3e2252d79eeda5779fb3644d6607a48ced26d7922072"
+    },
+    {
+      "file": "models/tanya/30k.glb",
+      "bytes": 3221484,
+      "sha256": "7434e03ac0d3074aba0b6c42a6a926f3ae91517e79e6b3fb74e3c92bc5d2b70c"
+    },
+    {
+      "file": "models/tanya/30k.json",
+      "bytes": 1581,
+      "sha256": "a93cc1337b3ead102842b8c0bf8d0c5d4309507920429851a2e9652aae203558"
+    },
+    {
+      "file": "models/tanya/master-record.json",
+      "bytes": 2604,
+      "sha256": "cc2a27a89fdc7cbe7f3c82be7c713ae0cee662d845fb3624d3d3ba01a18d6885"
+    },
+    {
+      "file": "models/tanya/motion-manifest.json",
+      "bytes": 4751,
+      "sha256": "1e9d301421de4adc42223383e702193b10dec86ce3e9f673899c6fd18a39cc05"
+    },
+    {
+      "file": "models/tanya/prompt.txt",
+      "bytes": 3142,
+      "sha256": "9c9d7a1dff6a54c8ec4ffd5dfe0f3a1711fd7eb5b2432153325bbdffa7fd0a7a"
+    },
+    {
+      "file": "models/tanya/tanya-actions.glb",
+      "bytes": 4490408,
+      "sha256": "ec5145fe326f2e6b7fddb412fc010af26409f1b1d41e8d56bd13262c1b2ca404"
+    },
+    {
+      "file": "sprites/gacnst-remap.png",
+      "bytes": 75256,
+      "sha256": "0726f157e8ed8aaafdcd2f5dbc42b172dc9a61169845e7eda5913ba86d315347"
     },
     {
       "file": "sprites/gacnst.png",
-      "bytes": 745808,
-      "sha256": "15bed526ce19567800c0bc58e2837f40a3f796932de65a4b5bbce4bce80a57f5"
+      "bytes": 732966,
+      "sha256": "34b4d754296d70437b6344ce45b644ddaf1bea243bc919b9a7fcc54b25807277"
     },
     {
       "file": "sprites/manifest.json",
-      "bytes": 1757,
-      "sha256": "88741692fd884fa2dc42b2c7a4363332eddbd16ff6e98a0faba4ac1ac22cbab9"
+      "bytes": 159620,
+      "sha256": "c2a90f523113ad8dc18cec463515512de95881cbeefa9b0b0b69c586aa104eb9"
+    },
+    {
+      "file": "sprites/mtnk-remap.png",
+      "bytes": 252402,
+      "sha256": "d7fc4632dc36047c9545b709ff1ab853dde2376d1b098656a2b1b5f9ae26479b"
+    },
+    {
+      "file": "sprites/mtnk.png",
+      "bytes": 1101827,
+      "sha256": "cf0993dd2aff83ad0fc1cb9765dcb0cbcfe07f1fd65eca088299af33ba8c3335"
+    },
+    {
+      "file": "sprites/nanrct-remap.png",
+      "bytes": 47440,
+      "sha256": "879365547b1282ef687cabf99e6df79459b6db1d0b95eafb3d4e80b80bc2926e"
+    },
+    {
+      "file": "sprites/nanrct.png",
+      "bytes": 510291,
+      "sha256": "c1c4b155f84faa518d91b4266b3ff52dd39c88c6a20ead33facff6e85799d05e"
+    },
+    {
+      "file": "sprites/tany-actions-remap.png",
+      "bytes": 268334,
+      "sha256": "295eadd345fcb61be8ef1aa2e3bfe6dbfcfa4f841b93e7b465a0692a2ab28123"
+    },
+    {
+      "file": "sprites/tany-actions.png",
+      "bytes": 1425974,
+      "sha256": "b9e4948cfe07864edf97a195fa2f1d1a44584bb40a7a593e3441a97034ec0a9d"
+    },
+    {
+      "file": "sprites/tany-remap.png",
+      "bytes": 2620878,
+      "sha256": "2df3550a72218831320f5d2b7f5cf88a164131f8816f1348b4a2d1f23089c72a"
     },
     {
       "file": "sprites/tany.png",
-      "bytes": 111097,
-      "sha256": "cc18d3a515eb801e2b6df4ec2db32837f984d181c47e4b98eda6f12296834ba2"
+      "bytes": 12324738,
+      "sha256": "5ef34033410b7d933a6df1879125b58c05a894bac8eccbdf8dd1d1a9e8d0010d"
     }
-  ]
+  ],
+  "totalBytes": 38785594
 }

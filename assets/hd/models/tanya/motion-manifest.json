@@ -1,0 +1,303 @@
+{
+  "sourceTask": "01a0a574-e2df-72e1-b22d-0cc4b42b6f2f",
+  "sourceSha256": "7774dd0b2b825931d90f610bdfce620173f133096e148a885f22e1b2ce463a2c",
+  "sha256": "ec5145fe326f2e6b7fddb412fc010af26409f1b1d41e8d56bd13262c1b2ca404",
+  "bytes": 4490408,
+  "triangles": 29827,
+  "joints": 24,
+  "clips": 28,
+  "sequences": {
+    "ready": [
+      0,
+      1,
+      1
+    ],
+    "guard": [
+      0,
+      1,
+      1
+    ],
+    "walk": [
+      8,
+      6,
+      6
+    ],
+    "idle1": [
+      56,
+      15,
+      0
+    ],
+    "idle2": [
+      71,
+      15,
+      0
+    ],
+    "crawl": [
+      86,
+      6,
+      6
+    ],
+    "prone": [
+      86,
+      1,
+      6
+    ],
+    "die1": [
+      134,
+      15,
+      0
+    ],
+    "die2": [
+      149,
+      15,
+      0
+    ],
+    "fireup": [
+      164,
+      6,
+      6
+    ],
+    "fireprone": [
+      212,
+      6,
+      6
+    ],
+    "down": [
+      260,
+      2,
+      2
+    ],
+    "up": [
+      276,
+      2,
+      2
+    ],
+    "wetidle1": [
+      292,
+      15,
+      0
+    ],
+    "wetidle2": [
+      307,
+      15,
+      0
+    ],
+    "wetdie1": [
+      322,
+      20,
+      0
+    ],
+    "wetdie2": [
+      342,
+      20,
+      0
+    ],
+    "tread": [
+      410,
+      6,
+      6
+    ],
+    "swim": [
+      506,
+      6,
+      6
+    ],
+    "wetattack": [
+      554,
+      6,
+      6
+    ],
+    "paradrop": [
+      602,
+      1,
+      0
+    ],
+    "cheer": [
+      603,
+      8,
+      0
+    ],
+    "panic": [
+      8,
+      6,
+      6
+    ],
+    "die3": [
+      0,
+      1,
+      1
+    ],
+    "die4": [
+      0,
+      1,
+      1
+    ],
+    "die5": [
+      0,
+      1,
+      1
+    ]
+  },
+  "fps": 12,
+  "motionCycles": {
+    "walk": {
+      "duration": 0.72,
+      "frames": 20,
+      "distance": 2.4
+    },
+    "panic": {
+      "duration": 0.72,
+      "frames": 20,
+      "distance": 2.4
+    },
+    "swim": {
+      "duration": 1.35,
+      "frames": 32
+    },
+    "tread": {
+      "duration": 1.35,
+      "frames": 24
+    },
+    "swimstop": {
+      "duration": 0.55,
+      "frames": 12,
+      "once": true
+    },
+    "swimstart": {
+      "duration": 0.55,
+      "frames": 12,
+      "once": true
+    }
+  },
+  "motionRevision": "all-source-actions-v4",
+  "weaponTriangles": 1292,
+  "weaponVisibility": {
+    "ready": {
+      "left": true,
+      "right": true
+    },
+    "guard": {
+      "left": true,
+      "right": true
+    },
+    "walk": {
+      "left": true,
+      "right": true
+    },
+    "idle1": {
+      "left": true,
+      "right": true
+    },
+    "idle2": {
+      "left": true,
+      "right": true
+    },
+    "crawl": {
+      "left": false,
+      "right": false
+    },
+    "prone": {
+      "left": false,
+      "right": false
+    },
+    "die1": {
+      "left": true,
+      "right": true
+    },
+    "die2": {
+      "left": true,
+      "right": true
+    },
+    "fireup": {
+      "left": true,
+      "right": true
+    },
+    "fireprone": {
+      "left": false,
+      "right": true
+    },
+    "down": {
+      "left": true,
+      "right": true
+    },
+    "up": {
+      "left": true,
+      "right": true
+    },
+    "wetidle1": {
+      "left": false,
+      "right": false
+    },
+    "wetidle2": {
+      "left": false,
+      "right": false
+    },
+    "wetdie1": {
+      "left": false,
+      "right": false
+    },
+    "wetdie2": {
+      "left": false,
+      "right": false
+    },
+    "tread": {
+      "left": false,
+      "right": false
+    },
+    "swim": {
+      "left": false,
+      "right": false
+    },
+    "wetattack": {
+      "left": false,
+      "right": true
+    },
+    "paradrop": {
+      "left": false,
+      "right": false
+    },
+    "cheer": {
+      "left": true,
+      "right": true
+    },
+    "panic": {
+      "left": true,
+      "right": true
+    },
+    "die3": {
+      "left": true,
+      "right": true
+    },
+    "die4": {
+      "left": true,
+      "right": true
+    },
+    "die5": {
+      "left": true,
+      "right": true
+    }
+  },
+  "actionReference": "tools/tanya-motion/action-reference.md",
+  "teamRemap": "_TEAM_MASK torso eligibility plus texture olive-cloth gate",
+  "crawlReference": "art.ini Crawl=86,6,6; N 86–91, W 98–103, S 110–115 manually inspected; hand props uncertain; crawl/prone represented without extended pistols",
+  "unmappedSourceRanges": [
+    [
+      362,
+      409
+    ],
+    [
+      458,
+      505
+    ],
+    [
+      611,
+      618
+    ]
+  ],
+  "limitations": [
+    "Poses reconstructed by reference, not pixel-exact original motion capture",
+    "Preview clock is 12 fps, not original-executable timing verification",
+    "Original PBR normal and roughness maps not returned by rigging service",
+    "Source-referenced rigid pistols; fingers remain in a closed grip without finger joints; obscured depth, fixed-sequence facing and underwater limbs are inferred"
+  ]
+}

@@ -3,10 +3,29 @@ import { OriginalAssetsError } from './asset-setup';
 import { appUrl, resolveOriginalUrls } from './urls';
 
 export interface Sprite {
+  /** Original SHP facings start at screen north and run N,NW,W,SW,S,SE,E,NE. */
+  facingConvention?: 'world-xy' | 'ra2-shp';
+  originalFile?: string;
   /** Source pixels per logical game pixel; omitted legacy sprites retain density 1. */
   pixelRatio?: number;
+  animationFps?: number;
+  animationClock?: 'source';
+  /** Packed source rectangle and foot anchor, all measured in source pixels. */
+  frameRects?: Array<[number,number,number,number,number,number]>;
+  /** Unnamed source slots retain original-art inspection instead of fabricated poses. */
+  unmappedFrames?: number[];
+  /** Optional denser HD cycles; the first sourceFrames slots remain inspector-compatible. */
+  sourceFrames?: number;
+  motionSequences?: Record<string,{start:number;count:number;duration:number;distance?:number;once:boolean}>;
+  hdMotion?: 'infantry' | 'vehicle' | 'building';
   src: string; width: number; height: number; frameWidth: number; frameHeight: number;
   frames: number; columns: number; anchorX: number; anchorY: number; remapMaskSrc?: string; sequences?: Record<string, [number,number,number]>; facings?: number; foundation?: [number,number]; kind?: string;
+}
+/** One sampler for regular grids and tightly packed frame-by-frame remasters. */
+export function spriteFrame(sprite:Sprite,frame:number){
+ const i=((Math.floor(frame)%sprite.frames)+sprite.frames)%sprite.frames,r=sprite.frameRects?.[i];
+ if(r)return {x:r[0],y:r[1],width:r[2],height:r[3],anchorX:r[4],anchorY:r[5]};
+ return {x:i%(sprite.columns||1)*sprite.frameWidth,y:Math.floor(i/(sprite.columns||1))*sprite.frameHeight,width:sprite.frameWidth,height:sprite.frameHeight,anchorX:sprite.anchorX,anchorY:sprite.anchorY};
 }
 export interface TerrainSprite {src:string;x:number;y:number;width:number;height:number;anchorX:number;anchorY:number}
 export interface AssetManifest {
@@ -65,12 +84,9 @@ export class Assets {
     if (!sprite) return false;
     const image = this.images.get(sprite.src);
     if (!image) return false;
-    const fw = sprite.frameWidth || sprite.width, fh = sprite.frameHeight || sprite.height;
-    const columns = sprite.columns || 1;
+    const f=spriteFrame(sprite,frame);
     const density = Number.isFinite(sprite.pixelRatio) && sprite.pixelRatio! > 0 ? sprite.pixelRatio! : 1;
-    frame = ((Math.floor(frame) % (sprite.frames || 1)) + (sprite.frames || 1)) % (sprite.frames || 1);
-    ctx.drawImage(image, (frame % columns) * fw, Math.floor(frame / columns) * fh, fw, fh,
-      x - (sprite.anchorX ?? fw / 2) * scale / density, y - (sprite.anchorY ?? fh) * scale / density, fw * scale / density, fh * scale / density);
+    ctx.drawImage(image,f.x,f.y,f.width,f.height,x-f.anchorX*scale/density,y-f.anchorY*scale/density,f.width*scale/density,f.height*scale/density);
     return true;
   }
 }

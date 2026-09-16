@@ -204,9 +204,12 @@ runtime samples and their checksums are in [`assets/hd/`](assets/hd/README.md).
 No Codex workspace directory is required. The Canvas page uses the actual game
 `GameEngine`, `Assets`, and `BattlefieldRenderer` with optional 4× sprite density.
 
-The Canvas scene contains four baked sample types. Arbitrary GLBs imported on the
-3D page do not automatically become game sprites. Walking, firing and death
-animations are not included in these static/heading samples.
+The branch ships four optimized GLBs (about 30K triangles each, 1K WebP textures)
+and their baked sprites; no LFS download is required. The Canvas scene contains four baked sample types. Arbitrary GLBs imported on the
+3D page do not automatically become game sprites. The preview includes procedural Tanya walking/firing/hit frames, vehicle recoil,
+combat/repair effects, enemy targets, pause/slow motion and masked team colors.
+The GLBs remain static; full skeletal animation, separate turrets/tracks and
+character death clips are not included.
 
 Original-art comparison uses optional local `.cache/ra2-assets-rebuild-result/assets`.
 Without it, authored HD sprites still work with the engine's terrain fallback and
@@ -222,7 +225,20 @@ Browser checks (server running, local Chrome installed):
 ```sh
 node tools/glb-compare/test-integrated.mjs
 node tools/canvas-hd-preview/verify.mjs
+node tools/canvas-hd-preview/test-actions.mjs
+node --test tools/canvas-hd-preview/procedural-poses.test.mjs
 ```
 
 The first check also supports a cache-free checkout. The second needs original art
 for its before/after screenshots. Results go to ignored `.cache/viewer-tests/`.
+
+### Tanya skeletal action preview
+
+Run `npm run viewer:motion` with `RA2_ORIGINAL_ASSETS` pointing to installed original
+assets, then open port 4179. The 3D viewer compares authored skeletal poses against
+original SHP frames; `/canvas/` displays the baked result on original terrain beside
+the original unit. The model has 24 joints and 28 clips (including aliases and two water transitions), with
+standing/prone/water shooting, crawl, down/up, swimming/treading, idle, death,
+parachute and cheer sequences. Poses are reconstructed references, not exact
+recovery of the source 3D animation. See [motion tooling](tools/tanya-motion/README.md)
+and run `npm run motion:test` for the delivered motion/mapping checks.

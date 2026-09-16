@@ -28,7 +28,7 @@ async function load(e,source){try{if(e.removed)return;const buffer=await read(so
 // SHA-256 also works on plain HTTP LAN addresses without Web Crypto.
 async function hash(buffer){return globalThis.sha256(buffer);}
 function add(source,name){if(entries.length>=6){notice('最多显示 6 个模型，请先移除一个。');return;}const e=card(name);e.localFile=source instanceof File;if(e.localFile)e.card.querySelector(".title").dataset.userText="";refresh();chain=chain.then(()=>load(e,source));}
-$('#add').onclick=()=>{replaceId=null;$('#files').multiple=true;$('#files').click();};$('#files').onchange=ev=>{if(replaceId){const old=entries.find(e=>e.id===replaceId);if(old)remove(old);}for(const f of ev.target.files)add(f,f.name);ev.target.value='';replaceId=null;};$('#demo').onclick=()=>{for(const [url,name] of [['low','精简 · 3 万面'],['draco','Draco · 20 万面'],['webp','WebP · 8 万面']])add('/samples/'+url,name);};$('#fit').onclick=fit;$('#reference').onchange=ev=>{reference=ev.target.value;fit();};$('#sync').onchange=()=>{if($('#sync').checked){const e=entries.find(x=>x.id===reference)||entries[0];if(e)syncFrom(e);}};$('#scroll').onchange=()=>{document.body.classList.toggle('scrolling',$('#scroll').checked);for(const e of entries)e.controls.enabled=!$('#scroll').checked;};document.addEventListener('dragover',e=>e.preventDefault());document.addEventListener('drop',e=>{e.preventDefault();for(const f of e.dataTransfer.files)add(f,f.name);});addEventListener('resize',invalidate);addEventListener('scroll',invalidate,{passive:true});new ResizeObserver(invalidate).observe($('#grid'));renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();notice('图形上下文丢失，请刷新并减少模型数量。');});
+$('#add').onclick=()=>{replaceId=null;$('#files').multiple=true;$('#files').click();};$('#files').onchange=ev=>{if(replaceId){const old=entries.find(e=>e.id===replaceId);if(old)remove(old);}for(const f of ev.target.files)add(f,f.name);ev.target.value='';replaceId=null;};$('#demo').onclick=()=>{for(const [url,name] of [['low','天启坦克 · 精简版'],['tanya','谭雅 · 精简版'],['yard','盟军建造厂 · 精简版'],['reactor','苏军核电站 · 精简版']])add('/samples/'+url,name);};$('#fit').onclick=fit;$('#reference').onchange=ev=>{reference=ev.target.value;fit();};$('#sync').onchange=()=>{if($('#sync').checked){const e=entries.find(x=>x.id===reference)||entries[0];if(e)syncFrom(e);}};$('#scroll').onchange=()=>{document.body.classList.toggle('scrolling',$('#scroll').checked);for(const e of entries)e.controls.enabled=!$('#scroll').checked;};document.addEventListener('dragover',e=>e.preventDefault());document.addEventListener('drop',e=>{e.preventDefault();for(const f of e.dataTransfer.files)add(f,f.name);});addEventListener('resize',invalidate);addEventListener('scroll',invalidate,{passive:true});new ResizeObserver(invalidate).observe($('#grid'));renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();notice('图形上下文丢失，请刷新并减少模型数量。');});
 window.__viewer={entries,cache,renderer,add,fit,ready:()=>chain,stats:()=>entries.map(e=>({name:e.name,triangles:e.asset?.triangles,extensions:e.asset?.extensions,position:e.camera.position.toArray(),target:e.controls.target.toArray(),error:e.status.textContent}))};invalidate();
 
 // Match the game's English / 中文 control, browser-language detection and saved key.
@@ -38,7 +38,11 @@ const english = {
   'GLB 对比台': 'GLB Compare',
   'WebP · 8 万面': 'WebP · 80K triangles',
   '同一视角，细看差异。': 'One viewpoint. See the difference.',
-  '载入坦克示例': 'Load tank examples',
+  '载入模型示例': 'Load model examples',
+  '天启坦克 · 精简版': 'Apocalypse tank · optimized',
+  '谭雅 · 精简版': 'Tanya · optimized',
+  '盟军建造厂 · 精简版': 'Construction yard · optimized',
+  '苏军核电站 · 精简版': 'Nuclear reactor · optimized',
   '＋ 添加 GLB': '+ Add GLB',
   '同步视角': 'Sync cameras',
   '重置 / 适配': 'Reset / Fit',

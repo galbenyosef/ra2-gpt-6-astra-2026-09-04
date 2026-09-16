@@ -1,0 +1,30 @@
+// Synchronized SHP frame / real skinned GLB inspection. No game simulation here.
+import {teamMaterial} from './team-material.mjs';
+import {actionNotes} from './action-keys.mjs';
+import {crawlLabels} from './crawl-keys.mjs';
+import * as T from 'three';import{GLTFLoader}from'three/addons/loaders/GLTFLoader.js';import{OrbitControls}from'three/addons/controls/OrbitControls.js';
+import{sequences,labels,fps,isOnce,sourceFrame,sourceFacing,sourcePhase}from'./catalog.mjs';import{bakeAtlas}from'./bake-atlas.mjs';
+const swimKeys=['外划','收臂','前送','伸展','外展抓水','向外划水'];
+const $=id=>document.getElementById(id),stage=$('stage'),renderer=new T.WebGLRenderer({antialias:true,alpha:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));stage.append(renderer.domElement);
+const scene=new T.Scene();scene.background=new T.Color('#20262c');scene.add(new T.HemisphereLight(0xe8efff,0x4d5560,2));const sun=new T.DirectionalLight(0xfff5e8,2.4);sun.position.set(3,5,4);scene.add(sun);const camera=new T.OrthographicCamera(-1,1,1,-1,.01,100),controls=new OrbitControls(camera,renderer.domElement);controls.target.set(0,.8,0);const group=new T.Group();scene.add(group);
+const source=new Image();source.src='/original-tanya.png';await source.decode();
+const gltf=await new GLTFLoader().loadAsync('/tanya-actions.glb');group.add(gltf.scene);const cloth=[];gltf.scene.traverse(o=>{if(o.isMesh){const c=teamMaterial(o.material,$('team-color').value);o.material=c.material;cloth.push(c);}});$('team-color').oninput=()=>cloth.forEach(c=>c.setColor($('team-color').value));const mixer=new T.AnimationMixer(gltf.scene),clips=Object.fromEntries(gltf.animations.map(c=>[c.name,c]));let action,phase=0,age=0,playing=true,smooth=true;
+const helper=new T.SkeletonHelper(gltf.scene);helper.visible=false;group.add(helper);
+const shown=Object.keys(labels).filter(n=>!['guard','panic','die3','die4','die5'].includes(n));$('action').replaceChildren(...shown.map(n=>new Option(labels[n],n)));$('action').value='swim';$('facing').replaceChildren(...['北','西北','西','西南','南','东南','东','东北'].map((n,i)=>new Option(n,String(i))));$('facing').value='2';
+const referenceCache=new Map();
+function referenceBounds(name,dir){
+ const key=name+':'+dir;if(referenceCache.has(key))return referenceCache.get(key);
+ const c=document.createElement('canvas');c.width=130;c.height=110;const x=c.getContext('2d',{willReadFrequently:true});let l=130,t=110,r=0,b=0;
+ for(let f=0;f<sequences[name][1];f++){const i=sourceFrame(name,dir,f);x.clearRect(0,0,130,110);x.drawImage(source,i%16*130,Math.floor(i/16)*110,130,110,0,0,130,110);const p=x.getImageData(0,0,130,110).data;for(let y=0;y<110;y++)for(let a=0;a<130;a++)if(p[(y*130+a)*4+3]>0){l=Math.min(l,a);r=Math.max(r,a);t=Math.min(t,y);b=Math.max(b,y);}}
+ const box=r>=l?{x:l-2,y:t-2,w:r-l+5,h:b-t+5}:{x:0,y:0,w:130,h:110};referenceCache.set(key,box);return box;
+}
+function view(){const h=['crawl','prone','fireprone','swim'].includes($('action').value)?.18:.8;camera.position.set(3,3*Math.sqrt(2/3)+h,3);controls.target.set(0,h,0);controls.update();}
+function select(){phase=0;age=0;view();if(action)action.stop();action=mixer.clipAction(clips[$('action').value]);action.reset().setLoop(isOnce($('action').value)?T.LoopOnce:T.LoopRepeat,Infinity).play();action.clampWhenFinished=true;$('seek').max=sequences[$('action').value][1]-1;sample();}
+function sample(){const name=$('action').value,count=sequences[name][1],step=Math.min(count-1,Math.floor(phase*count+1e-5)),dir=Number($('facing').value);action.paused=false;action.enabled=true;mixer.setTime(playing&&smooth?phase*clips[name].duration:sourcePhase(name,step)*clips[name].duration);gltf.scene.updateMatrixWorld(true);group.rotation.y=-3*Math.PI/4+dir*Math.PI/4;
+ const index=sourceFrame(name,dir,step),ctx=$('reference').getContext('2d');ctx.clearRect(0,0,390,330);ctx.imageSmoothingEnabled=false;const box=referenceBounds(name,dir);const zoom=Math.min(370/box.w,280/box.h);ctx.drawImage(source,index%16*130+box.x,Math.floor(index/16)*110+box.y,box.w,box.h,(390-box.w*zoom)/2,(330-box.h*zoom)/2,box.w*zoom,box.h*zoom);$('seek').value=step;$('readout').textContent=`24 骨骼 · ${labels[name]} · ${step+1}/${count} · ${clips[name].duration.toFixed(2)} 秒 · SHP ${index}${name==='crawl'?' · '+crawlLabels[step]:name==='swim'?' · '+swimKeys[step]:''}`;$('action-note').textContent=actionNotes[name]||'';$('source').textContent=`原版帧 ${index}，${sequences[name][2]?'8 朝向':'单朝向参考'}；按动作周期对照源帧，高清插值播放。`;}
+$('action').onchange=()=>{const n=$('action').value;if(!sequences[n][2])$('facing').value=sourceFacing(n);select();};$('facing').onchange=sample;$('play').onclick=()=>{playing=!playing;age=phase*clips[$('action').value].duration;$('play').textContent=playing?'暂停':'播放';};$('seek').oninput=()=>{playing=false;$('play').textContent='播放';phase=sourcePhase($('action').value,Number($('seek').value));sample();};$('interpolation').onclick=()=>{smooth=!smooth;$('interpolation').textContent=smooth?'平滑播放':'原帧步进';sample();};$('bones').onclick=()=>helper.visible=!helper.visible;$('view').onclick=view;
+if(!['127.0.0.1','localhost'].includes(location.hostname))$('bake').hidden=true;
+$('bake').onclick=async()=>{playing=false;$('play').textContent='播放';$('bake').disabled=true;try{const result=await bakeAtlas(gltf,t=>$('bake-status').textContent=t);$('bake-status').textContent=result;}catch(e){$('bake-status').textContent=String(e);}finally{$('bake').disabled=false;select();}};
+view();select();let last=performance.now();function draw(now){requestAnimationFrame(draw);const dt=Math.min((now-last)/1000,.05)*Number($('speed').value);last=now;if(playing){const name=$('action').value,duration=clips[name].duration;age+=dt;phase=Math.min((age%(duration+(isOnce(name)?.75:0)))/duration,.999999);sample();}const w=stage.clientWidth,h=stage.clientHeight;renderer.setSize(w,h,false);const half=Math.max(1.13,1.35*h/w);camera.left=-half*w/h;camera.right=half*w/h;camera.top=half;camera.bottom=-half;camera.updateProjectionMatrix();renderer.render(scene,camera);}requestAnimationFrame(draw);
+
+window.__motion={gltf,cloth,mixer,clips,sample,select,renderer,camera,group,get phase(){return phase;}};

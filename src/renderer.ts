@@ -1,12 +1,16 @@
 import { t } from './i18n';
+import { spriteAnimation, spriteFacing, unitIsMoving } from './sprite-animation';
+import { drawHDCombatEffect, drawHDGroundMotion } from './hd-effects';
 import type { GameEngine, Entity, Definition, GameMap, Point } from './game';
 import { getDefinition, PLAYER_COLORS } from './game';
-import type { Assets, Sprite } from './assets';
+import { spriteFrame, type Assets, type Sprite } from './assets';
 import { projectTile, TerrainPainter, unprojectPoint } from './terrain-painter';
 import { compileCustomTerrain, type ResolvedTerrainCell } from './custom-terrain';
 import { nativeTerrainCatalog } from './maps';
 
 export type RenderMap = GameMap & {
+  resolvedTerrain?: readonly ResolvedTerrainCell[];
+  groundBase?: {tileId:number;subTile:number;theater:string};
   layout?: 'rectangular';
   tiles?: { x: number; y: number; tileId: number; subTile: number; theater?: string; elevation?: number; z?: number; overlay?: number; overlayFrame?: number }[];
   tileIds?: Int32Array | number[]; elevations?: Uint8Array | number[]; radarColors?: Uint32Array | number[];
@@ -44,12 +48,17 @@ export class BattlefieldRenderer {
   private worldBounds: WorldRect;
   private time = 0;
   edgeScroll = true;
+  hdEffects = false;
+  // Optional authored preview presentation; absent in normal games.
+  comparisonEntities: Entity[] = [];
+  entityPresentation?: (entity:Entity) => {sprite?:Sprite;frame?:number;action?:string;animationPhase?:number;label?:string;height?:number;swimming?:boolean;lean?:number}|undefined;
+  worldGround?: (ctx:CanvasRenderingContext2D) => void;
   constructor(public canvas: HTMLCanvasElement, public game: GameEngine, public map: RenderMap, public assets: Assets, private hooks: RendererHooks, public localId = 0) {
     this.terrainPainter = new TerrainPainter(assets);
     // Native maps may contain missing tile IDs; only editor documents need compilation.
-    this.nativeTerrain = map.layout === 'rectangular'
+    this.nativeTerrain = map.resolvedTerrain ?? (map.layout === 'rectangular'
       ? compileCustomTerrain({ width: map.width, height: map.height, theater: map.theater ?? 'temperate', cells: map.cells }, nativeTerrainCatalog())
-      : [];
+      : []);
     this.ctx = canvas.getContext('2d', { alpha: false })!;
     for (const tile of map.tiles || []) this.tileLookup.set(tile.y * map.width + tile.x, tile);
     this.worldBounds = this.calculateBounds();
@@ -181,7 +190,7 @@ export class BattlefieldRenderer {
     let nearest: Entity | undefined;
     for (let i = this.game.entities.length - 1; i >= 0; i--) {
       const e = this.game.entities[i]; if (e.hp <= 0 || e.transportedBy || !this.game.visible(this.localId, e.x, e.y)) continue;
-      const p = this.toScreen(e.x, e.y), def = getDefinition(e.type);
+      const p = this.toScreen(e.x, e.y), def = getDefinition(e.type);p.y-=(this.entityPresentation?.(e)?.height||0)*this.zoom;
       const box = this.displayedSprites.get(e.id);
       if (e.kind === 'building' && box && x > box.x + box.w * .15 && x < box.x + box.w * .85 && y > box.y + box.h * .3 && y < box.y + box.h * .92) return e;
       const r = (def.category === 'infantry' ? 11 : def.naval ? 28 : 20) * this.zoom;
@@ -212,6 +221,7 @@ export class BattlefieldRenderer {
     const x1 = Math.max(0, Math.floor(Math.min(...corners.map(p => p.x)))), x2 = Math.min(this.map.width - 1, Math.ceil(Math.max(...corners.map(p => p.x))));
     const y1 = Math.max(0, Math.floor(Math.min(...corners.map(p => p.y)))), y2 = Math.min(this.map.height - 1, Math.ceil(Math.max(...corners.map(p => p.y))));
     ctx.save(); ctx.translate(this.width / 2, this.height / 2); ctx.scale(this.zoom, this.zoom); ctx.translate(-this.camera.x, -this.camera.y);
+    if(this.map.groundBase)for(let y=y1;y<=y2;y++)for(let x=x1;x<=x2;x++){if(this.map.cells[y*this.map.width+x]==='void'||!this.game.explored(this.localId,x,y))continue;const p=this.project(x,y);this.terrainPainter.drawNativeTile(ctx,this.map.groundBase,this.map.groundBase.theater,p.x,p.y);}
     for (let sum = x1 + y1; sum <= x2 + y2; sum++) for (let x = x1; x <= x2; x++) {
       const y = sum - x; if (y < y1 || y > y2) continue;
       const idx = y * this.map.width + x, terrain = this.map.cells[idx]; if (!terrain || terrain === 'void') continue;
@@ -247,6 +257,7 @@ export class BattlefieldRenderer {
         this.terrainPainter.drawResources(ctx,p.x,p.y,x,y,terrain==='gem');
       }
     }
+    this.worldGround?.(ctx);
     this.displayedSprites.clear();
     const objects: {sort:number;draw:()=>void}[]=[];
     for(const obj of [...this.map.terrainObjects || [],...this.map.structures || []]) {
@@ -257,7 +268,7 @@ export class BattlefieldRenderer {
       const p=this.project(x,y);p.y-=this.elevation(obj.x,obj.y)*15;
       objects.push({sort:x+y+fh*.3,draw:()=>this.terrainPainter.drawOverlay(ctx,sprite,p.x,p.y)});
     }
-    for(const entity of this.game.entities){if(entity.hp<=0||entity.transportedBy||!this.onScreen(entity.x,entity.y)||!(entity.kind==='building'?this.game.explored(this.localId,entity.x,entity.y):this.game.visible(this.localId,entity.x,entity.y)))continue;
+    for(const entity of [...this.game.entities,...this.comparisonEntities]){if(entity.hp<=0||entity.transportedBy||!this.onScreen(entity.x,entity.y)||!(entity.kind==='building'?this.game.explored(this.localId,entity.x,entity.y):this.game.visible(this.localId,entity.x,entity.y)))continue;
       objects.push({sort:entity.x+entity.y+(getDefinition(entity.type).flying?12:0),draw:()=>this.drawEntity(ctx,entity)});
     }
     objects.sort((a,b)=>a.sort-b.sort);for(const obj of objects)obj.draw();
@@ -265,6 +276,7 @@ export class BattlefieldRenderer {
       if (!this.game.visible(this.localId, effect.x, effect.y)) continue;
       const p = this.project(effect.x, effect.y); p.y -= this.elevation(effect.x, effect.y) * 15;
       const t = effect.age / effect.duration;
+      if (this.hdEffects && drawHDCombatEffect(ctx, effect, p, this.game, (x,y) => {const q=this.project(x,y);q.y-=this.elevation(x,y)*15;return q;})) continue;
       if (effect.kind === 'shot' && effect.toX != null && effect.toY != null) {
         const target = this.project(effect.toX, effect.toY); target.y -= this.elevation(effect.toX, effect.toY) * 15;
         const t1 = Math.max(0, t - .18), t2 = Math.min(1, t + .08);
@@ -304,10 +316,11 @@ export class BattlefieldRenderer {
   private spriteKey(def: Definition) { const snow = `${def.sprite}-snow`; return this.map.theater?.toLowerCase() === 'snow' && this.assets.sprite(snow) ? snow : def.sprite; }
   private drawEntity(ctx: CanvasRenderingContext2D, e: Entity) {
     const def = getDefinition(e.type), p = this.project(e.x-(e.kind==='building'?.5:0), e.y-(e.kind==='building'?.5:0)); p.y -= this.elevation(e.x, e.y) * 15;
+    const presentation=this.entityPresentation?.(e);p.y-=presentation?.height||0;
     const color = this.game.players.find(v => v.id === e.owner)?.color || PLAYER_COLORS[e.owner % PLAYER_COLORS.length] || '#898d86';
     const selected = this.selection.has(e.id), hovered = this.hoverEntity?.id === e.id;
     const flying = def.flying ? 45 + Math.sin(this.time * 3 + e.id) * 2 : 0;
-    const spriteKey = e.type==='ifv'&&e.turretIndex!=null?`fv-turret${e.turretIndex}`:this.spriteKey(def), sprite = this.assets.sprite(spriteKey) || this.assets.scenery[`${this.map.theater}:${def.sprite.toLowerCase()}`];
+    const spriteKey = e.type==='ifv'&&e.turretIndex!=null?`fv-turret${e.turretIndex}`:this.spriteKey(def), sprite = presentation?.sprite || this.assets.sprite(spriteKey) || this.assets.scenery[`${this.map.theater}:${def.sprite.toLowerCase()}`];
     const shadowW = def.kind === 'building' ? 0 : def.category === 'infantry' ? 5 : def.naval ? 30 : 15;
     if(shadowW){ctx.fillStyle='#00100a44';ctx.beginPath();ctx.ellipse(p.x+flying*.2,p.y+3,shadowW,shadowW*.4,0,0,Math.PI*2);ctx.fill();}
     if(selected){ctx.strokeStyle='#91ef75';ctx.lineWidth=1;ctx.beginPath();ctx.ellipse(p.x,p.y,def.kind==='building'?(def.size?.[0]||2)*23:shadowW+3,def.kind==='building'?(def.size?.[1]||2)*11:8,0,0,Math.PI*2);ctx.stroke();}
@@ -317,21 +330,37 @@ export class BattlefieldRenderer {
       if (image) {
         fw = sprite.frameWidth; fh = sprite.frameHeight; ax = sprite.anchorX; ay = sprite.anchorY;
         let frame = 0;
-        const moving = e.path.length > 0;
+        const moving = sprite.hdMotion ? unitIsMoving(e,this.game.time) : e.path.length > 0;
         if (def.kind === 'unit' && sprite.frames > 1) {
-          const angle = ((e.angle / (Math.PI * 2)) % 1 + 1) % 1;
-          if (sprite.sequences) { const direction=Math.floor(angle*8)%8; const action=e.deployed?'deployed':this.game.time-e.lastShot<.5?'fireup':moving?'walk':'ready'; const seq=sprite.sequences[action]||sprite.sequences.ready||[0,1,1];frame=seq[0]+direction*seq[2]+Math.floor(this.time*12)%seq[1]; }
-          else frame = Math.round(angle * sprite.frames) % sprite.frames;
+          if (sprite.sequences) { frame=spriteAnimation(sprite,e,this.game.time).frame; }
+          else frame = spriteFacing(sprite,e.angle);
         }
+        if(presentation?.frame!=null)frame=presentation.frame;
+        const sample=spriteFrame(sprite,frame);fw=sample.width;fh=sample.height;ax=sample.anchorX;ay=sample.anchorY;
         const density = Number.isFinite(sprite.pixelRatio) && sprite.pixelRatio! > 0 ? sprite.pixelRatio! : 1;
         // Sample the full-resolution frame, but keep world size, anchors and hit bounds logical.
         const sourceWidth = fw, sourceHeight = fh;
         fw /= density; fh /= density; ax /= density; ay /= density;
         const smoothing = ctx.imageSmoothingEnabled;
         if (density > 1) ctx.imageSmoothingEnabled = true;
-        ctx.drawImage(image,(frame%sprite.columns)*sourceWidth,Math.floor(frame/sprite.columns)*sourceHeight,sourceWidth,sourceHeight,p.x-ax,p.y-ay-flying,fw,fh);
+        const hdMotion=this.hdEffects && sprite.hdMotion;
+        if(hdMotion){
+          drawHDGroundMotion(ctx,e,p,this.game.time);
+          ctx.save();
+          const shotAge=this.game.time-e.lastShot, hitAge=this.game.time-(e.lastHit??-Infinity);
+          if(sprite.hdMotion==='vehicle'){
+            const recoil=shotAge>=0&&shotAge<.24?Math.sin(shotAge/.24*Math.PI)*2.5:0;
+            ctx.translate(-Math.cos(e.angle)*recoil, (moving?Math.sin(this.game.time*26+e.id)*.65:0)-Math.sin(e.angle)*recoil*.5);
+          }
+          if(hitAge>=0&&hitAge<.16)ctx.filter='brightness(1.7) saturate(.6)';
+        }
+        if(presentation?.lean){ctx.save();ctx.translate(p.x,p.y);ctx.rotate(presentation.lean);ctx.translate(-p.x,-p.y);}
+        ctx.drawImage(image,sample.x,sample.y,sourceWidth,sourceHeight,p.x-ax,p.y-ay-flying,fw,fh);
+        if(presentation?.lean)ctx.restore();
+
+        if(hdMotion)ctx.restore();
         ctx.imageSmoothingEnabled = smoothing; rendered = true;
-        const screen = this.toScreen(e.x,e.y); this.displayedSprites.set(e.id,{x:screen.x-ax*this.zoom,y:screen.y-(ay+flying)*this.zoom,w:fw*this.zoom,h:fh*this.zoom});
+        const screen = this.toScreen(e.x,e.y); this.displayedSprites.set(e.id,{x:screen.x-ax*this.zoom,y:screen.y-(ay+flying+(presentation?.height||0))*this.zoom,w:fw*this.zoom,h:fh*this.zoom});
       }
     }
     if(!rendered){this.drawFallbackUnit(ctx,p.x,p.y-flying,e,def,color);}
@@ -342,12 +371,14 @@ export class BattlefieldRenderer {
       ctx.fillStyle=e.hp/e.maxHp>.5?'#78dd49':e.hp/e.maxHp>.25?'#f8d947':'#e84c30';ctx.fillRect(p.x-barW/2,by,barW*e.hp/e.maxHp,3);
       if(e.veteran>0){ctx.fillStyle='#f5e17c';ctx.font='bold 9px Tahoma';ctx.fillText('★'.repeat(Math.min(3,e.veteran)),p.x+barW/2+3,by+4);}
     }
+    if(presentation?.label){ctx.save();ctx.font='9px sans-serif';ctx.textAlign='center';ctx.fillStyle=e.id<0?'#f4d391':'#c8f4d5';ctx.strokeStyle='#16241e';ctx.lineWidth=2;ctx.strokeText(presentation.label,p.x,p.y+16);ctx.fillText(presentation.label,p.x,p.y+16);ctx.restore();}
     if(e.controlledBy){const controller=this.game.entities.find(v=>v.id===e.controlledBy);if(controller&&this.onScreen(controller.x,controller.y)){const cp=this.project(controller.x,controller.y);cp.y-=this.elevation(controller.x,controller.y)*15;ctx.strokeStyle='#cd79f782';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(cp.x,cp.y-15);ctx.lineTo(p.x,p.y-15);ctx.stroke();}}
     if(e.bomb){ctx.fillStyle='#ffbe70';ctx.font='bold 10px Consolas';ctx.textAlign='center';ctx.fillText(`● ${Math.max(0,Math.ceil(e.bomb.detonatesAt-this.game.time))}`,p.x,p.y-ay*.65-14);}
     if(e.repairing){ctx.fillStyle='#a8f686';ctx.font='bold 15px Tahoma';ctx.fillText('+',p.x-5,p.y-ay*.75-8);}
     if(e.invulnerableUntil && e.invulnerableUntil>this.game.time){ctx.strokeStyle='#f95046';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(p.x,p.y-flying-12,24,24,0,0,Math.PI*2);ctx.stroke();}
     if(e.hp < e.maxHp*.4 && def.kind==='building'){const phase=(this.time*15+e.id)%25;ctx.globalAlpha=.4;ctx.fillStyle='#343432';ctx.beginPath();ctx.arc(p.x+5,p.y-ay*.5-phase,5+phase*.15,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
   }
+  clearSpriteColors() { for(const canvas of this.tinted.values()){canvas.width=1;canvas.height=1;}this.tinted.clear(); }
   private coloredSprite(sprite: Sprite, color: string): CanvasImageSource | undefined {
     const original = this.assets.images.get(sprite.src);if(!original)return;
     const key=sprite.src+color;const existing=this.tinted.get(key);if(existing)return existing;
