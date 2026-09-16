@@ -14,6 +14,9 @@ export interface Sprite {
   frameRects?: Array<[number,number,number,number,number,number]>;
   /** Unnamed source slots retain original-art inspection instead of fabricated poses. */
   unmappedFrames?: number[];
+  /** Optional denser HD cycles; the first sourceFrames slots remain inspector-compatible. */
+  sourceFrames?: number;
+  motionSequences?: Record<string,{start:number;count:number;duration:number;distance?:number;once:boolean}>;
   hdMotion?: 'infantry' | 'vehicle' | 'building';
   src: string; width: number; height: number; frameWidth: number; frameHeight: number;
   frames: number; columns: number; anchorX: number; anchorY: number; remapMaskSrc?: string; sequences?: Record<string, [number,number,number]>; facings?: number; foundation?: [number,number]; kind?: string;

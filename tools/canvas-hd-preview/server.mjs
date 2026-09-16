@@ -6,7 +6,7 @@ const root=path.dirname(fileURLToPath(import.meta.url));
 export async function createCanvasPreview({base='/',httpServer,repo=process.env.RA2_REPO||path.resolve(root,'../..')}={}){
  const require=createRequire(path.join(repo,'package.json'));const {createServer}=await import(pathToFileURL(require.resolve('vite')).href);
  const threeRoot=path.dirname(path.dirname(require.resolve('three')));
- const art=path.join(repo,'assets/hd');const sprites=JSON.parse(readFileSync(path.join(art,'sprites/manifest.json'),'utf8'));
+ const art=path.resolve(repo,process.env.RA2_HD_ASSETS||'assets/hd');const sprites=JSON.parse(readFileSync(path.join(art,'sprites/manifest.json'),'utf8'));
  const original=process.env.RA2_ORIGINAL_ASSETS||path.join(repo,'.cache/ra2-assets-rebuild-result/assets');
  const modelRoot=process.env.RA2_MODEL_DIR;
  const models=Object.fromEntries(Object.entries({mtnk:'apocalypse-tank',tany:'tanya',gacnst:'allied-construction-yard',nanrct:'soviet-nuclear-power-plant'}).map(([id,asset])=>[id,modelRoot?path.join(modelRoot,asset,asset+'.glb'):path.join(art,'models',asset,'30k.glb')]));

@@ -14,7 +14,7 @@
 - `source-to-hd.md`：真实源图、通用参考提示词和输入记录。
 - `meshy-generation.md`：生成任务、恢复和文件检查。
 - `runtime-optimization.md`：预算、贴图、Canvas 投影和留存边界。
-- `animation-and-team-colors.md`：步兵／机械分类、换色及同地图循环验收。
-- `skeletal-motion.md`：双足绑定、SHP 参考摆姿、轨迹与计时验证。
-- `tanya-motion-example.md`：已提交工具的复现入口、覆盖与迁移参数。
+- `animation-and-team-colors.md`：步兵／机械分类、服装选区与换色、同地图循环验收。
+- `skeletal-motion.md`：逐源帧姿势与持物证据、骨骼适配、插值和计时验证。
+- `tanya-motion-example.md`：首版基线、匍匐试验的复现入口、覆盖与迁移参数。
 - `blender-reconstruction.md`、`powerplant-example.md` 及电厂提示词／清单：按需的历史手工重建记录，不覆盖当前默认流程。

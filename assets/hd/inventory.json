@@ -78,8 +78,8 @@
     },
     {
       "file": "models/tanya/motion-manifest.json",
-      "bytes": 2131,
-      "sha256": "6a64dc9bf32613906cadaa60c21e14fcc1ea1ba3459005e5cb732bc94857caf7"
+      "bytes": 4751,
+      "sha256": "1e9d301421de4adc42223383e702193b10dec86ce3e9f673899c6fd18a39cc05"
     },
     {
       "file": "models/tanya/prompt.txt",
@@ -88,8 +88,8 @@
     },
     {
       "file": "models/tanya/tanya-actions.glb",
-      "bytes": 3450396,
-      "sha256": "d68658cc91a5862ac57c377f5dd5f5297248123cb665c47aeb11d05e6eb7f7ce"
+      "bytes": 4490408,
+      "sha256": "ec5145fe326f2e6b7fddb412fc010af26409f1b1d41e8d56bd13262c1b2ca404"
     },
     {
       "file": "sprites/gacnst-remap.png",
@@ -103,8 +103,8 @@
     },
     {
       "file": "sprites/manifest.json",
-      "bytes": 71941,
-      "sha256": "8ca2d151a915ad011656a155b2aababfb6646cf5b23d8ad9d91f4a945aa2959b"
+      "bytes": 159620,
+      "sha256": "c2a90f523113ad8dc18cec463515512de95881cbeefa9b0b0b69c586aa104eb9"
     },
     {
       "file": "sprites/mtnk-remap.png",
@@ -138,14 +138,14 @@
     },
     {
       "file": "sprites/tany-remap.png",
-      "bytes": 113036,
-      "sha256": "02fc36678dd054b19c458e74305b9d06523523d9c0b190c856785f37b23535cd"
+      "bytes": 2620878,
+      "sha256": "2df3550a72218831320f5d2b7f5cf88a164131f8816f1348b4a2d1f23089c72a"
     },
     {
       "file": "sprites/tany.png",
-      "bytes": 2969333,
-      "sha256": "b589f291c513651cb99e570d284498ca03faafdd4997459875b1277e259ead25"
+      "bytes": 12324738,
+      "sha256": "5ef34033410b7d933a6df1879125b58c05a894bac8eccbdf8dd1d1a9e8d0010d"
     }
   ],
-  "totalBytes": 20247278
+  "totalBytes": 38785594
 }

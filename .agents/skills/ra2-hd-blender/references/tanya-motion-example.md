@@ -1,6 +1,6 @@
-# 谭雅：已验证的骨骼与 SHP 对照实例
+# 谭雅骨骼与 SHP 对照实例
 
-基线 commit `be3a333` 的第一版动作重建，用于说明适配方式及边界。下列路径相对仓库根目录；缓存需另行定位，不随 checkout 提供。
+基线 `be3a333` 与匍匐试验的适配记录。路径相对仓库根；缓存不随 checkout 提供。
 
 ## 证据与复现入口
 
@@ -8,14 +8,14 @@
 | --- | --- |
 | `tools/tanya-motion/README.md` | 运行、输入与输出说明 |
 | `catalog.mjs`（同目录） | TanyaSequence 帧表、固定方向、12 fps、一次性状态 |
-| `poses.mjs` | 复用跑步 clip，按参考设骨骼目标／双骨 IK |
+| `poses.mjs` | 骨骼关键姿势、接触步态与双骨 IK |
 | `build.mjs` | 保留共享几何，写多个 clips 和 manifest |
 | `bake-atlas.mjs` | 蒙皮取样、打包 RGBA、随蒙皮的阵营 mask、水线 |
 | `motion.test.mjs` | 骨骼、步态、泳姿／卧射、帧范围和权重检查 |
 | `assets/hd/models/tanya/motion-manifest.json` | 真实输出 hash、大小、clips 与限制 |
 | `tools/canvas-hd-preview/README.md` | 同地图原版对照、循环与帧检查器 |
 
-原 `art.ini` 的 `[TanyaSequence]` 与 SHP 是参考依据。现有本地转换目录为 `.cache/ra2-assets-rebuild-result/assets`，接触表在 `.cache/tanya-frame-rebuild`，输入 rig trial 在 `.cache/prototype-3d/tanya/meshy-rig-v1`。不提交这些原素材、截图、缓存或下载母版。
+依据 `art.ini` 的 `[TanyaSequence]` 与 SHP。本地 `.cache/` 下：转换素材在 `ra2-assets-rebuild-result/assets`，帧表在 `tanya-frame-rebuild`，rig 在 `prototype-3d/tanya/meshy-rig-v1`。这些原素材、截图和母版不入库。
 
 从仓库根运行（使用自己的可用本地路径；若已有服务在运行，不重启它）：
 
@@ -26,19 +26,27 @@ npm run motion:test
 node tools/tanya-motion/build.mjs /path/to/rig-trial .cache/tanya-motion-candidate
 ```
 
-`build.mjs` 读取 `rigged.glb` 和 `running.glb`。检查候选后再登记／替换运行资产；当前查看器加载固定的 Tanya 运行路径，不自动发现候选目录。4179 的 3D 页面可对照原帧，本地 bake 按钮写入 `assets/hd/sprites/` 的 Tanya 图与 manifest；`/canvas/` 在原地图显示。远端页面不能烘焙写文件。
+`build.mjs` 读取 `rigged.glb` 和 `running.glb`；当前选区脚本还需 Python + Pillow，可用 `RA2_PYTHON` 指定解释器。检查候选后再登记运行资产；查看器加载固定路径，不自动发现候选。4179 的 3D 页面可对照原帧，本地 bake 按钮写入 Tanya 图集与 manifest；`/canvas/` 在原地图显示。远端不能烘焙写文件。
 
-**不要直接跑旧 `tools/canvas-hd-preview/bake.mjs` 重建谭雅**：它仍按静态 `30k.glb` 和程序变形出图，会覆盖当前骨骼图集；目前没有防覆盖保护。旧烘焙器可研究其它历史样本，修改输出范围后才用于选定资产。更新运行文件后核对 `assets/hd/inventory.json` 的实际 hash。
+**不要直接跑旧 `tools/canvas-hd-preview/bake.mjs` 重建谭雅**：它用静态 `30k.glb` 出图，会覆盖骨骼图集且无保护。用于其它样本前先限定输出范围。更新资产后核对 `assets/hd/inventory.json` 的 hash。
 
-## 已交付与限制
+## 第一版基线与限制
 
-实测 GLB 为 **29,827 三角面、24 joints、3,450,396 bytes**，单套共享网格／纹理，26 clips 含别名／占位，21 项独立展示动作。支持站射、卧射、匍匐、卧倒／起身、游泳、踩水、水中射击、待机、陆／水死亡、伞降和欢呼；占位不应计为新死亡表演。
+`be3a333` 实测 **29,827 三角面、24 joints、3,450,396 bytes、26 clips**（含别名／占位），21 项展示动作；占位不算新表演。
 
-619 个可见源槽中 515 个有命名覆盖；362–409、458–505、611–618 共 104 槽保持原版检查 fallback。原 SHP 另有对应阴影帧，不混入可见槽计数。水中死亡末段沉水后的透明帧不是缺失动作。
+619 个可见源槽中 515 个有命名覆盖；362–409、458–505、611–618 共 104 槽保留原版 fallback。阴影另计，水中死亡末段透明帧不算缺失。
 
-姿势为 SHP 参照重建，跑步复用 Meshy gait，不是原始骨骼恢复或像素精确拟合。12 fps 是预览时钟；手指和武器掉落未单独绑定，枪仍在蒙皮网格中。绑定输出仅一张纹理，原 normal／roughness 贴图未返回，不声称 PBR 完整保留。
+基线跑步复用 Meshy gait，枪仍在身体网格中。重建不是原始骨骼恢复；12 fps 只是预览时钟。绑定未返回 normal／roughness 贴图，不声称完整保留 PBR。
 
-该基线记录五项 motion 检查通过；旧静态 GLB 负对照使其中四项失败，图集项仍通过。测试剥离材质加载几何，因此不证明贴图外观；基线另做过 3D 与真实 Canvas 地图视觉检查。本次重建复用了已有 Meshy rig，没有新付费生成。
+## 匍匐小范围试验
+
+详见 [原帧证据、实现与验证](../../../../tools/tanya-motion/crawl-reference.md)。`Crawl=86,6,6`，Prone 共用各方向第一帧。检查八方向，六组独立关键姿势保留错开的腿和交替前探／支撑的手臂，再插值。深度仍是推断。
+
+与 W 向 FireProne 的枪口轮廓比较后，本试验仅在 Crawl／Prone 隐藏伸出的手枪；不证明所有方向都空手，也不外推游泳等动作。手仍是闭合握姿，没有新增手指绑定。`mesh-regions.py` 分离道具并写 `_TEAM_MASK`，`team-material.mjs` 共用服装换色与烘焙选区；阈值必须按新模型测量。
+
+复用已有 rig，无新付费任务。该次 **29,827 三角面、24 joints、28 clips**，身体／道具共享属性、UV 和 skin。clip 数含此前水中转换；最新指标以文件和 manifest 为准。
+
+`crawl-reference.test.mjs` 检查六帧不对称、持物和 mask，旧模型三项均失败；`verify-crawl.mjs` 检查浏览器源帧、道具切换、红蓝换色及 48 个 Crawl 区块。匍匐试验当时未覆盖其它动作；后续版本见 [全动作记录](../../../../tools/tanya-motion/action-reference.md)。
 
 ## 迁移到新单位
 
@@ -46,7 +54,8 @@ node tools/tanya-motion/build.mjs /path/to/rig-trial .cache/tanya-motion-candida
 | --- | --- |
 | `catalog.mjs` 的 Tanya 帧表／619 槽 | 该单位 Sequence、别名、未命名区、阴影、事件计时 |
 | `poses.mjs` 的骨骼名、绝对米制目标 | rig 角色映射、rest pose、比例、武器和动作关键姿势 |
-| baker 的 8 朝向／水线／mask 阈值 | 实际方向序、原图锚点、采样密度、制服区域与水线 |
+| `crawl-keys.mjs`、选区与道具隐藏动作 | 逐帧左右姿势、实际持物证据、模型区域与手部限制 |
+| baker 的 8 朝向／水线／mask 阈值 | 方向序、原图锚点、采样密度、制服区域与水线 |
 | `build.mjs` 的来源 task、面数和 joints 常量 | 从新文件实际测量并填真实 provenance |
 | 查看器、清单和预览中的 Tanya 路径与单位 ID | 新资产登记、状态映射和原版对照对象 |
 | tests 中 Tanya 的固定数字与肢体名 | 该单位真实不变量、负对照与视觉验收 |

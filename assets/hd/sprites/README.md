@@ -9,6 +9,9 @@ tanya-actions.glb -> tany.png + tany-remap.png -> manifest.json -> Canvas render
 legacy static models -> mtnk / gacnst / nanrct atlases and masks
 ```
 
-The generated manifest exceeds normal text limits because it stores 619 packed
-rectangles. Tanya's unnamed source slots use original-art inspection; water-death
+The generated manifest exceeds normal text limits because it stores source slots and additional packed HD
+movement rectangles. Tanya's unnamed source slots use original-art inspection; water-death
 end frames can be empty after submerging. No original game artwork is stored here.
+
+The current Tanya atlas includes a faded underwater body pass; terrain and water
+textures remain original. Only the authored torso region participates in remap.

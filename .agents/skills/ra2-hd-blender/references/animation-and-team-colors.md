@@ -11,9 +11,11 @@
 
 ## 阵营色与烘焙
 
-保留独立 remap mask 或材质区域，只改阵营服装／标识，不改皮肤、武器及非阵营图案。骨骼 mask 随蒙皮、机械 mask 随部件移动，并保留亮暗。Tanya 以 rest-space 高度和颜色选区生成的 mask 是特例，新制服不能盲用其阈值。
+按原素材确认阵营服装／标识，保留独立 remap mask 或材质区域；只改指定区域，不把谭雅的背心范围当作所有单位的换色范围。骨骼 mask 随蒙皮、机械 mask 随部件移动，并保留亮暗。
 
-按 [Canvas 烘焙规范](runtime-optimization.md#canvas-2d-验证路径) 输出 action、facing、frame、fps、pixelRatio、锚点、frameRects 和事件映射。裁空白时同步记录每帧锚点；阴影按原映射单独处理。检查多朝向、动作边界、裁切、脚底滑动和换色后 mask 外像素。切色回收旧缓存，报告 PNG 下载大小和解码尺寸，防止多动作图集无限增长。
+几何选区先验证 source rest 坐标与实际蒙皮位置的关系，避免重复应用 armature 缩放后高度阈值失效。结合材质／纹理区分服装和皮肤；Tanya 的躯干权重、位置范围与橄榄色阈值只是实例。3D 换色和 Canvas mask 共用选区与明暗逻辑；自定义 GLB 属性需要消费端材质支持，不能声称任意查看器都会换色。
+
+按 [Canvas 烘焙规范](runtime-optimization.md#canvas-2d-验证路径) 输出 action、facing、frame、fps、pixelRatio、锚点、frameRects 和事件映射。裁空白时同步记录每帧锚点；阴影按原映射单独处理。用实际颜色选择器及玩家颜色检查多朝向、屈身和动作边界：可见服装应有非空 mask，切色后 mask 外像素不变。检查裁切、脚底滑动与缓存回收，报告 PNG 下载大小和解码尺寸。
 
 ## 同地图循环检查
 

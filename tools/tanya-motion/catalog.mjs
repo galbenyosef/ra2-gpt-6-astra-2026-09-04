@@ -4,4 +4,7 @@ export const labels={ready:'待命',guard:'警戒',walk:'跑步',idle1:'待机 1
 export const fps=12;
 export const isOnce=name=>['down','up','die1','die2','wetdie1','wetdie2','paradrop'].includes(name);
 export function sourceFrame(name,direction,step){const [start,count,stride]=sequences[name];return start+direction*stride+Math.min(count-1,Math.max(0,step));}
-export function sourceFacing(name){return {idle1:2,idle2:6,wetidle1:4,wetidle2:6,cheer:6}[name]??0;}
+export function sourceFacing(name){return {idle1:2,idle2:6,wetidle1:4,wetidle2:6,cheer:6,die1:2,die2:6,wetdie1:4,wetdie2:4}[name]??0;}
+
+// A held one-shot endpoint must remain reachable in the source-frame inspector.
+export function sourcePhase(name,step){const count=sequences[name][1];if(name==='down'||name==='up')return (step+1)/3;return step/(isOnce(name)&&count>1?count-1:count);}

@@ -51,7 +51,7 @@ export class BattlefieldRenderer {
   hdEffects = false;
   // Optional authored preview presentation; absent in normal games.
   comparisonEntities: Entity[] = [];
-  entityPresentation?: (entity:Entity) => {sprite?:Sprite;frame?:number;action?:string;label?:string;height?:number;swimming?:boolean;lean?:number}|undefined;
+  entityPresentation?: (entity:Entity) => {sprite?:Sprite;frame?:number;action?:string;animationPhase?:number;label?:string;height?:number;swimming?:boolean;lean?:number}|undefined;
   worldGround?: (ctx:CanvasRenderingContext2D) => void;
   constructor(public canvas: HTMLCanvasElement, public game: GameEngine, public map: RenderMap, public assets: Assets, private hooks: RendererHooks, public localId = 0) {
     this.terrainPainter = new TerrainPainter(assets);

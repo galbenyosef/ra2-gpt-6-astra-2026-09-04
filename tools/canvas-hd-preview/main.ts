@@ -1,3 +1,4 @@
+import {installLocomotion} from './locomotion';
 import {TANYA_SEQUENCES} from './tanya-sequences';
 import {createFrameInspector} from './frame-inspector';
 import { createComparisonPairs } from './comparison-pairs';
@@ -59,6 +60,7 @@ const renderer=new BattlefieldRenderer($('battle') as HTMLCanvasElement,game,map
 let high=true,paused=false,speed=1,retaliating=false,automatic=true;
 let loopLeg=false,nextLoop=0;
 let demos:ReturnType<typeof createMapDemos>|undefined;
+let locomotion:ReturnType<typeof installLocomotion>|undefined;
 let comparisons:ReturnType<typeof createComparisonPairs>|undefined;
 const inspector=createFrameInspector(renderer,()=>actors[7],original.sprites.tany);
 renderer.worldGround=ctx=>drawDemoTerrain(ctx,renderer,game.time);
@@ -98,6 +100,7 @@ function resetScenario(){
   renderer.setSelection([actors[5].id]);
  }
  demos=automatic?createMapDemos(game,renderer,hd.sprites,native.groundHeight):undefined;if(!demos)renderer.entityPresentation=undefined;
+ locomotion=installLocomotion(game,renderer);
  comparisons=createComparisonPairs(game,renderer,original.sprites,native.groundHeight,()=>high);comparisons.update();inspector.install();
  $('loop').textContent=automatic?'切换手动操作':'开启自动循环';
  $('loop-info').textContent=automatic?'自动循环中 · 往返移动／持续交火／建筑维修 · 受击者最低保留 2% 生命':'手动模式 · 伤害正常结算，单位可被摧毁';
@@ -127,7 +130,7 @@ function inspectLoops(){
 $('loop').onclick=()=>{automatic=!automatic;resetScenario();};
 $('reset').onclick=resetScenario;
 resetScenario();
-home();let last=performance.now(),ui=0;function frame(now:number){const dt=paused?0:Math.min((now-last)/1000,.05)*speed;last=now;if(dt>0)updateLoop();game.step(dt);demos?.update(game.time);comparisons?.update();inspector.update(game.time);renderer.update(dt);ui+=dt;if(ui>.1){ui=0;updateSelection();inspectLoops();}requestAnimationFrame(frame);}requestAnimationFrame(frame);
+home();let last=performance.now(),ui=0;function frame(now:number){const dt=paused?0:Math.min((now-last)/1000,.05)*speed;last=now;if(dt>0)updateLoop();game.step(dt);demos?.update(game.time);if(dt>0)locomotion?.update();comparisons?.update();inspector.update(game.time);renderer.update(dt);ui+=dt;if(ui>.1){ui=0;updateSelection();inspectLoops();}requestAnimationFrame(frame);}requestAnimationFrame(frame);
 document.title='谭雅骨骼动作 · Canvas 对照';
 $('status').textContent='已就绪 · 自动循环演示 · 可暂停、慢放或切换手动操作';
 (window as any).__hd={inspector,get comparisons(){return comparisons?.pairs;},get demos(){return demos?.entities;},get automatic(){return automatic;},get game(){return game;},renderer,assets,get actors(){return actors;},get targets(){return targets;},hd,original,ready:true,animation:(id:number)=>{const e=game.getEntity(id);return e?spriteAnimation(assets.sprite(CATALOG[e.type].sprite)!,e,game.time):undefined;}};

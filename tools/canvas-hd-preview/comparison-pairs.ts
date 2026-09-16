@@ -18,12 +18,12 @@ export function createComparisonPairs(game:GameEngine,renderer:BattlefieldRender
   if(!pair){const view=previous?.(e);return pairs.some(p=>p.source.id===e.id)?{...view,label:high()?'高清':'主单位（原版）'}:view;}
   const {source,sprite}=pair,view=previous?.(source),phase=game.time%8;
   let action=view?.action,frame:number|undefined;
-  if(action==='prone')action=phase<1?'down':'up';
+  if(action==='prone'&&view?.sprite?.animationClock!=='source')action=phase<1?'down':'up';
   if(action==='pronefire')action='fireprone';
   if(action){
    const sequence=sprite.sequences?.[action];
    if(sequence){const direction=spriteFacing(sprite,source.angle);const age=action==='down'?phase:action==='up'?phase-6:game.time;
-    const step=action==='up'||action==='down'?Math.min(sequence[1]-1,Math.floor(age*(view?.action==='prone'?sequence[1]:12))):Math.floor(age*12)%sequence[1];frame=sequence[0]+direction*sequence[2]+step;
+    const step=view?.animationPhase!=null?Math.floor(((view.animationPhase%1)+1)%1*sequence[1]):action==='up'||action==='down'?Math.min(sequence[1]-1,Math.floor(age*(view?.action==='prone'?sequence[1]:12))):Math.floor(age*12)%sequence[1];frame=sequence[0]+direction*sequence[2]+step;
     if(frame>=sprite.frames)throw Error('原版动作图集不完整：'+action);
    }
   }
