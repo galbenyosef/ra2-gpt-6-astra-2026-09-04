@@ -1,4 +1,4 @@
-/* Original resources are never fetched from the application host. */
+/* Hosted originals use browser storage; verified local dev assets use the dev server. */
 const BASE = new URL(self.registration.scope).pathname;
 const cacheName = name => BASE === '/' ? name : name + ':' + BASE;
 const ORIGINALS = cacheName('ra2-originals-v2');
@@ -22,6 +22,8 @@ self.addEventListener('fetch', event => {
   if (url.origin !== self.location.origin || event.request.method !== 'GET' || !url.pathname.startsWith(BASE)) return;
   const logicalPath = '/' + url.pathname.slice(BASE.length);
   if (logicalPath.startsWith('/assets/') || logicalPath.startsWith('/maps/')) {
+    // Only the dev server injects this flag; production never enables host originals.
+    if (self.RA2_LOCAL_ORIGINALS) return;
     event.respondWith((async () => {
       const cache = await caches.open(ORIGINALS);
       const response = await cache.match(logicalPath);

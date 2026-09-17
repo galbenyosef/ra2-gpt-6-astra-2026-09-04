@@ -1,4 +1,6 @@
-import { defineConfig } from 'vite';
+// Dev can serve verified local originals; production bundles remain source-only.
+import { defineConfig, type UserConfig } from 'vite';
+import { checkAssetsReady } from './scripts/setup-assets';
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -16,10 +18,17 @@ try {
 
 // Deliberately disable Vite's public directory copying: it may contain originals
 // from offline development, and those must never become hosted build artifacts.
-export default defineConfig({
+export default defineConfig(async ({ command, isPreview }): Promise<UserConfig> => {
+  const localDirectory = path.resolve(process.env.RA2_PUBLIC_DIR || 'public');
+  const localOriginals = command === 'serve' && !isPreview && process.env.RA2_DEV_ASSETS !== 'browser'
+    && (await checkAssetsReady(localDirectory)).ready;
+  if (command === 'serve' && !isPreview) console.info(localOriginals
+    ? `[ra2] Reusing prepared originals from ${localDirectory}; no download or conversion.`
+    : '[ra2] Using browser asset preparation/cache. No complete local originals found (or RA2_DEV_ASSETS=browser).');
+  return {
   base: deployBase,
-  define: { __BUILD_INFO__: JSON.stringify(buildInfo) },
-  publicDir: false,
+  define: { __BUILD_INFO__: JSON.stringify(buildInfo), __LOCAL_ORIGINALS__: JSON.stringify(localOriginals) },
+  publicDir: localOriginals ? localDirectory : false,
   build: { assetsDir:'app' },
   worker: { format:'es' },
   plugins:[{
@@ -29,7 +38,7 @@ export default defineConfig({
         if (req.url?.split('?')[0] === '/ra2-sw.js') {
           res.setHeader('Content-Type','application/javascript');
           res.setHeader('Cache-Control','no-cache');
-          res.end(fs.readFileSync(path.resolve('public/ra2-sw.js')));return;
+          res.end(`self.RA2_LOCAL_ORIGINALS = ${localOriginals};\n` + fs.readFileSync(path.resolve('public/ra2-sw.js'), 'utf8'));return;
         }
         next();
       });
@@ -41,4 +50,5 @@ export default defineConfig({
       this.emitFile({type:'asset',fileName:'app-shell.json',source:JSON.stringify([deployBase,...Object.keys(bundle).map(file=>deployBase+file)])});
     },
   }],
+  };
 });

@@ -1,9 +1,11 @@
+// Prefer complete disk assets in dev; otherwise use the browser installation.
+declare const __LOCAL_ORIGINALS__: boolean;
 import { APP_TITLE } from './project';
 import { projectNotice, sourceCodeLink } from './project-notice';
 import { connectAssetStorage, originalsReady, SOURCE_BYTES, SOURCE_PAGE_URL, SOURCE_URL, type SetupProgress } from './browser-storage';
 import { t, getLocale, localizeElement, languageControl, bindLanguageControl } from './i18n';
 export class OriginalAssetsError extends Error { constructor(message:string){super(message);this.name='OriginalAssetsError';} }
-export async function probeOriginalAssets():Promise<boolean>{await connectAssetStorage();return originalsReady();}
+export async function probeOriginalAssets():Promise<boolean>{await connectAssetStorage();return __LOCAL_ORIGINALS__ || originalsReady();}
 const escape=(value:string)=>value.replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]!));
 const copy=(en:string,zh:string)=>getLocale()==='en'?en:zh;
 const stages:Record<string,[string,string]>={

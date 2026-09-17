@@ -56,3 +56,18 @@ for (const base of ['/', '/ra2-gpt-6-astra-2026-09-04/']) {
     assert.equal((await request(base + 'app/missing.js'))!.status, 503, 'missing scripts must not receive HTML');
   });
 }
+
+// Dev used to ignore converted disk files. Only the dev-injected flag permits
+// originals to reach the local server; production keeps its cache-only behavior.
+test('prepared dev originals bypass stale browser caches', () => {
+  const listeners: Record<string, (event: any) => void> = {};
+  runInNewContext(readFileSync(new URL('../public/ra2-sw.js', import.meta.url), 'utf8'), {
+    self: { RA2_LOCAL_ORIGINALS: true, registration: { scope: 'http://localhost:5173/' },
+      location: { origin: 'http://localhost:5173' },
+      addEventListener: (name: string, handler: any) => listeners[name] = handler }, URL,
+  });
+  for (const path of ['assets/manifest.json', 'assets/audio/test.wav', 'maps/catalog.json']) {
+    listeners.fetch({ request: { url: 'http://localhost:5173/' + path, method: 'GET' },
+      respondWith: () => assert.fail('Prepared local assets must reach the dev server') });
+  }
+});

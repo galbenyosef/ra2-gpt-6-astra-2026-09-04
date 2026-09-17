@@ -11,3 +11,14 @@ test('deployment guard excludes converted media while allowing application worke
   for(const path of ['assets/manifest.json','maps/catalog.json','app/gacnst.png','app/hm2.wav','app/source.MIX','public/README.md','.cache/installer.exe'])assert.equal(forbiddenBuildPath(path),true,path);
   for(const path of ['index.html','ra2-sw.js','app-shell.json','app/index-HASH.js','app/asset-worker-HASH.js','app/index-HASH.css','app/7zz-HASH.wasm','7z-wasm-LICENSE.txt'])assert.equal(forbiddenBuildPath(path),false,path);
 });
+
+// Disk reuse must never enable public-directory copying in production/preview.
+test('build and preview always exclude local original files', async () => {
+  const { default: config } = await import('../vite.config');
+  assert.equal(typeof config, 'function');
+  for (const env of [{command:'build', mode:'production'}, {command:'serve', mode:'production', isPreview:true}] as const) {
+    const result = await (config as import('vite').UserConfigFnPromise)(env);
+    assert.equal(result.publicDir, false);
+    assert.equal(result.define?.__LOCAL_ORIGINALS__, 'false');
+  }
+});

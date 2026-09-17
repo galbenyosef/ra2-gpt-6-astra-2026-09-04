@@ -49,6 +49,16 @@ npm run dev
 
 The interface defaults to **English**, except when the browser’s preferred language is Chinese (`zh`, including `zh-CN`, `zh-TW` and `zh-HK`). A saved manual language choice takes precedence. Use the English / 中文 selector to switch at any time.
 
+Local dev automatically reuses complete, previously converted `public/assets/` and
+`public/maps/` files, skipping installer download, parsing and conversion. The
+terminal prints `Reusing prepared originals` when enabled. Use
+`RA2_PUBLIC_DIR=/absolute/path/to/public npm run dev` to share an existing prepared
+directory across worktrees. Restart dev after changing that directory. Incomplete
+or absent disk assets fall back to browser preparation; selecting a local `.exe`
+only skips the installer download. Set `RA2_DEV_ASSETS=browser npm run dev` to test
+the normal browser flow. Production builds and preview still use browser storage
+and exclude originals. Ordinary image/audio loading is still required.
+
 Open the printed address, normally [http://127.0.0.1:5173](http://127.0.0.1:5173).
 
 1. On first launch, choose **Agree & download**, or import an installer you have already downloaded. The page links to the [Internet Archive item](https://archive.org/details/red-alert-2-multiplayer) and the exact [Red-Alert-2-Multiplayer.exe file](https://archive.org/download/red-alert-2-multiplayer/Red-Alert-2-Multiplayer.exe).
