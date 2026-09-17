@@ -2,18 +2,26 @@
 # Bootcamp verification
 
 This local implementation uses one `GameEngine` and one battlefield input/controller
-through every 2D/3D roundtrip. The optional WebGL presenter replaces actor drawing;
-native Canvas terrain/scenery, fog, resource overlays, effects and HUD remain shared.
+through every 2D/3D roundtrip. Bootcamp defaults to Asset Training Field, not Arctic
+Circle. Both renderers consume its same cells, elevations, scenery and game state.
+The WebGL presenter renders existing terrain/actor GLBs through one rotating camera;
+resource overlays, combat feedback and the HUD still follow the same simulation.
 No preview iframe or second application port participates in gameplay.
 
 ## Checks performed
 
-- `npm test`: **115 passed, 0 failed, 0 skipped** with existing local original map
+- `npm test`: **121 passed, 0 failed, 0 skipped** with existing local original map
   resources exposed through ignored `public/assets` and `public/maps` links. In a
-  source-only checkout, 108 pass and the seven original-map tests skip explicitly.
+  source-only checkout, the seven original-map tests skip explicitly.
 - `npm run build`: passed for `/` and `/ra2-bootcamp/` with originals present locally.
-  Source and built-media isolation checks passed. Authored models total 52,899,788
-  bytes; exactly the 12 catalog types are emitted under hashed `app/models` paths.
+  Source and built-media isolation checks passed. The 12 actors and nine environment
+  models total 79,016,084 bytes, emitted under hashed `app/models` paths.
+- `browser_bootcamp_camera.mjs`: passed against dev and production subpath preview.
+  All three presets and four camera directions select and command real units.
+  Preset changes and renderer roundtrips preserve object identity and exact paused
+  game state. Alt-orbit issues no game command; middle pan and anchored zoom work.
+  Real building placement passes in every preset; 2D hides the camera toolbar,
+  returning to 3D remembers the view, and missing terrain GLBs recover to 2D.
 - `browser_bootcamp.mjs`: passed against development and production subpath previews.
   Actual Chinese/English home entry, default 2D, all 12 production icons, immediate
   recruitment/building placement, visible GLBs, unsupported-type rejection, repeated
@@ -31,9 +39,9 @@ No preview iframe or second application port participates in gameplay.
   exit aborts fetch; late completion cannot switch the next battle; old simulation
   stops; live English/Chinese translations follow the selected language. The asset
   preparation and map editor entries retain working routes back to mode selection.
-- Original tool regression `tools/batch-two/verify.mjs`: **64/64** travel cases,
+- Earlier unchanged tool regression `tools/batch-two/verify.mjs`: **64/64** travel cases,
   wrong-heading negative control, actual attack/move-resume, clips and time/camera UI.
-- Shared Rhino mask regression `tools/batch-two/verify-team-color.mjs`: four views,
+- Earlier unchanged Rhino mask regression `tools/batch-two/verify-team-color.mjs`: four views,
   14,228 / 14,292 / 14,543 / 14,214 changed paint pixels; **0 changed pixels outside
   the mask** in every view. Original geometry/PBR bytes remained unchanged.
 - Real UI inspected using agent-browser and saved screenshots. Production homepage
@@ -67,6 +75,7 @@ RA2_BASE_PATH=/ra2-bootcamp/ npm run preview -- --port 4208 --strictPort
 RA2_BROWSER_URL=http://127.0.0.1:4208/ra2-bootcamp/ node scripts/browser_bootcamp.mjs
 RA2_BROWSER_URL=http://127.0.0.1:4208/ra2-bootcamp/ node scripts/browser_bootcamp_motion.mjs
 RA2_BROWSER_URL=http://127.0.0.1:4208/ra2-bootcamp/ node scripts/browser_bootcamp_lifecycle.mjs
+RA2_BROWSER_URL=http://127.0.0.1:4208/ra2-bootcamp/ node scripts/browser_bootcamp_camera.mjs
 ```
 
 `RA2_CDP_URL` defaults to `http://127.0.0.1:9227`. Screenshots, JSON motion report,
@@ -75,9 +84,11 @@ were separately tested on port 4209; existing 4179/4193 services were untouched.
 
 ## Scope and limits
 
-- This is an isometric hybrid 3D actor renderer, not a free-orbit terrain viewer.
-  Native scenery does not become a modeled or recruitable combat entity. Original
-  neutral buildings without a verified model are excluded from training simulation.
+- The default field uses existing grass, water, rock, ramp, trees and roads. Its
+  rock/ramp exhibit stays blocked in both renderers; elevated pathfinding is absent.
+  Other imported maps use the available terrain set, and scenery without a model is
+  absent from 3D. Neutral buildings without verified models remain excluded from
+  the training simulation. Environment props never become recruitable combat types.
 - All opponents are real passive targets. This revision disables retaliation as well
   as pursuit; ordinary skirmish retains its existing AI.
 - The approved Rhino has a real embedded paint mask. Other models retain authored
@@ -89,7 +100,7 @@ were separately tested on port 4209; existing 4179/4193 services were untouched.
 - Training does not fabricate water. Naval production fails clearly on a land-only
   map or if no unoccupied water is available. Construction keeps bounds, occupancy,
   terrain and exploration checks, while allowing rebuilding after losing a yard.
-- The first 3D load fetches about 53 MB of authored GLBs. Existing Vite warnings for
+- The first 3D load fetches about 79 MB of authored GLBs. Existing Vite warnings for
   the 7-Zip externalized Node module and the lazy Three.js chunk remain; builds pass.
 
 No new paid generation, credentials, external upload, merge or production deployment

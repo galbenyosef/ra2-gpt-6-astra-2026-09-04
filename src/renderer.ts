@@ -1,4 +1,4 @@
-// Shared battlefield projection and input controller. Optional WebGL replaces entity drawing only.
+// Shared battlefield input; each renderer supplies its own world projection without replacing simulation.
 import type {ModelLayer} from './bootcamp/model-layer.js';
 import { t } from './i18n';
 import { spriteAnimation, spriteFacing, unitIsMoving } from './sprite-animation';
@@ -18,6 +18,7 @@ export type RenderMap = GameMap & {
   tileIds?: Int32Array | number[]; elevations?: Uint8Array | number[]; radarColors?: Uint32Array | number[];
   terrainObjects?: { x: number; y: number; type: string }[];
   structures?: {x:number;y:number;type:string;health?:number}[];
+  environmentProps?: {id:string;x:number;y:number;rotation?:number}[];
 };
 export interface RendererHooks { onSelection(ids: number[]): void; onCommand(kind?: 'move'|'attack'|'deploy'): void; onPlace(x: number, y: number): boolean; onEntityClick(entity: Entity): boolean; onNotice(text: string): void }
 export interface WorldRect { minX: number; maxX: number; minY: number; maxY: number }
@@ -37,7 +38,7 @@ export class BattlefieldRenderer {
   private terrainPainter: TerrainPainter;
   private tinted = new Map<string, HTMLCanvasElement>();
   private tileLookup = new Map<number, NonNullable<RenderMap['tiles']>[number]>();
-  private startDrag?: { x: number; y: number; cameraX: number; cameraY: number; button: number };
+  private startDrag?: { x: number; y: number; cameraX: number; cameraY: number; button: number; orbit?:{yaw:number;pitch:number} };
   private dragRect?: { x: number; y: number; w: number; h: number };
   private moving = false;
   private observers: ResizeObserver;
@@ -76,6 +77,7 @@ export class BattlefieldRenderer {
     this.listen(this.canvas, 'pointerdown', e => {
       this.canvas.focus(); this.canvas.setPointerCapture(e.pointerId);
       const p = this.eventPosition(e); this.startDrag = { ...p, cameraX: this.camera.x, cameraY: this.camera.y, button: e.button }; this.moving = false;
+      if(e.button===0&&e.altKey&&this.modelLayer){this.startDrag.orbit={yaw:this.modelLayer.rig.yaw,pitch:this.modelLayer.rig.pitch};e.preventDefault();}
       if (e.button === 1) e.preventDefault();
     });
     this.listen(this.canvas, 'pointermove', e => {
@@ -83,8 +85,11 @@ export class BattlefieldRenderer {
       if (this.startDrag) {
         const d = this.startDrag, dx = p.x - d.x, dy = p.y - d.y;
         if (Math.hypot(dx, dy) > 5) this.moving = true;
-        if (d.button === 1 || (d.button === 0 && this.keys.has(' '))) {
-          this.camera.x = d.cameraX - dx / this.zoom; this.camera.y = d.cameraY - dy / this.zoom; this.clampCamera();
+        if(d.orbit&&this.modelLayer){this.modelLayer.rig.orbit(d.orbit.yaw-dx*.006,d.orbit.pitch+dy*.004);}
+        else if (d.button === 1 || (d.button === 0 && this.keys.has(' '))) {
+          if(this.modelLayer)this.modelLayer.pan(-dx,-dy,this,{x:d.cameraX,y:d.cameraY});
+          else{this.camera.x = d.cameraX - dx / this.zoom; this.camera.y = d.cameraY - dy / this.zoom;}
+          this.clampCamera();
         } else if (d.button === 0 && !this.placement && this.tool === 'select' && !this.attackMove && this.moving) {
           this.dragRect = { x: Math.min(d.x, p.x), y: Math.min(d.y, p.y), w: Math.abs(dx), h: Math.abs(dy) };
         }
@@ -95,7 +100,7 @@ export class BattlefieldRenderer {
     this.listen(this.canvas, 'pointerup', e => {
       const p = this.eventPosition(e), d = this.startDrag;
       if (!d) return;
-      if (d.button === 0 && !this.keys.has(' ')) {
+      if (d.button === 0 && !d.orbit && !this.keys.has(' ')) {
         if (this.dragRect) {
           const r = this.dragRect;
           const ids = this.game.entities.filter(v => v.owner === this.localId && v.kind === 'unit' && !v.transportedBy && v.hp > 0).filter(v => {
@@ -122,7 +127,9 @@ export class BattlefieldRenderer {
     this.canvas.addEventListener('wheel', this.onWheel, { passive: false }); this.cleanup.push(() => this.canvas.removeEventListener('wheel', this.onWheel));
   }
   private onWheel = (e: WheelEvent) => {
-    e.preventDefault(); const p = this.eventPosition(e), before = this.screenToWorld(p.x, p.y);
+    e.preventDefault(); const p = this.eventPosition(e);
+    if(this.modelLayer){this.modelLayer.zoomAt(p.x,p.y,e.deltaY>0?.9:1.1,this);this.clampCamera();return;}
+    const before = this.screenToWorld(p.x, p.y);
     this.zoom = Math.max(.45, Math.min(1.7, this.zoom * (e.deltaY > 0 ? .9 : 1.1)));
     const after = this.screenToWorld(p.x, p.y);
     this.camera.x += before.x - after.x; this.camera.y += before.y - after.y; this.clampCamera();
@@ -145,11 +152,13 @@ export class BattlefieldRenderer {
   unproject(x: number, y: number): Point { return unprojectPoint(x, y); }
   screenToWorld(x: number, y: number): Point { return { x: (x - this.width / 2) / this.zoom + this.camera.x, y: (y - this.height / 2) / this.zoom + this.camera.y }; }
   screenToTile(x: number, y: number): Point {
+    if(this.modelLayer)return this.modelLayer.screenToTile(x,y,this);
     const world = this.screenToWorld(x, y); let front:Point|undefined;
     for(let z=0;z<=15;z++){const raw=this.unproject(world.x,world.y+z*15);const p={x:Math.round(raw.x),y:Math.round(raw.y)};if(p.x<0||p.y<0||p.x>=this.map.width||p.y>=this.map.height||this.map.cells[p.y*this.map.width+p.x]==='void'||this.elevation(p.x,p.y)!==z)continue;const center=this.project(p.x,p.y);if(Math.abs(world.x-center.x)/30+Math.abs(world.y-(center.y-z*15))/15<=1.01&&(!front||p.x+p.y>front.x+front.y))front=p;}
     const fallback=this.unproject(world.x,world.y);return front||{x:Math.round(fallback.x),y:Math.round(fallback.y)};
   }
   toScreen(x: number, y: number, elevation = true): Point {
+    if(this.modelLayer)return this.modelLayer.toScreen(x,y,this,elevation);
     const p = this.project(x, y); if (elevation) p.y -= this.elevation(x, y) * 15;
     return { x: (p.x - this.camera.x) * this.zoom + this.width / 2, y: (p.y - this.camera.y) * this.zoom + this.height / 2 };
   }
@@ -163,7 +172,10 @@ export class BattlefieldRenderer {
     }
     return { minX, maxX, minY, maxY };
   }
-  private clampCamera() { const b = this.worldBounds,hx=this.width/(2*this.zoom),hy=this.height/(2*this.zoom);const clamp=(v:number,lo:number,hi:number)=>lo>hi?(lo+hi)/2:Math.max(lo,Math.min(hi,v));this.camera.x=clamp(this.camera.x,b.minX+hx-30,b.maxX-hx+30);this.camera.y=clamp(this.camera.y,b.minY+hy-80,b.maxY-hy+30); }
+  private clampCamera() {
+    if(this.modelLayer){const p=this.unproject(this.camera.x,this.camera.y),q=this.project(Math.max(0,Math.min(this.map.width-1,p.x)),Math.max(0,Math.min(this.map.height-1,p.y)));Object.assign(this.camera,q);return;}
+    const b = this.worldBounds,hx=this.width/(2*this.zoom),hy=this.height/(2*this.zoom);const clamp=(v:number,lo:number,hi:number)=>lo>hi?(lo+hi)/2:Math.max(lo,Math.min(hi,v));this.camera.x=clamp(this.camera.x,b.minX+hx-30,b.maxX-hx+30);this.camera.y=clamp(this.camera.y,b.minY+hy-80,b.maxY-hy+30);
+  }
   private leftClick(x: number, y: number, shift: boolean) {
     const p = this.screenToTile(x, y);
     if (this.placement || this.tool === 'support') { this.hooks.onPlace(p.x, p.y); return; }
@@ -214,13 +226,15 @@ export class BattlefieldRenderer {
       if (this.mouse.x < 12) dx--; if (this.mouse.x > this.width - 12) dx++;
       if (this.mouse.y < 12) dy--; if (this.mouse.y > this.height - 12) dy++;
     }
-    this.camera.x += dx * dt * 760 / this.zoom; this.camera.y += dy * dt * 600 / this.zoom;
+    if(this.modelLayer){if(dx||dy)this.modelLayer.pan(dx*dt*760,dy*dt*600,this);}
+    else{this.camera.x += dx * dt * 760 / this.zoom; this.camera.y += dy * dt * 600 / this.zoom;}
     if(dx || dy) this.clampCamera();
     for (const id of this.selection) if (!this.game.entities.some(e => e.id === id && e.hp > 0)) this.selection.delete(id);
     this.draw();
   }
   draw() {
     const ctx = this.ctx; ctx.fillStyle = '#060b0b'; ctx.fillRect(0, 0, this.width, this.height);
+    if(this.modelLayer){this.modelLayer.draw(this,this.orderMarker);this.drawDragRect();return;}
     const corners = [[-180, -180], [this.width + 180, -180], [-180, this.height + 330], [this.width + 180, this.height + 330]].map(([x, y]) => { const p = this.screenToWorld(x, y); return this.unproject(p.x, p.y); });
     const x1 = Math.max(0, Math.floor(Math.min(...corners.map(p => p.x)))), x2 = Math.min(this.map.width - 1, Math.ceil(Math.max(...corners.map(p => p.x))));
     const y1 = Math.max(0, Math.floor(Math.min(...corners.map(p => p.y)))), y2 = Math.min(this.map.height - 1, Math.ceil(Math.max(...corners.map(p => p.y))));
@@ -276,7 +290,6 @@ export class BattlefieldRenderer {
       objects.push({sort:entity.x+entity.y+(getDefinition(entity.type).flying?12:0),draw:()=>this.drawEntity(ctx,entity)});
     }
     objects.sort((a,b)=>a.sort-b.sort);for(const obj of objects)obj.draw();
-    this.modelLayer?.draw(this);
     for (const effect of this.game.effects) {
       if (!this.game.visible(this.localId, effect.x, effect.y)) continue;
       const p = this.project(effect.x, effect.y); p.y -= this.elevation(effect.x, effect.y) * 15;
@@ -316,8 +329,9 @@ export class BattlefieldRenderer {
     }
     if(this.orderMarker){const m=this.orderMarker,p=this.project(m.x,m.y);p.y-=this.elevation(m.x,m.y)*15;ctx.strokeStyle=m.attack?'#fa6253':'#76ee63';ctx.lineWidth=1;const r=10+m.age*16;ctx.globalAlpha=1-m.age;ctx.beginPath();ctx.ellipse(p.x,p.y,r,r*.5,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x-5,p.y);ctx.lineTo(p.x+5,p.y);ctx.moveTo(p.x,p.y-3);ctx.lineTo(p.x,p.y+3);ctx.stroke();ctx.globalAlpha=1;}
     ctx.restore();
-    if (this.dragRect) { const r = this.dragRect; ctx.fillStyle='#89df7312';ctx.fillRect(r.x,r.y,r.w,r.h);ctx.strokeStyle='#a0f184';ctx.lineWidth=1;ctx.strokeRect(r.x+.5,r.y+.5,r.w,r.h); }
+    this.drawDragRect();
   }
+  private drawDragRect(){const ctx=this.ctx;if(this.dragRect){const r=this.dragRect;ctx.fillStyle='#89df7312';ctx.fillRect(r.x,r.y,r.w,r.h);ctx.strokeStyle='#a0f184';ctx.lineWidth=1;ctx.strokeRect(r.x+.5,r.y+.5,r.w,r.h);}}
   private spriteKey(def: Definition) { const snow = `${def.sprite}-snow`; return this.map.theater?.toLowerCase() === 'snow' && this.assets.sprite(snow) ? snow : def.sprite; }
   private drawEntity(ctx: CanvasRenderingContext2D, e: Entity) {
     const def = getDefinition(e.type), p = this.project(e.x-(e.kind==='building'?.5:0), e.y-(e.kind==='building'?.5:0)); p.y -= this.elevation(e.x, e.y) * 15;
@@ -423,6 +437,8 @@ export class BattlefieldRenderer {
     ctx.drawImage(this.miniBase,0,0);
     for(let y=0;y<this.map.height;y++)for(let x=0;x<this.map.width;x++){if(!this.game.explored(this.localId,x,y)){const p=this.project(x,y);ctx.fillStyle='#020a08';ctx.fillRect(p.x*this.miniScale+this.miniOrigin.x-1,p.y*this.miniScale+this.miniOrigin.y-1,Math.max(2,60*this.miniScale),Math.max(1,30*this.miniScale));}}
     for(const e of this.game.entities){if(e.hp<=0||e.transportedBy||!this.game.visible(this.localId,e.x,e.y))continue;const p=this.project(e.x,e.y);ctx.fillStyle=this.game.players.find(v=>v.id===e.owner)?.color||PLAYER_COLORS[e.owner]||'#a6aaa0';const s=e.kind==='building'?5:3;ctx.fillRect(p.x*this.miniScale+this.miniOrigin.x-s/2,p.y*this.miniScale+this.miniOrigin.y-s/2,s,s);}
-    ctx.strokeStyle='#dde7aa';ctx.lineWidth=1;ctx.strokeRect((this.camera.x-this.width/(2*this.zoom))*this.miniScale+this.miniOrigin.x,(this.camera.y-this.height/(2*this.zoom))*this.miniScale+this.miniOrigin.y,this.width/this.zoom*this.miniScale,this.height/this.zoom*this.miniScale);
+    ctx.strokeStyle='#dde7aa';ctx.lineWidth=1;
+    if(this.modelLayer){ctx.beginPath();[[0,0],[this.width,0],[this.width,this.height],[0,this.height]].forEach(([x,y],i)=>{const point=this.screenToTile(x,y),p=this.project(point.x,point.y),px=p.x*this.miniScale+this.miniOrigin.x,py=p.y*this.miniScale+this.miniOrigin.y;i?ctx.lineTo(px,py):ctx.moveTo(px,py);});ctx.closePath();ctx.stroke();}
+    else ctx.strokeRect((this.camera.x-this.width/(2*this.zoom))*this.miniScale+this.miniOrigin.x,(this.camera.y-this.height/(2*this.zoom))*this.miniScale+this.miniOrigin.y,this.width/this.zoom*this.miniScale,this.height/this.zoom*this.miniScale);
   }
 }

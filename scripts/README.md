@@ -30,6 +30,9 @@ them against a browser profile with an in-progress game the user wants to retain
 loading/context failure, re-entry and loop ownership. `browser_bootcamp_motion.mjs`
 uploads a generated map and checks 64 actual movement directions, attacks and
 skeletal deformation. They also run against a production preview and a base path.
+`browser_bootcamp_camera.mjs` checks the default training map, shared-state switches,
+all three camera presets from four directions, actual pointer orders, orbit/pan/zoom,
+building placement, remembered view and environment-load failure recovery.
 
 The local-installer browser check uses a fresh context on the same CDP endpoint,
 defaults to the port 4208 subpath preview and requires an existing detected installer.

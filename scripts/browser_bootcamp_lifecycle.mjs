@@ -29,7 +29,7 @@ try{
  await p.getByTestId('renderer-3d').click();await p.waitForFunction(()=>!!window.ra2.renderer.modelLayer);
  await p.locator('[data-language-select]').selectOption('zh-CN');
  assert.equal(await p.locator('.renderer-switch legend').innerText(),'渲染器','live Chinese switch localizes new controls');
- assert.match(await p.getByTestId('renderer-status').innerText(),/原版地形/,'live Chinese switch localizes render status');
+ assert.match(await p.getByTestId('renderer-status').innerText(),/可旋转视角/,'live Chinese switch localizes render status');
  await p.locator('[data-language-select]').selectOption('en');assert.equal(await p.locator('.renderer-switch legend').innerText(),'Renderer');
  assert.deepEqual(errors,[]);console.log('PASS asset/editor entry, loading-time input, latest-mode intent, abort on exit, stale completion, live English/Chinese controls and no old simulation loop.');
 }finally{await b.close();}

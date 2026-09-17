@@ -34,7 +34,7 @@ async function screen(x,y){return page.evaluate(({x,y})=>{const r=window.ra2.ren
 async function clickAt(point,button='left'){await page.mouse.click(point.x,point.y,{button});}
 try {
  await enter('zh-CN');await freeze();await shot('default-2d');
- await refs();await mode('3d');check('all twelve templates loaded',await page.evaluate(()=>window.ra2.renderer.modelLayer.templates.size===12));check('first switch retains exact state',await same());await shot('arctic-3d');
+ await refs();await mode('3d');check('all twelve templates loaded',await page.evaluate(()=>window.ra2.renderer.modelLayer.templates.size===12));check('first switch retains exact state',await same());await shot('training-field-3d');
  for(let i=0;i<3;i++){await mode('2d');check('3D -> 2D exact state '+i,await same());await mode('3d');check('2D -> 3D exact state '+i,await same());}
  // Enumerate every production icon through the ordinary categories; unsupported types never appear.
  const catalog=await page.evaluate(()=>window.ra2.game.getAvailable(0).map(d=>({id:d.id,kind:d.kind,category:d.category})));

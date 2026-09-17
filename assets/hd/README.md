@@ -3,6 +3,8 @@
 The [third batch](batch-three/README.md) currently adds one playable-preview
 curved dirt-road GLB. Five other requested assets remain reviewed references
 pending external generation approval; they are not yet runtime models.
+Bootcamp's default training field combines existing environment GLBs and the ready
+tree/road assets from batches two and three; see [Bootcamp rendering](../../src/bootcamp/README.md).
 
 Four optimized static models and one animated Tanya model supply authored HD
 sprites to the existing Canvas 2D game renderer. Original SHP/VXL/TMP art, maps,

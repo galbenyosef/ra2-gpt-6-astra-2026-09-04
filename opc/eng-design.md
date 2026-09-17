@@ -18,8 +18,8 @@ scale and forward axis. The old model inspector re-exports it. Both engine and U
 restrict production; automatic spawns and transformations obey the same catalog.
 Vite publishes only those authored GLBs at hashed `app/models` paths, distinct
 from browser-private originals. Loading uses abortable fetch, explicit fallback,
-and per-match disposal. Native terrain remains Canvas artwork; units and buildings
-are actual lit, animated GLBs composited at the identical map projection.
+and per-match disposal. 2D uses native Canvas art; 3D renders the same map and entities
+using existing authored terrain and actor GLBs through one rotating camera.
 
 Risks and checks: GLB loading peak memory (sequential decode); missing files/context
 loss (2D fallback); changing modes while loading (cancellation and battle ownership);
@@ -41,3 +41,14 @@ pass it to the existing file verification/conversion worker. Never fall back to 
 Internet Archive download on failure. Reject remote sockets, non-loopback Host,
 foreign Origin and requests without the local-only header. No endpoint or installer
 file is emitted in the static build. Keep both root and subpath URLs supported.
+
+## Authored training map and rotating camera
+
+Bootcamp gains a default terrain layout assembled from the existing grass, ocean,
+plateau, ramp, tree and road GLBs. It remains one map and simulation in 2D and 3D.
+The 3D layer now owns world presentation, camera projection and ground raycasting;
+the shared controller retains input, selection and orders. Camera rotation and
+isometric/perspective/top presets never rotate entity headings or mutate gameplay.
+Ground picking, building footprints, effects, fog and minimap viewport must follow
+the active camera. Instanced terrain reuses mesh/material data; disposal and failed
+loads retain the existing 2D recovery. No new model generation is needed.

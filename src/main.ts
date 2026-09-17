@@ -12,6 +12,7 @@ import { probeOriginalAssets, showAssetSetup, OriginalAssetsError } from './asse
 import { Assets, SoundSystem } from './assets';
 import { initializeMaps, listMaps, loadMap, registerImportedMap, isWithinPlayableArea, type MapData, type MapDefinition } from './maps';
 import { customMapToMapData } from './custom-maps';
+import {createTrainingMap,TRAINING_MAP_ID} from './bootcamp/training-map';
 import { readSkirmishMap } from './map-files';
 import { mountMapEditor } from './map-editor';
 import { GameEngine, COUNTRIES, CATALOG, CATEGORY_NAMES, PLAYER_COLORS, countryById, getDefinition, type CountryId, type Difficulty, type PlayerConfig, type ProductionCategory, type Entity } from './game';
@@ -31,7 +32,7 @@ registerTranslations({
   '该分类尚无已验证的 3D 模型。':'No verified 3D models in this category yet.',
   '8 种已支持部队 + 建造厂':'8 supported unit types + construction yard',
   '结束训练':'End training', '退出到模式选择':'Return to mode selection',
-  '地图编辑器':'Map editor', '上传地图':'Upload map', '编辑器地图':'Editor map',
+  '地图编辑器':'Map editor', '上传地图':'Upload map', '编辑器地图':'Editor map', '已有素材训练场':'Existing asset training field',
   '上传地图文件':'Upload map file', '自定义地图文件超过 2 MB。':'Custom map files must be under 2 MB.',
   '地图文件超过 16 MB。':'Map files must be under 16 MB.',
   '下载的 .ra2map 文件可在此上传使用，也支持原版 .map / .mpr。':'Upload a shared .ra2map file here, or an original .map / .mpr file.',
@@ -83,8 +84,11 @@ function renderModeSelect() {
   translateUI();bindLanguage();
   let entering=false;
   const enter=async(next:'skirmish'|'bootcamp',editor=false)=>{
-    if(entering)return;entering=true;mode=next;
-    try{await prepareGame();if(loaded){renderLobby();if(editor)openMapEditor();}}
+    if(entering)return;entering=true;const previous=mode;mode=next;
+    try{await prepareGame();if(loaded){
+      if(next==='bootcamp'&&(previous!==next||selectedMapId==='mp22s8')){selectedMap=await loadMap(TRAINING_MAP_ID);selectedMapId=selectedMap.id;fog=false;slots[1].position=1;}
+      else if(next==='skirmish'&&selectedMapId===TRAINING_MAP_ID){selectedMap=await loadMap('mp22s8');selectedMapId=selectedMap.id;fog=true;slots[1].position=4;}
+      renderLobby();if(editor)openMapEditor();}}
     catch(error){renderModeSelect();toast(error instanceof Error?error.message:String(error));}
     finally{entering=false;}
   };
@@ -98,6 +102,7 @@ async function prepareGame() {
   if(loaded)return;
   if(!await probeOriginalAssets()){showAssetSetup(app);addSetupBack();return;}
   await initializeMaps();
+  registerImportedMap(createTrainingMap());
   registerTranslations(Object.fromEntries(listMaps().map(map => [map.name, map.nameEn])));
   app.innerHTML = `<div class="loading-screen"><div><h1 class="app-title">${APP_TITLE}</h1><p id="loading-label">正在读取原版战场资料</p><div class="loading-bar"><i id="loading-progress" style="width:5%"></i></div></div></div>`;
   translateUI();
@@ -117,7 +122,7 @@ function renderLobby() {
   const def = listMaps().find(m=>m.id===selectedMapId)!;
   app.innerHTML = `<main class="shell">
     <header class="header"><div class="brand"><h1 class="app-title">${APP_TITLE}</h1><div class="brand-caption"><strong>${mode==='bootcamp'?'新兵训练营':'遭遇战'}</strong><span class="eyebrow">${mode.toUpperCase()}</span></div></div><div class="header-right"><button id="mode-back" data-testid="mode-back">返回模式选择</button>${languageControl()}<span class="technical"><i class="status-light"></i>本地战场已就绪</span><button id="sound-toggle" class="icon-button" title="音效">${sound.enabled?'♪':'♩'}</button><button id="help">操作说明</button></div></header>
-    <div class="lobby"><section class="map-panel metal">${bolts}<div class="panel-title"><h2>战场情报</h2><span>THEATER / ${escape(def.theater.toUpperCase())}</span></div><div class="map-viewport"><canvas id="map-preview" aria-label="${escape(def.name)}"></canvas><i class="map-corner tl"></i><i class="map-corner tr"></i><i class="map-corner bl"></i><i class="map-corner br"></i><span class="map-coordinate">SATELLITE RECONNAISSANCE · ${escape(def.id.toUpperCase())}</span></div><div class="map-info"><div><h3>${escape(def.name)}</h3><p>${escape(def.nameEn.toUpperCase())} · ${def.players} PLAYERS</p></div><button id="choose-map">选择地图 ▸</button></div><div class="map-details"><div><label>战场规模</label><strong>${def.width} × ${def.height}</strong></div><div><label>作战地形</label><strong>${({snow:'雪地 · 海岛',temperate:'温带',urban:'城市'} as Record<string,string>)[def.theater] || def.theater}</strong></div><div><label>地图来源</label><strong>${def.official?'Westwood 原版':selectedMap.layout==='rectangular'?'编辑器地图':'本地导入'}</strong></div></div></section>
+    <div class="lobby"><section class="map-panel metal">${bolts}<div class="panel-title"><h2>战场情报</h2><span>THEATER / ${escape(def.theater.toUpperCase())}</span></div><div class="map-viewport"><canvas id="map-preview" aria-label="${escape(def.name)}"></canvas><i class="map-corner tl"></i><i class="map-corner tr"></i><i class="map-corner bl"></i><i class="map-corner br"></i><span class="map-coordinate">SATELLITE RECONNAISSANCE · ${escape(def.id.toUpperCase())}</span></div><div class="map-info"><div><h3>${escape(def.name)}</h3><p>${escape(def.nameEn.toUpperCase())} · ${def.players} PLAYERS</p></div><button id="choose-map">选择地图 ▸</button></div><div class="map-details"><div><label>战场规模</label><strong>${def.width} × ${def.height}</strong></div><div><label>作战地形</label><strong>${({snow:'雪地 · 海岛',temperate:'温带',urban:'城市'} as Record<string,string>)[def.theater] || def.theater}</strong></div><div><label>地图来源</label><strong>${selectedMap.id===TRAINING_MAP_ID?'已有素材训练场':def.official?'Westwood 原版':selectedMap.layout==='rectangular'?'编辑器地图':'本地导入'}</strong></div></div></section>
     <section class="settings-panel metal">${bolts}<div class="panel-title"><h2>作战部署</h2><span>COMBATANTS / ${slots.filter(s=>s.difficulty!=='closed').length}</span></div><table class="player-table"><thead><tr><th></th><th>指挥官</th><th>国家</th><th>颜色</th><th>盟友</th><th>位置</th></tr></thead><tbody>${slots.map((slot,i)=>renderSlot(slot,i,def.players)).join('')}</tbody></table><p class="country-note" id="country-note">${escape(countryById(slots[0].country).name)}：${escape(countryById(slots[0].country).description)}</p>
     <div class="lobby-options"><div class="field"><label for="credits">初始资金</label><select id="credits">${[5000,10000,20000,30000,50000].map(v=>option(v,`$ ${v.toLocaleString()}`,credits)).join('')}</select></div><div class="field"><label for="units">初始部队</label><select id="units">${[0,3,5,10].map(v=>option(v,`${v} 支部队 + 基地车`,startingUnits)).join('')}</select></div><div class="field"><label for="speed">游戏速度</label><select id="speed">${option(.75,'慢速',gameSpeed)}${option(1,'正常',gameSpeed)}${option(1.5,'快速',gameSpeed)}${option(2,'最快',gameSpeed)}</select></div></div><div class="checks"><label><input type="checkbox" id="fog" ${fog?'checked':''}/>战争迷雾</label><label><input type="checkbox" id="superweapons" ${superweapons?'checked':''}/>超级武器</label><label><input type="checkbox" id="short-game" ${shortGame?'checked':''}/>快速游戏</label><label><input type="checkbox" id="music" ${sound.musicEnabled?'checked':''}/>原版音乐</label></div>
     </section></div>

@@ -1,4 +1,4 @@
-// Real GLB rendering over the original map projection. No simulation clock or input listeners.
+// Authored GLB world and actors, sharing the native game's state and input controller.
 import * as T from 'three';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {clone} from 'three/addons/utils/SkeletonUtils.js';
@@ -6,19 +6,20 @@ import {bootcampActors} from './catalog.js';
 import {prepareTeamMasks,cloneTeamMaterial} from './team-color.js';
 import {appUrl} from '../urls';
 import {unitIsMoving} from '../sprite-animation';
-
-const pixelScale = 30 * Math.SQRT2;
-const heightStep = 15 / (pixelScale * Math.sqrt(.75));
+import {BattleCamera,heightStep} from './camera.js';
+import {EnvironmentScene} from './environment-scene.js';
+import {drawWorldOverlays} from './overlays.js';
 
 export class ModelLayer {
   templates = new Map(); models = new Map(); disposed = false;
-  scene = new T.Scene(); camera = new T.OrthographicCamera();
+  scene = new T.Scene(); rig = new BattleCamera(); camera = this.rig.camera;
   constructor(onFailure) {
     this.webgl = new T.WebGLRenderer({alpha:true, antialias:true, preserveDrawingBuffer:true});
     this.webgl.setClearColor(0, 0);
     this.webgl.outputColorSpace = T.SRGBColorSpace;
     this.webgl.toneMapping = T.ACESFilmicToneMapping;
     this.webgl.toneMappingExposure = 1.15;
+    this.scene.background=new T.Color('#182820');
     this.scene.add(new T.HemisphereLight(0xdeeeff,0x627140,2.4));
     const sun = new T.DirectionalLight(0xfff0d8,3); sun.position.set(-10,35,20);this.scene.add(sun);
     this.onLost = event => {event.preventDefault(); if (!this.disposed) onFailure();};
@@ -36,6 +37,7 @@ export class ModelLayer {
         if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
         if (config.teamColor) layer.templates.get(config.type).masks=await prepareTeamMasks(gltf);
       }
+      layer.environment=await EnvironmentScene.load(signal);layer.scene.add(layer.environment.root);
       return layer;
     } catch (error) {layer.dispose();throw error;}
   }
@@ -57,19 +59,14 @@ export class ModelLayer {
     const model={entity,config,root,body,group,color,mixer:new T.AnimationMixer(root),clips:gltf.animations,playing:'',action:null,scale,height:size.y*scale};
     this.models.set(entity.id,model);return model;
   }
-  draw(view) {
+  draw(view,marker) {
     if (this.disposed) return;
-    const {game,width,height,zoom,camera:pan} = view;
+    const {game,width,height} = view;
     const dpr=Math.min(devicePixelRatio||1,2);
     if(this.width!==width||this.height!==height||this.dpr!==dpr) {
       this.width=width;this.height=height;this.dpr=dpr;this.webgl.setPixelRatio(dpr);this.webgl.setSize(width,height,false);
     }
-    const cx=(pan.x/30+pan.y/15)/2, cz=(pan.y/15-pan.x/30)/2;
-    this.camera.left=-width/(2*pixelScale*zoom);this.camera.right=-this.camera.left;
-    this.camera.top=height/(2*pixelScale*zoom);this.camera.bottom=-this.camera.top;
-    this.camera.near=.1;this.camera.far=2000;
-    this.camera.position.set(cx+Math.sqrt(.375)*500,250,cz+Math.sqrt(.375)*500);
-    this.camera.lookAt(cx,0,cz);this.camera.updateProjectionMatrix();
+    this.camera=this.rig.sync(view);this.environment.update(view);
     const live=new Set(game.entities.filter(e=>e.hp>0).map(e=>e.id));
     for (const [id,m] of this.models) if (!live.has(id)) {this.release(m);this.models.delete(id);}
     for (const entity of game.entities) {
@@ -94,10 +91,11 @@ export class ModelLayer {
       }
     }
     this.webgl.render(this.scene,this.camera);
-    // Composite before selection, combat effects and fog. The map/input projection stays exact.
+    // The whole world uses one projection; screen-space HUD stays on the existing canvas.
     view.ctx.save();view.ctx.setTransform(dpr,0,0,dpr,0,0);
     view.ctx.drawImage(this.webgl.domElement,0,0,width,height);
     this.drawIndicators(view);
+    drawWorldOverlays(view,this,marker);
     view.ctx.restore();
   }
   drawIndicators(view) {
@@ -121,8 +119,7 @@ export class ModelLayer {
     }
   }
   pick(x,y,view) {
-    const ray=new T.Raycaster();
-    ray.setFromCamera(new T.Vector2(x/view.width*2-1,1-y/view.height*2),this.camera);
+    const ray=this.rig.ray(x,y,view);
     const roots=[...this.models.values()].filter(m=>m.group.visible&&view.game.visible(view.localId,m.entity.x,m.entity.y)).map(m=>m.group);
     for(const hit of ray.intersectObjects(roots,true)) {
       let object=hit.object;
@@ -130,12 +127,24 @@ export class ModelLayer {
       if(object)return view.game.getEntity(object.userData.entityId);
     }
   }
+  toScreen(x,y,view,elevation=true){return this.rig.project(x,y,view,elevation);}
+  screenToTile(x,y,view){
+    const hits=this.rig.ray(x,y,view).intersectObjects(this.environment.groundMeshes,false);
+    const point=hits[0]?.point||this.rig.ground(x,y,view);
+    return point?{x:Math.round(point.x),y:Math.round(point.z)}:{x:-1,y:-1};
+  }
+  pan(dx,dy,view,base){this.rig.pan(dx,dy,view,base);}
+  zoomAt(x,y,factor,view){
+    const before=this.rig.ground(x,y,view);view.zoom=Math.max(.35,Math.min(2.5,view.zoom*factor));
+    const after=this.rig.ground(x,y,view);if(before&&after){const delta=view.project(before.x-after.x,before.z-after.z);view.camera.x+=delta.x;view.camera.y+=delta.y;}
+  }
   release(m) {
     this.scene.remove(m.group);m.mixer.stopAllAction();m.mixer.uncacheRoot(m.root);
     m.root.traverse(o=>{if(o.isMesh){for(const mat of [o.material].flat())mat.dispose();if(o.isSkinnedMesh)o.skeleton.dispose();}});
   }
   dispose() {
     if(this.disposed)return;this.disposed=true;
+    this.environment?.dispose();
     for(const m of this.models.values())this.release(m);this.models.clear();
     const textures=new Set(),geometries=new Set(),materials=new Set();
     for(const {gltf,masks} of this.templates.values()) {

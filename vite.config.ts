@@ -2,13 +2,14 @@ import { defineConfig } from 'vite';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {bootcampActors} from './src/bootcamp/catalog.js';
+import {environmentAssets} from './src/bootcamp/environment-catalog.js';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import {localInstallerPlugin} from './scripts/local-installer';
-const models = bootcampActors.map(actor => {
+const models = [...bootcampActors.map(actor=>({id:actor.type,file:actor.file})),...environmentAssets].map(actor => {
   const source = fs.readFileSync(path.resolve('assets/hd/models', actor.file));
-  return {type:actor.type, source, fileName:`app/models/${actor.type}-${createHash('sha256').update(source).digest('hex').slice(0,12)}.glb`};
+  return {type:actor.id, source, fileName:`app/models/${actor.id}-${createHash('sha256').update(source).digest('hex').slice(0,12)}.glb`};
 });
 const base = '/' + (process.env.RA2_BASE_PATH ?? '').replace(/^\/+|\/+$/g, '') + '/';
 const deployBase = base === '//' ? '/' : base;

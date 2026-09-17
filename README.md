@@ -3,16 +3,15 @@
 
 An independent browser RTS with original artwork prepared on the player's device.
 Choose **Skirmish / 遭遇战** to fight computer opponents, or **Bootcamp / 新兵训练营**
-to freely build and recruit supported units while practicing on the same maps.
+to freely build and recruit supported units on an authored asset training field.
 
 Created by [Victor Zhou](https://zzn.im) in a one-shot experiment on 2026-09-04 using
-ChatGPT 6 Astra, with subsequent development recorded in Git. The original result
-remains at [v0.1.0](https://github.com/xinbenlv/ra2-gpt-6-astra-2026-09-04/commit/3b9e9eaa2aa3b13db1f1bb1daca0f833d48986bf).
+ChatGPT 6 Astra, with the original result at [v0.1.0](https://github.com/xinbenlv/ra2-gpt-6-astra-2026-09-04/commit/3b9e9eaa2aa3b13db1f1bb1daca0f833d48986bf).
 
 ## Play
 
 [Play the published version](https://xinbenlv.github.io/ra2-gpt-6-astra-2026-09-04/).
-Bootcamp in this checkout is **v0.3.0**; a local implementation does not update that site.
+Bootcamp in this checkout is **v0.4.0**; a local implementation does not update that site.
 
 ```sh
 npm ci
@@ -22,7 +21,6 @@ npm run dev
 Open the printed localhost URL. Choose a mode. If originals are not prepared, use
 the browser's consent/download or local installer import flow. Files are verified,
 converted and stored locally; the published app never hosts or uploads original media.
-The first screen also retains asset preparation, language selection and map editing.
 
 Local dev/preview detects an existing installer in the checkout, shared Git checkout,
 shallow `.cache` folders or Downloads and offers **Use local Red-Alert-2-Multiplayer.exe**.
@@ -38,7 +36,9 @@ when starting Vite. This loopback-only helper is absent from static deployments.
   12 verified model types across factions. Bounds, occupancy and land/sea/air rules
   still apply. Opponents remain damageable passive targets; training does not end
   automatically when bases or armies are destroyed.
-- The 3D view draws actual authored GLBs over the same original terrain. Selection,
+- Bootcamp defaults to **Asset Training Field / 素材训练场**, built from existing
+  grass, water, rock, ramp, tree and road assets. 2D and 3D show the same map.
+- The 3D view renders terrain and actors with authored GLBs. Selection,
   commands, IDs, positions, health, teams, resources and time survive switching.
   Failed model loading or WebGL context loss returns to usable 2D with a clear message.
 - Map editor, portable `.ra2map` sharing and original `.map` imports remain available.
@@ -50,8 +50,10 @@ Refinery, War Miner, Rocketeer, Conscript, approved Rhino v4, Destroyer, Allied
 Barracks and Giant Squid. Environment assets and unfinished third-batch references
 are not recruitable. The UI and engine enforce the same verified catalog.
 
-This is an isometric hybrid: terrain/scenery/effects use original Canvas artwork,
-while actors use WebGL. It does not add free-orbit terrain. Existing supported
+3D offers isometric, perspective and top views. Use **Alt + left drag** to orbit,
+**middle drag** to pan and the wheel to zoom; the toolbar rotates or resets the view.
+Other imported maps use the available terrain set; unsupported scenery lacks 3D
+models. Existing supported
 skeletal/mechanical clips follow gameplay; missing death, track, turret and building
 motions are documented in [rendering notes](src/bootcamp/README.md). Rhino retains
 its embedded paint mask; other actors show owner-colored ground markers.

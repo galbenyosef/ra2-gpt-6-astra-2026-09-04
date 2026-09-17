@@ -5,7 +5,7 @@
 
 # Fan Re-created Red Alert2 (via ChatGPT 6 Astra on 2026-09-04)
 
-This checkout: **v0.3.0** — Skirmish and Bootcamp with browser-only asset preparation. See [Bootcamp verification](bootcamp-verification.md) for the local implementation and renderer limits; the published site is not updated by a local build. The earlier local-file startup version is preserved as **v.0.1.0**.
+This checkout: **v0.4.0** — Skirmish and Bootcamp with browser-only asset preparation. See [Bootcamp verification](bootcamp-verification.md) for the local implementation and renderer limits; the published site is not updated by a local build. The earlier local-file startup version is preserved as **v.0.1.0**.
 
 An independent fan recreation created by developer [Victor Zhou](https://zzn.im) in a **one-shot development experiment on 2026-09-04**, while testing the then-latest model, **ChatGPT 6 Astra**. Victor uses this approach to benchmark different models. The one-shot label describes the initial experiment; subsequent fixes and updates are recorded in the commit history.
 

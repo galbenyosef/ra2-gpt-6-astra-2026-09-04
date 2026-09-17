@@ -1,6 +1,8 @@
 # Six environment candidates
 
-Authored cell-scale GLBs for a future rotating camera. The local inspector is separate from the current Canvas 2D main engine. This directory is a local candidate, not a published release.
+Authored cell-scale GLBs consumed by the Bootcamp training field and rotating camera.
+The separate local inspector retains original/HD comparisons. Integration in this
+checkout does not publish a release.
 
 ```text
 source-record.json -> original identities (images in ignored cache)
