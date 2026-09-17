@@ -21,8 +21,14 @@ npm run dev
 
 Open the printed localhost URL. Choose a mode. If originals are not prepared, use
 the browser's consent/download or local installer import flow. Files are verified,
-converted and stored locally; original media is never uploaded or hosted by this app.
+converted and stored locally; the published app never hosts or uploads original media.
 The first screen also retains asset preparation, language selection and map editing.
+
+Local dev/preview detects an existing installer in the checkout, shared Git checkout,
+shallow `.cache` folders or Downloads and offers **Use local Red-Alert-2-Multiplayer.exe**.
+It skips the archive download, then verifies and converts the file in your browser.
+For another location, set `RA2_LOCAL_INSTALLER=/path/to/Red-Alert-2-Multiplayer.exe`
+when starting Vite. This loopback-only helper is absent from static deployments.
 
 - Skirmish retains nine countries, configurable teams/opponents, native maps, fog,
   terrain, mining, production, combat, superweapons and victory conditions.

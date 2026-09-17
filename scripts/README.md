@@ -10,6 +10,8 @@ check-source-only.ts     -> tracked source / production media isolation
 browser_setup.py         -> browser download/conversion acceptance
 browser_map_editor*.mjs  -> editor, sharing, resize and terrain acceptance
 browser_bootcamp*.mjs    -> main-app bilingual switching, models and motion
+local-installer.ts       -> loopback-only Vite installer discovery and streaming
+browser_local_installer.mjs -> local copy, failure/retry and full conversion
 browser_*.py / *.mjs     -> other existing UI regression suites
 ```
 
@@ -28,3 +30,7 @@ them against a browser profile with an in-progress game the user wants to retain
 loading/context failure, re-entry and loop ownership. `browser_bootcamp_motion.mjs`
 uploads a generated map and checks 64 actual movement directions, attacks and
 skeletal deformation. They also run against a production preview and a base path.
+
+The local-installer browser check uses a fresh context on the same CDP endpoint,
+defaults to the port 4208 subpath preview and requires an existing detected installer.
+It blocks Internet Archive requests and saves evidence under `.cache/local-installer`.

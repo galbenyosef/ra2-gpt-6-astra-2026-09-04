@@ -51,6 +51,9 @@ html[lang=en] .player-table select{padding-right:6px}html[lang=en] .item-name{fo
 @media(max-width:800px){.map-sharing-bar{align-items:stretch;flex-direction:column;gap:10px}.map-sharing-actions button{flex:1}.map-sharing-actions{width:100%}.modal-actions{flex-wrap:wrap}}
 
 /* The mode menu shares the existing metal panels and language controls. */
+.setup-local-installer { margin-block:16px; padding:16px; border:1px solid #789871; background:#1b3025; }
+.setup-local-installer p { margin-block-end:12px; line-height:1.6; }
+.setup-local-installer button { max-inline-size:100%; overflow-wrap:anywhere; }
 .mode-screen { max-inline-size: 1080px; margin: auto; }
 .mode-options { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 24px; margin-block: 28px; }
 .mode-card { padding: 28px; display: flex; flex-direction: column; gap: 16px; }

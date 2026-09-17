@@ -19,6 +19,10 @@ Bootcamp and skirmish share the lobby and engine. All new production restriction
 are enforced in the engine as well as the sidebar. The optional WebGL layer changes
 presentation without replacing the engine or controller. See `bootcamp/README.md`.
 
+Asset setup also detects the Vite loopback-only local installer helper. Its button
+passes the local copy into the existing verified file import, with no download
+fallback. Static sites retain the normal download and file picker flows.
+
 Several existing modules (`engine.ts`, CSS and the compact main UI templates) exceed
 the normal byte/line guideline. Their tightly coupled legacy state is retained for
 this integration; new render lifecycle/model code is split into the Bootcamp folder.

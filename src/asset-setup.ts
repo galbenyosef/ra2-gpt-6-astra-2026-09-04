@@ -1,4 +1,6 @@
+/** Browser preparation from an explicit download, selected file or detected local developer copy. */
 import { APP_TITLE } from './project';
+import {appUrl} from './urls';
 import { projectNotice, sourceCodeLink } from './project-notice';
 import { connectAssetStorage, originalsReady, SOURCE_BYTES, SOURCE_PAGE_URL, SOURCE_URL, type SetupProgress } from './browser-storage';
 import { t, getLocale, localizeElement, languageControl, bindLanguageControl } from './i18n';
@@ -7,6 +9,7 @@ export async function probeOriginalAssets():Promise<boolean>{await connectAssetS
 const escape=(value:string)=>value.replace(/[&<>"']/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]!));
 const copy=(en:string,zh:string)=>getLocale()==='en'?en:zh;
 const stages:Record<string,[string,string]>={
+  local:['Reading the local installer','正在读取本地安装包'],
   download:['Downloading directly from Internet Archive','正在直接从 Internet Archive 下载'],
   verify:['Verifying the original archive','正在校验原版安装包'],
   'save-archive':['Saving the verified installer in this browser','正在将已校验的安装包保存到浏览器'],
@@ -27,6 +30,8 @@ const stages:Record<string,[string,string]>={
 
 export function showAssetSetup(app:HTMLElement,reason?:string):void {
   let worker:Worker|undefined,busy=false,last:SetupProgress|undefined,sourceFile:File|undefined;
+  let localAvailable=false,useLocal=false,screen:HTMLElement;
+  const localEndpoint=appUrl('__local-installer'),localHeaders={'X-RA2-Local-Installer':'1'};
   function render(){
     app.innerHTML=`<main class="asset-setup-screen"><section class="asset-setup-panel">
       <div class="setup-language">${sourceCodeLink()}${languageControl()}</div><h1 class="app-title">${APP_TITLE}</h1>
@@ -35,12 +40,13 @@ export function showAssetSetup(app:HTMLElement,reason?:string):void {
       <p class="setup-copy">${copy('Download the original installer, or choose a copy you already have. Your browser unpacks the graphics, maps, voices and music, saves them locally, and starts the game automatically.','在线下载安装包，或选择你已下载的文件。浏览器会解包原版画面、地图、语音和音乐，保存到本机并自动启动游戏。')}</p>
       <p class="setup-copy">${copy('Future visits use your saved browser data, including offline. The Windows installer is never run.','下次直接读取浏览器缓存，支持离线游玩；不会运行 Windows 安装程序。')}</p>
       ${projectNotice()}${reason?`<p class="setup-reason">${escape(t(reason))}</p>`:''}
+      <div class="setup-local-installer" data-testid="local-installer-option" hidden></div>
       <div class="setup-download">
         <a href="${SOURCE_PAGE_URL}" target="_blank" rel="noopener noreferrer">${copy('Direct from Internet Archive','直接从 Internet Archive 获取')}</a><strong>207 MB</strong>
         <small><a href="${SOURCE_URL}" target="_blank" rel="noopener noreferrer">${copy('Download Red-Alert-2-Multiplayer.exe manually','手动下载 Red-Alert-2-Multiplayer.exe')}</a></small>
         <small>${copy('Allow about 500 MB of browser storage and a few minutes for preparation.','请预留约 500 MB 浏览器存储空间；首次准备需要几分钟。')}</small>
       </div>
-      <p class="setup-consent">${copy('“Agree & download” lets this browser download the installer directly from Internet Archive and store and unpack it locally. This website does not host, proxy or upload original game assets.','点击「同意并下载」，允许浏览器直接从 Internet Archive 下载、存储和解包安装包。本网站不托管、代理传输或上传原版游戏素材。')}</p>
+      <p class="setup-consent">${copy('“Agree & download” downloads directly from Internet Archive. Preparation and storage stay on this device; nothing is uploaded.','点击「同意并下载」，直接从 Internet Archive 下载。素材在本机准备和保存，不会上传。')}</p>
       <button id="setup-download" class="primary" ${busy?'disabled':''}>${busy?copy('Preparing in your browser…','正在浏览器内准备…'):copy('Agree & download','同意并下载')}</button>
       <div class="setup-upload" id="setup-dropzone" aria-busy="${busy}">
         <h3>${copy('Already downloaded it?','已经下载好了？')}</h3>
@@ -55,13 +61,15 @@ export function showAssetSetup(app:HTMLElement,reason?:string):void {
       ${last?.type==='error'&&!last.errorCode&&last.stage!=='selection'?`<button id="setup-retry">${copy('Retry preparation','重试准备')}</button>`:''}
       <div class="setup-manual"><p>${copy('Saved for this browser and website. Clearing site data removes the cache. Your browser may ask to keep storage persistent.','缓存保存在当前浏览器、当前网站下；清除网站数据会删除缓存。浏览器可能会询问是否允许持久保存。')}</p><button id="setup-recheck" ${busy?'disabled':''}>${copy('Check saved assets','检查已有缓存')}</button></div>
     </section></main>`;
+    screen=app.querySelector<HTMLElement>('.asset-setup-screen')!;
+    renderLocalInstaller();
     localizeElement(app);
     bindLanguageControl(app,render);
     app.querySelector<HTMLButtonElement>('#setup-download')!.onclick=()=>void start();
     const input=app.querySelector<HTMLInputElement>('#setup-file')!;
     app.querySelector<HTMLButtonElement>('#setup-choose-file')!.onclick=()=>input.click();
     input.onchange=()=>{if(input.files?.length)chooseFiles(Array.from(input.files));};
-    app.querySelector<HTMLButtonElement>('#setup-retry')?.addEventListener('click',()=>void start(sourceFile));
+    app.querySelector<HTMLButtonElement>('#setup-retry')?.addEventListener('click',()=>void start(sourceFile,useLocal));
     app.querySelector<HTMLButtonElement>('#setup-recheck')!.onclick=async()=>{if(await originalsReady())location.reload();else app.querySelector('#setup-status')!.textContent=copy('No complete asset cache found. Download or choose the installer above.','没有找到完整素材缓存，请在线下载或选择安装包。');};
     const dropzone=app.querySelector<HTMLElement>('#setup-dropzone')!;
     app.ondragover=event=>{
@@ -76,6 +84,14 @@ export function showAssetSetup(app:HTMLElement,reason?:string):void {
       if(!busy)chooseFiles(Array.from(event.dataTransfer?.files??[]));
     };
     if(last)renderProgress(last);
+  }
+  function renderLocalInstaller(){
+    if(!screen.isConnected)return;
+    const option=screen.querySelector<HTMLElement>('[data-testid="local-installer-option"]')!;
+    option.hidden=!localAvailable;
+    if(!localAvailable)return;
+    option.innerHTML=`<p>${copy('Local development: an installer was found on this computer. Use it without downloading again.','本地开发：检测到本机已有安装包，可直接使用，无需重复下载。')}</p><button data-testid="setup-use-local" ${busy?'disabled':''}>${copy('Use local Red-Alert-2-Multiplayer.exe','使用本地 Red-Alert-2-Multiplayer.exe')}</button>`;
+    option.querySelector<HTMLButtonElement>('button')!.onclick=()=>void start(undefined,true);
   }
   function chooseFiles(files:File[]){
     if(busy)return;
@@ -102,12 +118,21 @@ export function showAssetSetup(app:HTMLElement,reason?:string):void {
     if(data.type==='complete'){worker?.terminate();app.querySelector('#setup-status')!.textContent=copy('Ready. Starting Red Alert 2…','准备完成，正在启动红色警戒 2…');location.reload();return;}
     renderProgress(data);
   }
-  async function start(file?:File){
+  async function start(file?:File,local=false){
     if(busy)return;
     sourceFile=file;
+    useLocal=local;
     if(file&&file.size!==SOURCE_BYTES){showProgress({type:'error',stage:'error',errorCode:'archive-size'});return;}
     busy=true;last=undefined;render();
     try{
+      if(local&&!file){
+        showProgress({type:'progress',stage:'local',percent:0});
+        const response=await fetch(localEndpoint+'/file',{headers:localHeaders,cache:'no-store',signal:AbortSignal.timeout(60000)});
+        if(!response.ok)throw new Error(copy('The local installer is no longer available. Restore it and retry, or choose a file.','本地安装包已不可用。请恢复文件后重试，或手动选择文件。'));
+        file=new File([await response.blob()],'Red-Alert-2-Multiplayer.exe');sourceFile=file;
+        if(!screen.isConnected)return;
+        if(file.size!==SOURCE_BYTES){showProgress({type:'error',stage:'error',errorCode:'archive-size'});return;}
+      }
       await connectAssetStorage();
       const estimate=await navigator.storage?.estimate();
       if(estimate?.quota && estimate.quota-(estimate.usage||0)<500*1024*1024)throw new Error(copy('Please free at least 500 MB of browser storage, then retry.','请释放至少 500 MB 浏览器存储空间后重试。'));
@@ -120,4 +145,10 @@ export function showAssetSetup(app:HTMLElement,reason?:string):void {
     }catch(error){showProgress({type:'error',stage:'error',message:error instanceof Error?error.message:String(error)});}
   }
   render();
+  if(['localhost','127.0.0.1','[::1]'].includes(location.hostname)){
+    void fetch(localEndpoint,{headers:localHeaders,cache:'no-store',signal:AbortSignal.timeout(3000)})
+      .then(response=>response.ok&&response.headers.get('Content-Type')?.includes('application/json')?response.json():undefined)
+      .then(data=>{localAvailable=data?.available===true&&data.size===SOURCE_BYTES;renderLocalInstaller();})
+      .catch(()=>{/* Static hosting and absent local servers retain download/file-picker setup. */});
+  }
 }

@@ -5,6 +5,7 @@ import {bootcampActors} from './src/bootcamp/catalog.js';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import {localInstallerPlugin} from './scripts/local-installer';
 const models = bootcampActors.map(actor => {
   const source = fs.readFileSync(path.resolve('assets/hd/models', actor.file));
   return {type:actor.type, source, fileName:`app/models/${actor.type}-${createHash('sha256').update(source).digest('hex').slice(0,12)}.glb`};
@@ -30,7 +31,7 @@ export default defineConfig({
   server: { watch: {ignored:['**/.cache/**']} },
   build: { assetsDir:'app' },
   worker: { format:'es' },
-  plugins:[{
+  plugins:[localInstallerPlugin(path.dirname(fileURLToPath(import.meta.url))),{
     name:'browser-only-originals',
     configureServer(server) {
       server.middlewares.use((req,res,next) => {
