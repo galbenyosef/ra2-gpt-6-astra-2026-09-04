@@ -10,7 +10,9 @@ environment-catalog.js -> nine existing terrain/road/tree GLBs
 switcher.ts -> model-layer.js -> actors + team-color.js
                             -> environment-scene.js (instanced terrain)
                             -> camera.js (projection / raycasting)
-                            -> overlays.js (effects / placement / resources)
+                            -> terrain-materials.js (continuous road / shore materials)
+                            -> resource-scene.js (quantity-driven mineral instances)
+                            -> overlays.js (effects / placement)
 ```
 
 The 12 verified game types have explicit original sprite identities, actual GLB
@@ -29,7 +31,12 @@ and straight/curved roads already in the repository. Native 2D consumes the same
 terrain, scenery and elevation data. The rock/ramp exhibit stays blocked in both
 views; this does not introduce elevated pathfinding. 3D supports isometric,
 perspective and top presets, 45° turns, Alt-left orbit, middle pan and anchored zoom.
-Effects, resources, fog and placement follow the camera and the existing game clock.
+Roads retain their authored curve/ruts, with world-space dirt variation, gravel and
+feathered terminal edges. Sand and shallow-water shading follow actual water cells;
+thin bank faces close the existing ground/water height gap. Waves use engine time.
+Instanced ore/gem stones and underlying soil track actual remaining resources and
+visibility; empty cells show no minerals. These details never enter ground picking
+or change simulation data. Effects, fog and placement follow the same camera/clock.
 Other imported maps use this available terrain set; unsupported scenery has no 3D
 model. Unmodeled neutral buildings remain excluded from the training simulation.
 No alternative unit model or box is used for unsupported game types.

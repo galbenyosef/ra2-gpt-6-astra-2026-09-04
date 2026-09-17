@@ -37,3 +37,7 @@ building placement, remembered view and environment-load failure recovery.
 The local-installer browser check uses a fresh context on the same CDP endpoint,
 defaults to the port 4208 subpath preview and requires an existing detected installer.
 It blocks Internet Archive requests and saves evidence under `.cache/local-installer`.
+
+`browser_bootcamp_terrain.mjs` checks real harvesting/depletion, hidden minerals,
+renderer roundtrips and 48 near/far views across three camera presets/four directions.
+It defaults to isolated ports 4211/9231 and writes only `.cache/terrain/`.

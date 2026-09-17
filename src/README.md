@@ -18,7 +18,8 @@ main.ts -> mode menu -> asset preparation -> lobby/editor -> battle
 Bootcamp and skirmish share the lobby and engine. All new production restrictions
 are enforced in the engine as well as the sidebar. The optional WebGL layer changes
 presentation without replacing the engine or controller. Bootcamp defaults to its
-existing-asset training map in both renderers. See `bootcamp/README.md`.
+existing-asset training map in both renderers. Its 3D roads/coasts gain continuous
+material detail; mineral instances shrink with actual resource depletion. See `bootcamp/README.md`.
 
 Asset setup also detects the Vite loopback-only local installer helper. Its button
 passes the local copy into the existing verified file import, with no download

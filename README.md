@@ -5,13 +5,13 @@ An independent browser RTS with original artwork prepared on the player's device
 Choose **Skirmish / 遭遇战** to fight computer opponents, or **Bootcamp / 新兵训练营**
 to freely build and recruit supported units on an authored asset training field.
 
-Created by [Victor Zhou](https://zzn.im) in a one-shot experiment on 2026-09-04 using
+Created by [Victor Zhou](https://zzn.im) on 2026-09-04 using
 ChatGPT 6 Astra, with the original result at [v0.1.0](https://github.com/xinbenlv/ra2-gpt-6-astra-2026-09-04/commit/3b9e9eaa2aa3b13db1f1bb1daca0f833d48986bf).
 
 ## Play
 
 [Play the published version](https://xinbenlv.github.io/ra2-gpt-6-astra-2026-09-04/).
-Bootcamp in this checkout is **v0.4.0**; a local implementation does not update that site.
+Bootcamp in this checkout is **v0.4.1**; a local implementation does not update that site.
 
 ```sh
 npm ci
@@ -31,13 +31,14 @@ when starting Vite. This loopback-only helper is absent from static deployments.
 - Skirmish retains nine countries, configurable teams/opponents, native maps, fog,
   terrain, mining, production, combat, superweapons and victory conditions.
 - Bootcamp defaults to traditional Canvas 2D on **every** entry. Open the lower-left
-  **Debug Panel** and select **2D / 3D** to change the actual renderer in the same match.
+  **Debug Panel** and select **2D / 3D** to change the renderer in the same match.
 - Bootcamp has immediate production and replenished finite credits. It unlocks the
   12 verified model types across factions. Bounds, occupancy and land/sea/air rules
   still apply. Opponents remain damageable passive targets; training does not end
   automatically when bases or armies are destroyed.
 - Bootcamp defaults to **Asset Training Field / 素材训练场**, built from existing
   grass, water, rock, ramp, tree and road assets. 2D and 3D show the same map.
+  3D adds worn roads, wet sand/shallow water and mineral stones that deplete with mining.
 - The 3D view renders terrain and actors with authored GLBs. Selection,
   commands, IDs, positions, health, teams, resources and time survive switching.
   Failed model loading or WebGL context loss returns to usable 2D with a clear message.

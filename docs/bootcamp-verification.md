@@ -8,6 +8,9 @@ The WebGL presenter renders existing terrain/actor GLBs through one rotating cam
 resource overlays, combat feedback and the HUD still follow the same simulation.
 No preview iframe or second application port participates in gameplay.
 
+See [terrain detail verification](bootcamp-terrain-verification.md) for the local
+0.4.1 road, mineral and shoreline rendering increment and its independent preview.
+
 ## Checks performed
 
 - `npm test`: **121 passed, 0 failed, 0 skipped** with existing local original map

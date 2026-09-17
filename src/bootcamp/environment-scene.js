@@ -4,6 +4,8 @@ import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {environmentAssets} from './environment-catalog.js';
 import {appUrl} from '../urls';
 import {heightStep} from './camera.js';
+import {TerrainMaterials} from './terrain-materials.js';
+import {ResourceScene} from './resource-scene.js';
 export class EnvironmentScene {
   root=new T.Group();templates=new Map();batches=[];groundMeshes=[];disposed=false;
   static async load(signal){
@@ -19,6 +21,8 @@ export class EnvironmentScene {
   }
   bind(view){
     if(this.map===view.map)return;this.map=view.map;
+    this.surfaces=new TerrainMaterials(view.map);this.resources=new ResourceScene(view);this.root.add(this.resources.root);
+    this.addShoreBanks(view);
     const groups=new Map(),add=(id,x,y,height=0,rotation=0,ground=false)=>{
       const key=id+':'+ground;if(!groups.has(key))groups.set(key,{id,ground,positions:[]});
       groups.get(key).positions.push({x,y,height,rotation});
@@ -48,7 +52,7 @@ export class EnvironmentScene {
       }
       template.traverse(source=>{
         if(!source.isMesh)return;
-        const mesh=new T.InstancedMesh(source.geometry,source.material,positions.length),matrices=[];
+        const mesh=new T.InstancedMesh(source.geometry,Array.isArray(source.material)?source.material.map(m=>this.surfaces.prepare(m,id)):this.surfaces.prepare(source.material,id),positions.length),matrices=[];
         mesh.userData.environment=id;mesh.frustumCulled=false;
         for(const [i,p] of positions.entries()){
           const matrix=new T.Matrix4().makeRotationY(p.rotation);matrix.setPosition(p.x,p.height,p.y);matrix.multiply(normalize).multiply(source.matrixWorld);
@@ -59,8 +63,29 @@ export class EnvironmentScene {
       });
     }
   }
+  addShoreBanks(view){
+    const positions=[],matrices=[];
+    for(let y=0;y<view.map.height;y++)for(let x=0;x<view.map.width;x++){
+      const cell=view.map.cells[y*view.map.width+x];if(cell==='water'||cell==='void')continue;
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){
+        const nx=x+dx,ny=y+dy;
+        if(nx<0||ny<0||nx>=view.map.width||ny>=view.map.height||view.map.cells[ny*view.map.width+nx]!=='water')continue;
+        // Close only the existing 0.035-cell gap; no beach geometry extends into navigable water.
+        const top=view.elevation(x,y)*heightStep,bottom=view.elevation(nx,ny)*heightStep-.035;
+        const matrix=new T.Matrix4().makeRotationY(Math.atan2(dx,dy));
+        matrix.scale(new T.Vector3(1,Math.max(.001,top-bottom),1));matrix.setPosition(x+dx*.5,(top+bottom)/2,y+dy*.5);
+        positions.push({x,y});matrices.push(matrix);
+      }
+    }
+    if(!positions.length)return;
+    this.bankGeometry=new T.PlaneGeometry(1,1);this.bankMaterial=new T.MeshStandardMaterial({color:'#75694f',roughness:1,side:T.DoubleSide});
+    const mesh=new T.InstancedMesh(this.bankGeometry,this.bankMaterial,positions.length);mesh.userData.environment='shore-bank';mesh.frustumCulled=false;
+    for(const [i,matrix] of matrices.entries()){mesh.setMatrixAt(i,matrix);mesh.setColorAt(i,new T.Color(1,1,1));}
+    this.root.add(mesh);this.batches.push({mesh,positions,matrices,ground:false});
+  }
   update(view){
     this.bind(view);
+    this.surfaces.update(view);this.resources.update(view);
     const revision=Math.floor(view.game.time*3)+':'+view.game.debugRevealMap;
     if(this.visibilityRevision!==revision){
       this.visibilityRevision=revision;const color=new T.Color(),hidden=new T.Matrix4().makeScale(0,0,0);
@@ -72,10 +97,10 @@ export class EnvironmentScene {
         });mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;
       }
     }
-    this.templates.get('ocean')?.scene.traverse(o=>{if(o.isMesh)for(const m of [o.material].flat())if(m.normalMap)m.normalMap.offset.set(view.game.time*.012,view.game.time*.008);});
   }
   dispose(){
     if(this.disposed)return;this.disposed=true;
+    this.surfaces?.dispose();this.resources?.dispose();this.bankGeometry?.dispose();this.bankMaterial?.dispose();
     for(const {mesh} of this.batches){mesh.removeFromParent();mesh.dispose();}this.batches=[];this.groundMeshes=[];
     const geometries=new Set(),materials=new Set(),textures=new Set();
     for(const {scene} of this.templates.values())scene.traverse(o=>{if(o.isMesh){geometries.add(o.geometry);for(const m of [o.material].flat()){materials.add(m);for(const v of Object.values(m))if(v?.isTexture)textures.add(v);}}});

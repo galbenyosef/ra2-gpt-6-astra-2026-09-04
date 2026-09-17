@@ -1,18 +1,10 @@
-// Gameplay feedback projected through the active 3D camera, using existing effects and resources.
+// Gameplay feedback projected through the active 3D camera, using existing effects and placement state.
 export function drawWorldOverlays(view,layer,marker){
   const {ctx,game}=view,project=(x,y,h=0)=>layer.rig.project(x,y,view,true,h);
   const cell=(x,y,fill)=>{
     const points=[[-.5,-.5],[.5,-.5],[.5,.5],[-.5,.5]].map(([dx,dy])=>project(x+dx,y+dy,.015));
     ctx.fillStyle=fill;ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill();
   };
-  for(let y=0;y<view.map.height;y++)for(let x=0;x<view.map.width;x++){
-    const index=y*view.map.width+x,type=view.map.cells[index];
-    if(!['ore','gem'].includes(type)||game.ore[index]<=0||!game.visible(view.localId,x,y))continue;
-    for(let i=0;i<5;i++){
-      const p=project(x+((i*13+x*3)%7-3)*.09,y+((i*7+y*11)%9-4)*.08,.04);
-      ctx.fillStyle=type==='ore'?['#e4bf50','#ae8827'][i%2]:['#c590d1','#60acba'][i%2];ctx.fillRect(p.x,p.y,3*view.zoom,2*view.zoom);
-    }
-  }
   for(const effect of game.effects){
     if(!game.visible(view.localId,effect.x,effect.y))continue;
     const t=effect.age/effect.duration,p=project(effect.x,effect.y,.25);
