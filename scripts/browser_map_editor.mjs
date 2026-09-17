@@ -24,6 +24,7 @@ async function open(profile) {
   page.on('pageerror', error => errors.push(String(error)));
   page.on('request', request => { if (request.url().includes('archive.org')) archiveRequests.push(request.url()); });
   await page.goto(url, { waitUntil: 'networkidle' });
+  await page.getByTestId('mode-skirmish').click({ timeout: 90000 });
   await page.locator('#open-map-editor').waitFor({ timeout: 90000 });
   await page.locator('[data-language-select]').selectOption('zh-CN');
   return { context, page };
@@ -91,6 +92,7 @@ try {
   // Name edits can be incomplete while a draft still preserves every painted cell.
   await page.locator('[data-name]').fill('');
   await page.reload({ waitUntil: 'networkidle' });
+  await page.getByTestId('mode-skirmish').click({ timeout: 90000 });
   await page.locator('#open-map-editor').waitFor({ timeout: 90000 });
   await page.locator('#open-map-editor').click();
   assert.equal(await page.locator('[data-name]').inputValue(), '');

@@ -76,6 +76,7 @@ export interface Effect {
 }
 export interface GameEvent { id: number; time: number; text: string; owner?: number; kind: 'info' | 'warning' | 'combat' | 'complete' }
 export interface GameOptions {
+  mode?: 'skirmish' | 'bootcamp';
   map: GameMap; players: PlayerConfig[]; startingCredits?: number; seed?: number;
   localPlayerId?: number; startingUnits?: number; fogOfWar?: boolean; superweapons?: boolean;
   shortGame?: boolean;

@@ -49,6 +49,7 @@ async function nativeView() {
 
 try {
   await page.goto(url, { waitUntil: 'networkidle' });
+  await page.getByTestId('mode-skirmish').click({ timeout: 90000 });
   await page.locator('#open-map-editor').waitFor({ timeout: 90000 });
   await page.locator('[data-language-select]').selectOption('zh-CN');
   // Trace actual painter calls, not merely the number of colors in a screenshot.

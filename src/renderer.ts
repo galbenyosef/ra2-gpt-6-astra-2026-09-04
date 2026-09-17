@@ -1,3 +1,5 @@
+// Shared battlefield projection and input controller. Optional WebGL replaces entity drawing only.
+import type {ModelLayer} from './bootcamp/model-layer.js';
 import { t } from './i18n';
 import { spriteAnimation, spriteFacing, unitIsMoving } from './sprite-animation';
 import { drawHDCombatEffect, drawHDGroundMotion } from './hd-effects';
@@ -20,6 +22,7 @@ export type RenderMap = GameMap & {
 export interface RendererHooks { onSelection(ids: number[]): void; onCommand(kind?: 'move'|'attack'|'deploy'): void; onPlace(x: number, y: number): boolean; onEntityClick(entity: Entity): boolean; onNotice(text: string): void }
 export interface WorldRect { minX: number; maxX: number; minY: number; maxY: number }
 export class BattlefieldRenderer {
+  modelLayer?: ModelLayer;
   ctx: CanvasRenderingContext2D;
   readonly nativeTerrain: readonly ResolvedTerrainCell[];
   camera = { x: 0, y: 0 }; zoom = 1;
@@ -150,7 +153,7 @@ export class BattlefieldRenderer {
     const p = this.project(x, y); if (elevation) p.y -= this.elevation(x, y) * 15;
     return { x: (p.x - this.camera.x) * this.zoom + this.width / 2, y: (p.y - this.camera.y) * this.zoom + this.height / 2 };
   }
-  private elevation(x: number, y: number): number { if(x<0||y<0||x>=this.map.width||y>=this.map.height)return 0;const idx = Math.round(y) * this.map.width + Math.round(x); return this.map.elevations?.[idx] || this.tileLookup.get(idx)?.elevation || this.tileLookup.get(idx)?.z || 0; }
+  elevation(x: number, y: number): number { if(x<0||y<0||x>=this.map.width||y>=this.map.height)return 0;const idx = Math.round(y) * this.map.width + Math.round(x); return this.map.elevations?.[idx] || this.tileLookup.get(idx)?.elevation || this.tileLookup.get(idx)?.z || 0; }
   private onScreen(x: number, y: number) { const p = this.toScreen(x, y); return p.x > -120 && p.x < this.width + 120 && p.y > -120 && p.y < this.height + 180; }
   private calculateBounds(): WorldRect {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -187,6 +190,7 @@ export class BattlefieldRenderer {
   }
   marker(p: Point, attack: boolean) { this.orderMarker = { ...p, age: 0, attack }; }
   pick(x: number, y: number): Entity | undefined {
+    if (this.modelLayer) return this.modelLayer.pick(x, y, this);
     let nearest: Entity | undefined;
     for (let i = this.game.entities.length - 1; i >= 0; i--) {
       const e = this.game.entities[i]; if (e.hp <= 0 || e.transportedBy || !this.game.visible(this.localId, e.x, e.y)) continue;
@@ -268,10 +272,11 @@ export class BattlefieldRenderer {
       const p=this.project(x,y);p.y-=this.elevation(obj.x,obj.y)*15;
       objects.push({sort:x+y+fh*.3,draw:()=>this.terrainPainter.drawOverlay(ctx,sprite,p.x,p.y)});
     }
-    for(const entity of [...this.game.entities,...this.comparisonEntities]){if(entity.hp<=0||entity.transportedBy||!this.onScreen(entity.x,entity.y)||!(entity.kind==='building'?this.game.explored(this.localId,entity.x,entity.y):this.game.visible(this.localId,entity.x,entity.y)))continue;
+    for(const entity of (this.modelLayer ? [] : [...this.game.entities,...this.comparisonEntities])){if(entity.hp<=0||entity.transportedBy||!this.onScreen(entity.x,entity.y)||!(entity.kind==='building'?this.game.explored(this.localId,entity.x,entity.y):this.game.visible(this.localId,entity.x,entity.y)))continue;
       objects.push({sort:entity.x+entity.y+(getDefinition(entity.type).flying?12:0),draw:()=>this.drawEntity(ctx,entity)});
     }
     objects.sort((a,b)=>a.sort-b.sort);for(const obj of objects)obj.draw();
+    this.modelLayer?.draw(this);
     for (const effect of this.game.effects) {
       if (!this.game.visible(this.localId, effect.x, effect.y)) continue;
       const p = this.project(effect.x, effect.y); p.y -= this.elevation(effect.x, effect.y) * 15;
@@ -413,7 +418,7 @@ export class BattlefieldRenderer {
   }
   drawMinimap(){
     const ctx=this.miniCtx;if(!ctx||!this.miniBase)return;const w=ctx.canvas.width,h=ctx.canvas.height;ctx.fillStyle='#07130e';ctx.fillRect(0,0,w,h);
-    const player=this.game.players.find(v=>v.id===this.localId)!;const online=player.powerProduced>=player.powerConsumed&&this.game.entities.some(e=>e.owner===this.localId&&e.hp>0&&['radar','airforce_command'].includes(e.type));
+    const player=this.game.players.find(v=>v.id===this.localId)!;const online=this.game.bootcamp||player.powerProduced>=player.powerConsumed&&this.game.entities.some(e=>e.owner===this.localId&&e.hp>0&&['radar','airforce_command'].includes(e.type));
     if(!online&&!this.game.debugRevealMap){const raw=this.assets.manifest.ui?.[`${player.faction==='soviet'?'sidec02':'sidec01'}-radar`] as Sprite|undefined;const img=raw&&this.assets.images.get(raw.src);if(raw&&img)ctx.drawImage(img,0,0,raw.frameWidth,raw.frameHeight,0,0,w,h);ctx.fillStyle='#061017ab';ctx.fillRect(0,h-31,w,31);ctx.fillStyle='#afbaa8';ctx.font='14px Tahoma';ctx.textAlign='center';ctx.fillText(t(player.powerConsumed>player.powerProduced?'电力不足':'雷达离线'),w/2,h-11);return;}
     ctx.drawImage(this.miniBase,0,0);
     for(let y=0;y<this.map.height;y++)for(let x=0;x<this.map.width;x++){if(!this.game.explored(this.localId,x,y)){const p=this.project(x,y);ctx.fillStyle='#020a08';ctx.fillRect(p.x*this.miniScale+this.miniOrigin.x-1,p.y*this.miniScale+this.miniOrigin.y-1,Math.max(2,60*this.miniScale),Math.max(1,30*this.miniScale));}}

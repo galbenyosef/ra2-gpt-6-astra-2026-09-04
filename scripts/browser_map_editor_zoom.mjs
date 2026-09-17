@@ -94,6 +94,7 @@ async function fit() { await action('fit').click(); await surface(); }
 
 try {
   await page.goto(url, { waitUntil: 'networkidle' });
+  await page.getByTestId('mode-skirmish').click({ timeout: 90000 });
   await page.locator('#open-map-editor').waitFor({ timeout: 90000 });
   previousDraft = await page.evaluate(key => localStorage.getItem(key), draftKey);
   draftCaptured = true;
@@ -212,6 +213,7 @@ try {
   assert.ok(events.every(event => event.trusted && event.pointerType === 'touch'), 'gesture events are trusted browser touch input');
   assert.ok(events.some(event => event.type === 'pointercancel'), 'browser dispatches actual touch cancellation');
   await page.reload({ waitUntil: 'networkidle' });
+  await page.getByTestId('mode-skirmish').click({ timeout: 90000 });
   await page.locator('#open-map-editor').waitFor({ timeout: 90000 });
   await page.locator('#open-map-editor').click(); await canvas.waitFor();
   assert.deepEqual(await download(), painted, 'reload restores only committed edits');

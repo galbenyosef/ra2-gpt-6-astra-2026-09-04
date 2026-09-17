@@ -11,7 +11,7 @@ existing GameEngine for entity movement. It does not replace the main Canvas 2D
 game, require original art, or load 2D comparison sprites.
 
 ```text
-catalog.js -> eight asset identities and model normalization
+catalog.js -> shared src/bootcamp/catalog.js identities and model normalization
 world.js -> six instanced/placed environment types and orbit camera
 main.ts -> GameEngine, AnimationMixer, selection, action and time controls
 index.html + style.css -> training-field controls
@@ -64,3 +64,6 @@ GameEngine. Eight-direction travel, actual attack alignment and move-resume pass
 the 64-case batch regression. Local screenshots include the rotated turret and
 blue paint in `.cache/batch-two/review/htnk-aim_left.png` and
 `.cache/batch-two/review/htnk-v4-canvas-blue.png`.
+
+The catalog is now shared with main-app Bootcamp; this preview keeps its existing
+independent scene, actions and routes. Bootcamp does not embed this page.

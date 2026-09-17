@@ -1,7 +1,7 @@
 # Original Westwood extracted art and direct format conversions.
 # Authored runtime models/sprites in assets/hd/ are intentionally tracked.
-/public/assets/
-/public/maps/
+/public/assets
+/public/maps
 /docs/screenshots/
 
 # Downloaded archives, extracted originals, and local caches.

@@ -10,8 +10,8 @@ const han=()=>page.evaluate(()=>{
  return values;
 });
 try{
- await page.goto(process.env.RA2_BROWSER_URL || 'http://127.0.0.1:4174/',{waitUntil:'networkidle'});await page.waitForSelector('#start',{timeout:90000});
- await page.evaluate(()=>localStorage.removeItem('ra2-language'));await page.reload({waitUntil:'networkidle'});await page.waitForSelector('#start',{timeout:90000});
+ await page.goto(process.env.RA2_BROWSER_URL || 'http://127.0.0.1:4174/',{waitUntil:'networkidle'});await page.getByTestId('mode-skirmish').click({timeout:90000});await page.waitForSelector('#start',{timeout:90000});
+ await page.evaluate(()=>localStorage.removeItem('ra2-language'));await page.reload({waitUntil:'networkidle'});await page.getByTestId('mode-skirmish').click({timeout:90000});await page.waitForSelector('#start',{timeout:90000});
  assert(await page.locator('html').getAttribute('lang')==='en','English must be default');
  assert((await han()).length===0,'Untranslated Chinese in English lobby');
  await page.screenshot({path:'.cache/locale-lobby-en-desktop.png'});
@@ -19,7 +19,7 @@ try{
  assert(await page.evaluate(()=>document.querySelector('.checks').getBoundingClientRect().bottom<=document.querySelector('.settings-panel').getBoundingClientRect().bottom),'Laptop settings overflow');
  await page.locator('#help').click(); assert((await han()).length===0,'Untranslated Chinese in English help');await page.locator('#help-close').click();
  await page.locator('[data-language-select]').selectOption('zh-CN');assert(await page.locator('#start').innerText()==='开始作战','Chinese lobby switch');
- await page.reload({waitUntil:'networkidle'});await page.waitForSelector('#start',{timeout:90000});assert(await page.locator('#start').innerText()==='开始作战','Chinese persisted');
+ await page.reload({waitUntil:'networkidle'});await page.getByTestId('mode-skirmish').click({timeout:90000});await page.waitForSelector('#start',{timeout:90000});assert(await page.locator('#start').innerText()==='开始作战','Chinese persisted');
  await page.locator('[data-language-select]').selectOption('en');await page.locator('#start').click();await page.waitForSelector('#battlefield-canvas');await page.keyboard.press('d');await page.waitForTimeout(900);
  assert((await han()).length===0,'Untranslated Chinese in English game');await page.screenshot({path:'.cache/locale-game-en-laptop.png'});
  await page.evaluate(()=>window.auditGame=window.ra2.game);
@@ -29,9 +29,9 @@ try{
  await page.locator('#game-options').click();assert((await han()).length===0,'Untranslated Chinese in English pause menu');await page.locator('#leave').click();
  const countBefore=requests.filter(url=>url.includes('archive.org')).length;
  const removed=await page.evaluate(async()=>{const original=await caches.open('ra2-originals-v2');const keys=await original.keys();const request=keys.find(r=>r.url.endsWith('/assets/audio/hm2.wav'))||keys.find(r=>r.url.includes('/assets/audio/'));if(!request)throw Error('No audio cached');const value=await original.match(request);const backup=await caches.open('ra2-locale-audit-backup');await backup.put(request,value.clone());await original.delete(request);return request.url;});
- await page.reload({waitUntil:'networkidle'});await page.waitForSelector('#setup-download',{timeout:90000});assert(requests.filter(url=>url.includes('archive.org')).length===countBefore,'Missing cached asset must not trigger download');
+ await page.reload({waitUntil:'networkidle'});await page.getByTestId('mode-skirmish').click({timeout:90000});await page.waitForSelector('#setup-download',{timeout:90000});assert(requests.filter(url=>url.includes('archive.org')).length===countBefore,'Missing cached asset must not trigger download');
  await page.evaluate(async removed=>{const original=await caches.open('ra2-originals-v2'),backup=await caches.open('ra2-locale-audit-backup');await original.put(removed,await backup.match(removed));await caches.delete('ra2-locale-audit-backup');},removed);
- await page.locator('#setup-recheck').click();await page.waitForSelector('#start',{timeout:90000});console.log('CACHE_MISSING_RECOVERY_PASS',removed);
+ await page.locator('#setup-recheck').click();await page.getByTestId('mode-skirmish').click({timeout:90000});await page.waitForSelector('#start',{timeout:90000});console.log('CACHE_MISSING_RECOVERY_PASS',removed);
  console.log('ERRORS',JSON.stringify(errors));assert(!errors.length,'Browser errors');
  console.log('PASS English default; Chinese persisted; running match retained; missing cache requires consent; no new IA download.');
 }finally{

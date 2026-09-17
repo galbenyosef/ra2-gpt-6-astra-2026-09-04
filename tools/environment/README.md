@@ -48,3 +48,6 @@ It is separate from the older animated Rhino in the training field.
 paint regions. The preview includes color presets, a custom color picker and a
 mask display. Material uniforms are local to each instance. Ordinary GLB viewers
 show the original red unless they implement this custom metadata convention.
+
+The catalog and embedded Rhino paint adapter are shared with `src/bootcamp/`.
+Main-app Bootcamp uses its own shared-engine switch and has no preview-port dependency.

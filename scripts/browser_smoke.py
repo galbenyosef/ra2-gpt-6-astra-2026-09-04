@@ -1,3 +1,4 @@
+"""Smoke-check skirmish entry, deployment and timed construction in a real browser."""
 from playwright.sync_api import sync_playwright
 import json,time
 with sync_playwright() as p:
@@ -6,6 +7,7 @@ with sync_playwright() as p:
     errors=[]
     page.on('pageerror',lambda error: errors.append(str(error)))
     page.goto('http://127.0.0.1:5173/',wait_until='networkidle')
+    page.get_by_test_id('mode-skirmish').click(timeout=90000)
     page.wait_for_selector('#start',timeout=90000)
     page.screenshot(path='/tmp/ra2-lobby.png',full_page=True)
     print('LOBBY',page.locator('select[aria-label="玩家 1 国家"] option').count(),page.locator('.player-table tbody tr').count())

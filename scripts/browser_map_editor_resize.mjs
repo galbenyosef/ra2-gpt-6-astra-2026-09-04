@@ -53,6 +53,7 @@ function samePoint(actual, expected, message) {
 
 try {
   await page.goto(url, { waitUntil: 'networkidle' });
+  await page.getByTestId('mode-skirmish').click({ timeout: 90000 });
   await page.locator('#open-map-editor').waitFor({ timeout: 90000 });
   await page.locator('[data-language-select]').selectOption('zh-CN');
   await page.evaluate(key => localStorage.removeItem(key), draftKey);
@@ -151,6 +152,7 @@ try {
   await page.waitForFunction(({ key, expected }) => localStorage.getItem(key) === expected,
     { key: draftKey, expected: JSON.stringify(original) });
   await page.reload({ waitUntil: 'networkidle' });
+  await page.getByTestId('mode-skirmish').click({ timeout: 90000 });
   await page.locator('#open-map-editor').waitFor({ timeout: 90000 });
   await page.locator('#open-map-editor').click(); await canvas.waitFor();
   assert.deepEqual(await download(), original, 'Escape restores both visible map and persisted draft');
@@ -171,6 +173,7 @@ try {
   await action('undo').click(); assert.deepEqual(await download(), original);
   await action('redo').click(); assert.equal((await savedWidth(40)).width, 40);
   await page.reload({ waitUntil: 'networkidle' });
+  await page.getByTestId('mode-skirmish').click({ timeout: 90000 });
   await page.locator('#open-map-editor').waitFor({ timeout: 90000 });
   await page.locator('#open-map-editor').click();
   assert.equal(await canvas.getAttribute('data-map-width'), '40');

@@ -1,10 +1,11 @@
+"""Skirmish production, placement, movement and result-screen browser regression."""
 from playwright.sync_api import sync_playwright
 import json
 with sync_playwright() as p:
     browser=p.chromium.launch(headless=True)
     page=browser.new_page(viewport={"width":1440,"height":960},device_scale_factor=1)
     errors=[]; page.on('pageerror',lambda error:errors.append(str(error)))
-    page.goto('http://127.0.0.1:4173/',wait_until='networkidle');page.wait_for_selector('#start',timeout=90000)
+    page.goto('http://127.0.0.1:4173/',wait_until='networkidle');page.get_by_test_id('mode-skirmish').click(timeout=90000);page.wait_for_selector('#start',timeout=90000)
     page.locator('#choose-map').click(); page.locator('#map-search').fill('雪谷');page.wait_for_timeout(100)
     print('MAP_SEARCH',page.locator('#map-list').inner_text())
     page.locator('#map-cancel').click()
