@@ -37,3 +37,11 @@ building placement, remembered view and environment-load failure recovery.
 The local-installer browser check uses a fresh context on the same CDP endpoint,
 defaults to the port 4208 subpath preview and requires an existing detected installer.
 It blocks Internet Archive requests and saves evidence under `.cache/local-installer`.
+
+`browser_bootcamp_highland.mjs` instead launches a dedicated persistent Chrome profile
+specified by `RA2_BROWSER_PROFILE`, already prepared for `RA2_BROWSER_URL` (default
+port 4216). It checks flat grass pixels and filled front walls at 1× and 2.5×,
+after pan, and shared-state 2D/3D roundtrips. Evidence stays under
+`.cache/bootcamp/highland` (override with `RA2_EVIDENCE_DIR`). On a Vite dev server,
+`RA2_HIGHLAND_BASELINE=1` disables the correction only in that browser and must fail
+the same pixel test; it does not modify source or shared game state.

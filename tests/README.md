@@ -8,6 +8,7 @@ archive-input + browser-storage + service-worker -> original verification/cache
 source-only + local-installer                    -> publication and local access
 map-* + custom-* + terrain-*                     -> portable map/editor behavior
 bootcamp-map                                    -> shared training field and asset coverage
+bootcamp-flat-highland                          -> continuous plateau/ramp corners without state changes
 sprite-* + hd-actions + sound                    -> presentation data contracts
 i18n + urls                                     -> language and base-path behavior
 ```

@@ -5,6 +5,7 @@ hooks across 2D/3D switches. Rendering and camera projection are presentation st
 
 ```text
 training-map.ts -> shared map cells / elevations / scenery / spawns
+native-highland.ts -> native 2D flat tops, exposed rock sides and ramp projection
 catalog.js      -> engine + sidebar + Vite actor GLB publication
 environment-catalog.js -> nine existing terrain/road/tree GLBs
 switcher.ts -> model-layer.js -> actors + team-color.js
@@ -33,6 +34,13 @@ Effects, resources, fog and placement follow the camera and the existing game cl
 Other imported maps use this available terrain set; unsupported scenery has no 3D
 model. Unmodeled neutral buildings remain excluded from the training simulation.
 No alternative unit model or box is used for unsupported game types.
+
+The training-field 2D exhibit projects native grass onto a continuous raised top
+and its +y ramp. Only exposed height boundaries receive a sampled native rock face;
+full tall cliff sprites are not repeated inside the plateau. Simulation elevations
+and blocked cells remain unchanged. Ordinary custom/editor and original maps keep
+their existing terrain rules. `browser_bootcamp_highland.mjs` checks actual top and
+side pixels, zoom/pan, and exact state preservation across renderer switches.
 
 Tanya and Conscript use ready/walk/fire clips; Rocketeer uses hover/fly/firefly;
 Squid uses ready/swim/attack; Rhino and Destroyer use ready/attack; Barracks uses work.

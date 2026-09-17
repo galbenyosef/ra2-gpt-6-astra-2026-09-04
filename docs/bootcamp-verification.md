@@ -1,6 +1,24 @@
 <!-- Implementation contract and measured acceptance results for the main-application Bootcamp. -->
 # Bootcamp verification
 
+## Flat highland correction
+
+The default 2D rock exhibit now has a continuous native grass top and a +y ramp.
+Rock pixels fill only exposed height boundaries, without changing terrain blocking,
+integer elevations or the 3D renderer. The old path repeated the tall `cliff02.tem`
+subtile over all 24 cells and left the elevated front edges uncovered.
+
+`browser_bootcamp_highland.mjs` passed real pixel checks at 1×, 2.5× and after pan,
+plus two exact-state 2D/3D roundtrips. Its browser-only negative control reproduces
+the old path: all three interior grass samples fail and all 45 front-wall samples
+show background. The fixed path fills every wall sample. Original-art screenshots
+remain ignored in `.cache/bootcamp/highland`; no reference media is published.
+
+For this correction, `npm test` reports 115 passed, 0 failed, 7 explicitly skipped
+original-map tests (originals are in the test browser, not public directories).
+Type checking, production build and built-media isolation pass. Existing large
+Three.js chunk / 7-Zip externalized-module build warnings remain.
+
 This local implementation uses one `GameEngine` and one battlefield input/controller
 through every 2D/3D roundtrip. Bootcamp defaults to Asset Training Field, not Arctic
 Circle. Both renderers consume its same cells, elevations, scenery and game state.

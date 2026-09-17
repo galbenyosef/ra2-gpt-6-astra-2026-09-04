@@ -9,6 +9,7 @@ import { spriteFrame, type Assets, type Sprite } from './assets';
 import { projectTile, TerrainPainter, unprojectPoint } from './terrain-painter';
 import { compileCustomTerrain, type ResolvedTerrainCell } from './custom-terrain';
 import { nativeTerrainCatalog } from './maps';
+import { drawTrainingHighland } from './bootcamp/native-highland';
 
 export type RenderMap = GameMap & {
   resolvedTerrain?: readonly ResolvedTerrainCell[];
@@ -247,6 +248,7 @@ export class BattlefieldRenderer {
       if (!this.game.explored(this.localId, x, y)) { this.diamond(ctx, p.x, p.y, '#020706'); continue; }
       const tile = this.tileLookup.get(idx);
       const resolved = this.nativeTerrain[idx];
+      if (drawTrainingHighland(ctx, this.map, resolved, this.terrainPainter, this.assets, x, y)) continue;
       const drawn = resolved ? this.terrainPainter.drawResolvedGround(ctx, resolved, p.x, p.y)
         : this.terrainPainter.drawNativeTile(ctx, tile, this.map.theater, p.x, p.y);
       if (!drawn) this.terrainPainter.drawGround(ctx, terrain, this.map.theater ?? '', x, y, p.x, p.y);
