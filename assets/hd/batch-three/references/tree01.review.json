@@ -1,0 +1,32 @@
+{
+  "asset": "tree01",
+  "status": "accepted",
+  "referenceSha256": "7182cb646c7a4167f35849a2863f86080348e0c234d2d50728eb6b38dca48d8b",
+  "originalOpaqueBounds": [
+    61,
+    1,
+    94,
+    79
+  ],
+  "referenceBounds": [
+    299,
+    67,
+    753,
+    1353
+  ],
+  "originalSize": [
+    33,
+    78
+  ],
+  "downsampleSize": [
+    28,
+    78
+  ],
+  "widthRatio": 0.8484848484848485,
+  "comparison": ".cache/batch-three/reference-check/comparison.png",
+  "alignment": "same facing, uniform height match, opaque ground baseline; no aspect distortion",
+  "limitations": "charcoal threshold gives approximate reference bounds; no automatic fidelity claim",
+  "reviewer": "Codex visual review",
+  "visualJudgment": "Narrow pointed deciduous crown and bare lower trunk match identity; crown is slightly narrower. Hidden branches and species are inferred.",
+  "scope": "Reference accepted for one Meshy generation; not a completed or user-approved GLB"
+}

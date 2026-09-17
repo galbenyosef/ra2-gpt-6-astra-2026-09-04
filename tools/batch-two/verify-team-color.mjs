@@ -10,7 +10,8 @@ const browser=await chromium.launch({channel:'chrome',headless:true});
 try{
  const page=await browser.newPage({viewport:{width:1100,height:850}}),errors=[];
  page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')errors.push(m.text());});
- await page.goto('http://127.0.0.1:4192/rhino.html',{waitUntil:'domcontentloaded',timeout:120000});await page.waitForFunction(()=>window.rhino?.ready,{},{timeout:120000}).catch(e=>{throw Error(e.message+'\n'+errors.join('\n'));});
+ await fs.mkdir('.cache/batch-two/team-color',{recursive:true});
+ await page.goto((process.env.RA2_BROWSER_URL||'http://127.0.0.1:4192')+'/rhino.html',{waitUntil:'domcontentloaded',timeout:120000});await page.waitForFunction(()=>window.rhino?.ready,{},{timeout:120000}).catch(e=>{throw Error(e.message+'\n'+errors.join('\n'));});
  await page.getByTestId('team-preset').selectOption('#2166ff');assert.equal(await page.getByTestId('team-color').inputValue(),'#2166ff');
  await page.screenshot({path:'.cache/batch-two/team-color/blue.png'});
  await page.getByTestId('team-color').fill('#ff9900');await page.getByTestId('team-color').dispatchEvent('input');

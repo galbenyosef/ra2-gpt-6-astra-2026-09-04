@@ -1,6 +1,8 @@
 """Submit once, resume by task ID, and archive self-contained Meshy masters safely."""
 import base64,hashlib,json,os,pathlib,sys,urllib.request,urllib.error
 ROOT=pathlib.Path(__file__).resolve().parents[2]
+BATCH=os.environ.get('RA2_HD_BATCH','batch-two')
+if BATCH not in ['batch-two','batch-three']:raise ValueError('Unsupported batch')
 API='https://api.meshy.ai/openapi/v1/image-to-3d'
 PARAMS={'model_type':'standard','ai_model':'meshy-7','ultra_mode':False,'should_texture':True,'enable_pbr':True,'texture_resolution':'2k','should_remesh':False,'image_enhancement':False,'target_formats':['glb']}
 def request(url,payload=None,auth=True):
@@ -12,11 +14,11 @@ def request(url,payload=None,auth=True):
  except urllib.error.HTTPError as e: raise RuntimeError('HTTP '+str(e.code)) from None
  except Exception as e:raise RuntimeError(type(e).__name__+'; request outcome may be unknown') from None
 def main():
- action,id=sys.argv[1:3]; folder=ROOT/'.cache/batch-two'/id;folder.mkdir(parents=True,exist_ok=True)
+ action,id=sys.argv[1:3]; folder=ROOT/'.cache'/BATCH/id;folder.mkdir(parents=True,exist_ok=True)
  marker=folder/'submitted.json'; record=folder/'task.json'
  if action=='submit':
   if marker.exists() or record.exists():raise RuntimeError('Submission marker exists; recover instead of resubmitting')
-  image=ROOT/'assets/hd/batch-two/references'/f'{id}.png';data=image.read_bytes()
+  image=ROOT/'assets/hd'/BATCH/'references'/f'{id}.png';data=image.read_bytes()
   review=json.loads(image.with_suffix('.review.json').read_text())
   if review.get('status')!='accepted' or review.get('referenceSha256')!=hashlib.sha256(data).hexdigest():
    raise RuntimeError('Reference must pass downsample review for this exact image before submission')

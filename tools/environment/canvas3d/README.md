@@ -1,5 +1,10 @@
 # Canvas 3D training field
 
+The third batch currently retains all 14 selectable assets and adds a 2×2 curved
+road (TMP 177), for 15 selectable assets. Its five other models await external
+generation approval. Use port 4193 for this worktree. Flat roads sit 0.004 cells
+above the grass to avoid coplanar flicker; environment turn controls now work.
+
 Open `/canvas3d/` on `node tools/environment/server.mjs` (port 4186).
 This independent Three.js renderer consumes authored GLBs directly and uses the
 existing GameEngine for entity movement. It does not replace the main Canvas 2D

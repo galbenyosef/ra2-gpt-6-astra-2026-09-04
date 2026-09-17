@@ -47,6 +47,10 @@ export async function addEnvironment(scene){
  }
  for(let x=3;x<=6;x++){add('ramp',x,3);for(let z=4;z<=6;z++)add('plateau',x,z);}
  for(const [id,x,z,y]of [['tree22',4,5,heightStep],['tree10',6,6,heightStep],['tree22',3,12,0],['tree10',5,17,0],['tree22',18,4,0],['tree10',20,9,0],['tree22',4,24,0],['tree10',18,24,0]])add(id,x,z,y);
+ // The selectable TMP 177 bend joins the existing straight at (17,7).
+ // A shared-mesh straight copy exposes its east port at the same surface height.
+ const road=(await loader.loadAsync('/hd/batch-two/dirt-road.glb')).scene;
+ for(const x of[19]){const copy=road.clone(true);copy.position.set(x,.004,9);copy.rotation.y=Math.PI/2;scene.add(copy);}
  // The water stays open; land texture carries cell scale without a grid over the sea.
  return {models,update(time){for(const m of waters)if(m.normalMap)m.normalMap.offset.set(time*.012,time*.008);}};
 }

@@ -80,10 +80,10 @@ function tick(dt:number){
 function updateScene(){
  for(const m of models){
   const wet=m.id==='tanya'&&waterActions.has(m.playing),air=m.kind==='air'&&!['tumble','airdeathfinish'].includes(m.playing);
-  const y=m.kind==='naval'?(m.waterline??-.4):wet?(m.playing.startsWith('swim')?-.08:-.90*m.scale):air?1.3:0;
+  const y=m.kind==='naval'?(m.waterline??-.4):wet?(m.playing.startsWith('swim')?-.08:-.90*m.scale):air?1.3:(m.groundOffset??0);
   // Engine angle is atan2(delta Z, delta X); Three Y rotation subtracts that angle.
   if(m.moving||m.entity.path?.length)m.heading=0;
-  m.group.position.set(m.entity.x,y,m.entity.y);m.group.rotation.y=m.environment?0:Math.atan2(m.forwardAxis[2],m.forwardAxis[0])-m.entity.angle+m.heading;
+  m.group.position.set(m.entity.x,y,m.entity.y);m.group.rotation.y=m.environment?m.heading:Math.atan2(m.forwardAxis[2],m.forwardAxis[0])-m.entity.angle+m.heading;
   // Rigid-body feedback, separate from skeleton clips and simulation damage.
   if(m.playing==='attack'&&!m.action){const forward=new T.Vector3(...m.forwardAxis).applyQuaternion(m.group.quaternion);m.group.position.addScaledVector(forward,-Math.max(0,Math.cos(m.time*7))*.07);}
   if(m.playing==='hit')m.group.position.x+=Math.sin(m.time*30)*.025;

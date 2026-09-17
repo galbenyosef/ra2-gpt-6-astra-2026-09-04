@@ -1,0 +1,32 @@
+{
+  "asset": "nahand",
+  "status": "accepted",
+  "referenceSha256": "a20977fa035b8cc2dd8b5bebcaae898a5652edc1401c6bc54cec40092f2a5f92",
+  "originalOpaqueBounds": [
+    81,
+    4,
+    171,
+    167
+  ],
+  "referenceBounds": [
+    367,
+    30,
+    939,
+    1049
+  ],
+  "originalSize": [
+    90,
+    163
+  ],
+  "downsampleSize": [
+    91,
+    163
+  ],
+  "widthRatio": 1.011111111111111,
+  "comparison": ".cache/batch-three/reference-check/comparison.png",
+  "alignment": "same facing, uniform height match, opaque ground baseline; no aspect distortion",
+  "limitations": "charcoal threshold gives approximate reference bounds; no automatic fidelity claim",
+  "reviewer": "Codex visual review",
+  "visualJudgment": "Statue/pedestal proportions, rifle, bent arm, small base and red trim match the source. Hidden back detail inferred.",
+  "scope": "Reference accepted for one Meshy generation; not a completed or user-approved GLB"
+}

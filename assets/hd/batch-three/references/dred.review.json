@@ -1,0 +1,32 @@
+{
+  "asset": "dred",
+  "status": "accepted",
+  "referenceSha256": "f1d0e2ba926b3f41943a41faa5707f2e3d5e3a99b4f16b29ca628ccf05b7e060",
+  "originalOpaqueBounds": [
+    44,
+    64,
+    148,
+    126
+  ],
+  "referenceBounds": [
+    90,
+    164,
+    1392,
+    936
+  ],
+  "originalSize": [
+    104,
+    62
+  ],
+  "downsampleSize": [
+    105,
+    62
+  ],
+  "widthRatio": 1.0096153846153846,
+  "comparison": ".cache/batch-three/reference-check/comparison.png",
+  "alignment": "same facing, uniform height match, opaque ground baseline; no aspect distortion",
+  "limitations": "charcoal threshold gives approximate reference bounds; no automatic fidelity claim",
+  "reviewer": "Codex visual review",
+  "visualJudgment": "Frame 24 orientation, pointed bow, stern, two forward missiles and three posts preserved. V2 removes voxel stairs. Submerged volume, fine surface seams and launcher mechanics inferred.",
+  "scope": "Reference accepted for one Meshy generation; not a completed or user-approved GLB"
+}

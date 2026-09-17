@@ -1,11 +1,16 @@
 """Preserve original VXL/HVA positions and palette as local-only colored voxel surface GLBs."""
-import os,sys,pathlib,json,struct,math,collections,hashlib
+import os,sys,pathlib,json,struct,math,collections,hashlib,argparse
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 os.environ['RA2_ASSET_CACHE']='/Users/zzn/ws/xinbenlv/ra2-gpt-6-astra-2026-09-04/.cache/ra2-assets-rebuild-test';os.environ['RA2_PUBLIC_DIR']=str(ROOT/'.cache/batch-two/extract');sys.path.insert(0,str(ROOT/'scripts/assets'))
 from export_voxels import decode
 from export_assets import palette
 pal=palette('unittem')
-for name,parts in [('htnk',['htnk','htnktur','htnkbarl']),('dest',['dest'])]:
+parser=argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output-dir',default='.cache/batch-two/source')
+parser.add_argument('--asset',action='append',help='Name=comma-separated original VXL part names')
+args=parser.parse_args()
+assets=[(s.split('=',1)[0],s.split('=',1)[1].split(',')) for s in args.asset] if args.asset else [('htnk',['htnk','htnktur','htnkbarl']),('dest',['dest'])]
+for name,parts in assets:
  binary=bytearray();views=[];access=[];meshes=[];nodes=[]
  def append(values,size):
   while len(binary)%4:binary.append(0)
@@ -30,4 +35,4 @@ for name,parts in [('htnk',['htnk','htnktur','htnkbarl']),('dest',['dest'])]:
   meshes.append({'name':part,'primitives':[{'attributes':{'POSITION':append(positions,3),'NORMAL':append(normals,3),'COLOR_0':append(colors,4)},'material':0}]});nodes.append({'name':part,'mesh':len(meshes)-1})
  g={'asset':{'version':'2.0','extras':{'source':'original VXL/HVA, palette unittem','front':'-X','up':'+Y','recipe':'tools/batch-two/original-glb.py'}},'scenes':[{'nodes':list(range(len(nodes)))}],'scene':0,'nodes':nodes,'meshes':meshes,'materials':[{'doubleSided':True,'pbrMetallicRoughness':{'metallicFactor':0,'roughnessFactor':1}}],'buffers':[{'byteLength':len(binary)}],'bufferViews':views,'accessors':access}
  j=json.dumps(g,separators=(',',':')).encode();j+=b' '*((-len(j))%4);data=struct.pack('<4sII',b'glTF',2,28+len(j)+len(binary))+struct.pack('<I4s',len(j),b'JSON')+j+struct.pack('<I4s',len(binary),b'BIN\0')+binary
- out=ROOT/'.cache/batch-two/source'/('original-'+name+'.glb');out.write_bytes(data);print(name,len(data),hashlib.sha256(data).hexdigest())
+ out=ROOT/args.output_dir/('original-'+name+'.glb');out.parent.mkdir(parents=True,exist_ok=True);out.write_bytes(data);print(name,len(data),hashlib.sha256(data).hexdigest())

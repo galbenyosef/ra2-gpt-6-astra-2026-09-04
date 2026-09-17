@@ -1,5 +1,9 @@
 # Environment asset candidate
 
+Third-batch local work runs independently with `PORT=4193`. Its completed curved
+road joins the existing straight road in `/canvas3d/?actor=curved-road`; see
+[batch three](../batch-three/README.md) for partial production status and evidence.
+
 Local tools for six rotatable environment assets, plus offline samples consumed by the existing Canvas 2D engine. No main-engine replacement or public deployment.
 
 ```text

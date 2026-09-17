@@ -10,6 +10,10 @@ runtime GLBs -> environment/canvas3d -> behavioral verification
 
 All paid requests use a persisted submission marker and task ID. Meshy credentials
 are injected by GuestSafe; signed result URLs are consumed in memory only.
+Set `RA2_HD_BATCH=batch-three` to use the same submission/recovery gate with the
+third batch's independent image and task directories. `original-glb.py` also
+accepts `--output-dir` and repeated `--asset NAME=PART,PART` for original geometry
+inspection; its no-argument behavior remains the second batch.
 
 `team-mask.mjs` freezes the selected Rhino's red paint selection into an embedded
 1024² grayscale PNG in `htnk-v4-team.glb`. Material extras `ra2TeamColor` identify
