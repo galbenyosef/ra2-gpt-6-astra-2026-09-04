@@ -45,3 +45,11 @@ It defaults to isolated ports 4211/9231 and writes only `.cache/terrain/`.
 `RA2_BROWSER_URL=http://127.0.0.1:5173/ node scripts/browser_prepared_assets.mjs`
 launches isolated Chrome and verifies disk-backed Bootcamp/Skirmish entry, including
 2D/3D switching, with no download, conversion worker or installed original cache.
+
+`browser_bootcamp_highland.mjs` instead launches a dedicated persistent Chrome profile
+specified by `RA2_BROWSER_PROFILE`, already prepared for `RA2_BROWSER_URL` (default
+port 4216). It checks flat grass pixels and filled front walls at 1× and 2.5×,
+after pan, and shared-state 2D/3D roundtrips. Evidence stays under
+`.cache/bootcamp/highland` (override with `RA2_EVIDENCE_DIR`). On a Vite dev server,
+`RA2_HIGHLAND_BASELINE=1` disables the correction only in that browser and must fail
+the same pixel test; it does not modify source or shared game state.
