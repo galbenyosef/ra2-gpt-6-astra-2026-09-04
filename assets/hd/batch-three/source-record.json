@@ -1,0 +1,664 @@
+{
+  "sourceRoot": "/Users/zzn/ws/xinbenlv/ra2-gpt-6-astra-2026-09-04/.cache/ra2-assets-rebuild-result",
+  "configSha256": {
+    "rules.ini": "fd1e95cea0306ea78049dc81c8cd816e18c28c496872a1ff02edd50bd082062f",
+    "art.ini": "b477f861063a9509e87b7836b78190204c73bea5ea5595a842c456f5920ea223",
+    "temperat.ini": "bf656852ad19636068f2dde6f9ddd1440ecf0e13e6e4de6cd7fb179a3592549d"
+  },
+  "assets": {
+    "gi": {
+      "rulesId": "E1",
+      "rules": {
+        "uiname": "Name:E1",
+        "name": "GI",
+        "image": "GI",
+        "category": "Soldier",
+        "primary": "M60",
+        "secondary": "Para",
+        "occupier": "yes",
+        "prerequisite": "GAPILE",
+        "crushsound": "InfantrySquish",
+        "strength": "125",
+        "pip": "white",
+        "armor": "none",
+        "techlevel": "1",
+        "sight": "5",
+        "speed": "4",
+        "owner": "British,French,Germans,Americans,Alliance",
+        "cost": "200",
+        "soylent": "150",
+        "points": "10",
+        "isselectablecombatant": "yes",
+        "voiceselect": "GISelect",
+        "voicemove": "GIMove",
+        "voiceattack": "GIAttackCommand",
+        "voicefeedback": "GIFear",
+        "voicespecialattack": "GIMove",
+        "diesound": "GIDie",
+        "locomotor": "{4A582744-9839-11d1-B709-00A024DDAFD1}",
+        "physicalsize": "1",
+        "movementzone": "Infantry",
+        "threatposed": "10",
+        "immunetoveins": "yes",
+        "immunetopsionics": "no",
+        "bombable": "yes",
+        "deployer": "yes",
+        "deployfire": "yes",
+        "veteranabilities": "STRONGER,FIREPOWER,ROF,SIGHT,FASTER",
+        "eliteabilities": "SELF_HEAL,STRONGER,FIREPOWER,ROF",
+        "size": "1",
+        "crushable": "yes",
+        "deploysound": "GIDeploy",
+        "undeploysound": "GIUndeploy",
+        "eliteprimary": "M60E",
+        "elitesecondary": "ParaE",
+        "ifvmode": "2"
+      },
+      "art": {
+        "cameo": "GIICON",
+        "altcameo": "GIUICO",
+        "sequence": "GISequence",
+        "crawls": "yes",
+        "remapable": "yes",
+        "fireup": "2",
+        "primaryfireflh": "80,0,105"
+      },
+      "sprite": {
+        "src": "/assets/sprites/gi.png",
+        "width": 1248,
+        "height": 1584,
+        "frameWidth": 78,
+        "frameHeight": 66,
+        "frames": 372,
+        "columns": 16,
+        "anchorX": 39.0,
+        "anchorY": 33.0,
+        "originalFrames": 744,
+        "originalFile": "gi.shp",
+        "remapMaskSrc": "/assets/sprites/gi-remap.png",
+        "sequence": "GISequence",
+        "facings": 8,
+        "sequences": {
+          "ready": [
+            0,
+            1,
+            1
+          ],
+          "guard": [
+            0,
+            1,
+            1
+          ],
+          "prone": [
+            86,
+            1,
+            6
+          ],
+          "walk": [
+            8,
+            6,
+            6
+          ],
+          "fireup": [
+            164,
+            6,
+            6
+          ],
+          "crawl": [
+            86,
+            6,
+            6
+          ],
+          "fireprone": [
+            212,
+            6,
+            6
+          ],
+          "idle1": [
+            56,
+            15,
+            0
+          ],
+          "idle2": [
+            71,
+            14,
+            0
+          ],
+          "die1": [
+            134,
+            15,
+            0
+          ],
+          "die2": [
+            149,
+            15,
+            0
+          ],
+          "deploy": [
+            300,
+            15,
+            0
+          ],
+          "deployed": [
+            292,
+            1,
+            1
+          ]
+        }
+      },
+      "referenceFrame": 5,
+      "atlasSha256": "c8f679b920ce03b63786209dbd97fb4956642d87167e05a053343a538a0aa0c7"
+    },
+    "gtnk": {
+      "rulesId": "MTNK",
+      "rules": {
+        "uiname": "Name:MTNK",
+        "name": "Grizzly Battle Tank",
+        "image": "GTNK",
+        "prerequisite": "GAWEAP",
+        "primary": "105mm",
+        "strength": "300",
+        "category": "AFV",
+        "armor": "heavy",
+        "turret": "yes",
+        "istilter": "yes",
+        "crusher": "yes",
+        "toobigtofitunderbridge": "true",
+        "techlevel": "2",
+        "sight": "8",
+        "speed": "7",
+        "crategoodie": "no",
+        "owner": "British,French,Germans,Americans,Alliance",
+        "cost": "700",
+        "points": "25",
+        "rot": "5",
+        "isselectablecombatant": "yes",
+        "explosion": "TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60",
+        "voiceselect": "GenAllVehicleSelect",
+        "voicemove": "GenAllVehicleMove",
+        "voiceattack": "GenAllVehicleAttackCommand",
+        "voicefeedback": "",
+        "diesound": "GenVehicleDie",
+        "movesound": "GrizzlyTankMoveStart",
+        "maxdebris": "2",
+        "locomotor": "{4A582741-9839-11d1-B709-00A024DDAFD1}",
+        "movementzone": "Normal",
+        "threatposed": "15",
+        "damageparticlesystems": "SparkSys,SmallGreySSys",
+        "veteranabilities": "STRONGER,FIREPOWER,SIGHT,FASTER",
+        "eliteabilities": "SELF_HEAL,STRONGER,FIREPOWER,ROF",
+        "accelerates": "false",
+        "immunetoveins": "yes",
+        "size": "3",
+        "opportunityfire": "yes",
+        "eliteprimary": "105mmE"
+      },
+      "art": {
+        "voxel": "yes",
+        "remapable": "yes",
+        "cameo": "GTNKICON",
+        "altcameo": "GTNKUICO",
+        "primaryfireflh": "150,0,100"
+      },
+      "sprite": {
+        "src": "/assets/sprites/gtnk.png",
+        "width": 1024,
+        "height": 512,
+        "frameWidth": 128,
+        "frameHeight": 128,
+        "frames": 32,
+        "columns": 8,
+        "anchorX": 64.0,
+        "anchorY": 64.0,
+        "originalFile": "gtnk.vxl,gtnktur.vxl,gtnkbarl.vxl",
+        "format": "VXL",
+        "remapMaskSrc": "/assets/sprites/gtnk-remap.png",
+        "facings": 32
+      },
+      "referenceFrame": 24,
+      "atlasSha256": "4962cd8833faa04898b306d057ac8357f92d796838598f27279f1f07d5f7eecc"
+    },
+    "dred": {
+      "rulesId": "DRED",
+      "rules": {
+        "uiname": "Name:DRED",
+        "name": "Dreadnought",
+        "prerequisite": "NAYARD,NATECH",
+        "primary": "DredLauncher",
+        "canpassiveaquire": "no",
+        "spawns": "DMISL",
+        "spawnsnumber": "2",
+        "spawnregenrate": "80",
+        "spawnreloadrate": "0",
+        "nospawnalt": "yes",
+        "fireangle": "32",
+        "toprotect": "yes",
+        "category": "Support",
+        "strength": "800",
+        "naval": "yes",
+        "armor": "heavy",
+        "techlevel": "6",
+        "sight": "7",
+        "speed": "4",
+        "crategoodie": "no",
+        "owner": "Russians,Confederation,Africans,Arabs",
+        "allowedtostartinmultiplayer": "no",
+        "cost": "2000",
+        "turret": "no",
+        "points": "55",
+        "weight": "4",
+        "rot": "1",
+        "crusher": "no",
+        "crewed": "no",
+        "isselectablecombatant": "yes",
+        "explosion": "TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60",
+        "voiceselect": "GenSovWaterSelect",
+        "voicemove": "GenSovWaterMove",
+        "voiceattack": "GenSovWaterAttackCommand",
+        "voicefeedback": "",
+        "diesound": "",
+        "sinkingsound": "GenLargeWaterDie",
+        "movesound": "DreadnoughtMoveStart",
+        "locomotor": "{2BEA74E1-7CCA-11d3-BE14-00104B62A16C}",
+        "speedtype": "Float",
+        "movementzone": "Water",
+        "threatposed": "25",
+        "damageparticlesystems": "SparkSys,SmallGreySSys",
+        "veteranabilities": "STRONGER,FIREPOWER,ROF,SIGHT,FASTER",
+        "eliteabilities": "SELF_HEAL,STRONGER,FIREPOWER,ROF",
+        "toobigtofitunderbridge": "true",
+        "guardrange": "10",
+        "size": "50"
+      },
+      "art": {
+        "cameo": "DREDICON",
+        "voxel": "yes",
+        "remapable": "yes",
+        "primaryfireflh": "30,43,92"
+      },
+      "sprite": {
+        "src": "/assets/sprites/dred.png",
+        "width": 1600,
+        "height": 800,
+        "frameWidth": 200,
+        "frameHeight": 200,
+        "frames": 32,
+        "columns": 8,
+        "anchorX": 100.0,
+        "anchorY": 100.0,
+        "originalFile": "dred.vxl",
+        "format": "VXL",
+        "remapMaskSrc": "/assets/sprites/dred-remap.png",
+        "facings": 32
+      },
+      "referenceFrame": 24,
+      "atlasSha256": "fc34bc142ddd2c0a3de2e826333e996842173ea3bce751c1df7e6e0d0a568bae"
+    },
+    "nahand": {
+      "rulesId": "NAHAND",
+      "rules": {
+        "uiname": "Name:NAHAND",
+        "name": "Soviet Barracks",
+        "buildcat": "Tech",
+        "prerequisite": "POWER,NACNST",
+        "strength": "500",
+        "armor": "steel",
+        "techlevel": "2",
+        "adjacent": "2",
+        "sight": "6",
+        "owner": "British,French,Germans,Americans,Alliance,Russians,Confederation,Africans,Arabs",
+        "aibaseplanningside": "1",
+        "cost": "500",
+        "points": "30",
+        "power": "-10",
+        "factory": "InfantryType",
+        "crewed": "yes",
+        "capturable": "true",
+        "explosion": "TWLT070,S_BANG48,S_BRNL58,S_CLSN58,S_TUMU60",
+        "debrisanims": "DBRIS2SM,DBRIS3LG,DBRIS3SM,DBRIS4LG,DBRIS4SM,DBRIS5LG,DBRIS5SM,DBRIS6SM,DBRIS7LG,DBRIS7SM,DBRIS8LG",
+        "maxdebris": "8",
+        "mindebris": "4",
+        "threatposed": "0",
+        "exitcoord": "0,0,0",
+        "nodbarracks": "yes",
+        "damagesmokeoffset": "480,96,125",
+        "aibuildthis": "yes",
+        "spyable": "yes"
+      },
+      "art": {
+        "remapable": "yes",
+        "normalized": "yes",
+        "cameo": "HANDICON",
+        "foundation": "2x2",
+        "buildup": "NAHANDMK",
+        "height": "9",
+        "demandloadbuildup": "true",
+        "freebuildup": "true",
+        "newtheater": "yes",
+        "canhidethings": "true",
+        "canbehidden": "false",
+        "occupyheight": "4",
+        "addoccupy1": "-3,-3",
+        "removeoccupy1": "-2,-1",
+        "removeoccupy2": "-1,-2",
+        "damagefireoffset0": "-8,-7",
+        "damagefireoffset1": "17,40"
+      },
+      "sprite": {
+        "src": "/assets/sprites/nahand.png",
+        "width": 254,
+        "height": 230,
+        "frameWidth": 254,
+        "frameHeight": 230,
+        "frames": 1,
+        "columns": 1,
+        "anchorX": 127.0,
+        "anchorY": 200.0,
+        "originalFrames": 6,
+        "originalFile": "nghand.shp",
+        "remapMaskSrc": "/assets/sprites/nahand-remap.png",
+        "foundation": [
+          2,
+          2
+        ],
+        "theater": "temperate",
+        "originalLayers": []
+      },
+      "referenceFrame": 0,
+      "atlasSha256": "158ec91e7245862cc0c8ede44b65364277049306b6b390296f2b5d09003773ab"
+    },
+    "tree01": {
+      "sprite": {
+        "src": "/assets/scenery/temperate-tree01.png",
+        "width": 155,
+        "height": 155,
+        "frameWidth": 155,
+        "frameHeight": 155,
+        "frames": 1,
+        "columns": 1,
+        "anchorX": 77.5,
+        "anchorY": 140,
+        "originalFrames": 2,
+        "originalFile": "tree01.tem",
+        "theater": "temperate",
+        "nativeType": "tree01",
+        "kind": "terrain",
+        "foundation": [
+          1,
+          1
+        ]
+      },
+      "sha256": "35888ef6f43d0235290e3e475c9e408e9235f3be5fb8aa976a75ecc4f78ca526",
+      "opaqueBounds": [
+        61,
+        1,
+        153,
+        79
+      ]
+    },
+    "tree10": {
+      "sprite": {
+        "src": "/assets/scenery/temperate-tree10.png",
+        "width": 123,
+        "height": 101,
+        "frameWidth": 123,
+        "frameHeight": 101,
+        "frames": 1,
+        "columns": 1,
+        "anchorX": 61.5,
+        "anchorY": 86,
+        "originalFrames": 2,
+        "originalFile": "tree10.tem",
+        "theater": "temperate",
+        "nativeType": "tree10",
+        "kind": "terrain",
+        "foundation": [
+          1,
+          1
+        ]
+      },
+      "sha256": "ae9b2afafdcdfee84d1b647a173ce00bcc48a20f4da9e28ea22a572c8545df65",
+      "opaqueBounds": [
+        35,
+        0,
+        123,
+        50
+      ]
+    },
+    "tree22": {
+      "sprite": {
+        "src": "/assets/scenery/temperate-tree22.png",
+        "width": 105,
+        "height": 97,
+        "frameWidth": 105,
+        "frameHeight": 97,
+        "frames": 1,
+        "columns": 1,
+        "anchorX": 52.5,
+        "anchorY": 82,
+        "originalFrames": 2,
+        "originalFile": "tree22.tem",
+        "theater": "temperate",
+        "nativeType": "tree22",
+        "kind": "terrain",
+        "foundation": [
+          1,
+          1
+        ]
+      },
+      "sha256": "6faf40e818762793fda57a11706b26a251d208e30a76e2f0690167d9faf30493",
+      "opaqueBounds": [
+        17,
+        0,
+        105,
+        63
+      ]
+    },
+    "tree26": {
+      "sprite": {
+        "src": "/assets/scenery/temperate-tree26.png",
+        "width": 107,
+        "height": 107,
+        "frameWidth": 107,
+        "frameHeight": 107,
+        "frames": 1,
+        "columns": 1,
+        "anchorX": 53.5,
+        "anchorY": 92,
+        "originalFrames": 2,
+        "originalFile": "tree26.tem",
+        "theater": "temperate",
+        "nativeType": "tree26",
+        "kind": "terrain",
+        "foundation": [
+          1,
+          1
+        ]
+      },
+      "sha256": "e6133975ebc635cb20c051c5a9f62a1450d787dac393c2c1e72a9d461d8e7c5a",
+      "opaqueBounds": [
+        33,
+        0,
+        102,
+        60
+      ]
+    },
+    "curved-road": {
+      "tileId": 177,
+      "metadata": {
+        "file": "droadc02.tem",
+        "set": 16,
+        "name": "DirtRoads Bendy",
+        "subtiles": [
+          [
+            12,
+            0,
+            0,
+            [
+              166,
+              171,
+              83
+            ],
+            [
+              178,
+              152,
+              71
+            ]
+          ],
+          [
+            12,
+            0,
+            0,
+            [
+              174,
+              144,
+              68
+            ],
+            [
+              176,
+              150,
+              73
+            ]
+          ],
+          [
+            12,
+            0,
+            0,
+            [
+              154,
+              164,
+              76
+            ],
+            [
+              157,
+              166,
+              76
+            ]
+          ],
+          [
+            12,
+            0,
+            0,
+            [
+              163,
+              168,
+              79
+            ],
+            [
+              169,
+              149,
+              68
+            ]
+          ]
+        ]
+      },
+      "tmpDimensions": [
+        2,
+        2,
+        60,
+        30
+      ],
+      "bytes": 7440,
+      "sha256": "e206c5b301d1a9fd7a8c1996a3b83cfd4ffccf2b50a050094b4f248d0e4c7283"
+    }
+  },
+  "rawEntries": {
+    "gtnk.vxl": {
+      "found": true,
+      "bytes": 29258,
+      "sha256": "88b326908acb5c2a98860d8f65169e8745ae858c5cbfe98e0bb2f283f49a3b81"
+    },
+    "gtnk.hva": {
+      "found": true,
+      "bytes": 88,
+      "sha256": "4a15fc9c2633667812465c4b08f28cab5d595ae4f80eddbb77d1a9f9ed0480a4"
+    },
+    "gtnktur.vxl": {
+      "found": true,
+      "bytes": 8652,
+      "sha256": "deaee48689e1413a264c8945c5d943d1acb39eb3ab26aad93850901af4d7dffe"
+    },
+    "gtnktur.hva": {
+      "found": true,
+      "bytes": 88,
+      "sha256": "4a15fc9c2633667812465c4b08f28cab5d595ae4f80eddbb77d1a9f9ed0480a4"
+    },
+    "gtnkbarl.vxl": {
+      "found": true,
+      "bytes": 2602,
+      "sha256": "04c7ffd68d8f12589bf02767c0617014042c3a255567cf939cd6908c36c0d852"
+    },
+    "gtnkbarl.hva": {
+      "found": true,
+      "bytes": 88,
+      "sha256": "4a15fc9c2633667812465c4b08f28cab5d595ae4f80eddbb77d1a9f9ed0480a4"
+    },
+    "dred.vxl": {
+      "found": true,
+      "bytes": 116773,
+      "sha256": "857eff8b607610bd4600466554839d36e4407940c247b9d08aee4c14ac546a1a"
+    },
+    "dred.hva": {
+      "found": true,
+      "bytes": 88,
+      "sha256": "810dae94db5ae67cef0866897da63f20d3b8d36ff2b73769abc0f5664ff4a2fe"
+    },
+    "dredwo.vxl": {
+      "found": true,
+      "bytes": 113110,
+      "sha256": "793f2d514f6997995e767a9e0d59e66dbfa7e07e7e2c4636ea8ea170470177da"
+    },
+    "dredwo.hva": {
+      "found": true,
+      "bytes": 88,
+      "sha256": "8ae40169cd8f731cb040347293bcd1c49b612bfeb50c433abda119c1d88bc2f1"
+    },
+    "dmisl.vxl": {
+      "found": true,
+      "bytes": 7444,
+      "sha256": "0cc017768c70fb08bbf29ee35396d770bbb270c9572f08411cb2aad6cb22569a"
+    },
+    "dmisl.hva": {
+      "found": true,
+      "bytes": 88,
+      "sha256": "78f4041017c6d4686ec09397a8be45db92f5d5dc007828072611219fe4963332"
+    },
+    "gi.shp": {
+      "found": true,
+      "bytes": 186032,
+      "sha256": "bceaee9c270d6382d80d509f2c4b2893c10565f779096b3add37a4d5321e8be1"
+    },
+    "nghand.shp": {
+      "found": true,
+      "bytes": 26832,
+      "sha256": "10adf62a6fccf29ca7df7e0dd82c90fcd513dbe2a2482dbb89bc212708a59af6",
+      "framesIncludingShadow": 6,
+      "visibleFrames": 3
+    },
+    "nghandmk.shp": {
+      "found": false
+    },
+    "nahandmk.shp": {
+      "found": true,
+      "bytes": 155064,
+      "sha256": "688e9714ae494fe505407dee1b7f758cb54721fecbb44cac80fa631b09cc080f",
+      "framesIncludingShadow": 50,
+      "visibleFrames": 25
+    },
+    "nghand_a.shp": {
+      "found": true,
+      "bytes": 904,
+      "sha256": "c85269390fb066091ad7bdc5ba00304d55a46516d3f085a8fd1736c97e6cc7dd",
+      "framesIncludingShadow": 20,
+      "visibleFrames": 10
+    },
+    "nghand_ad.shp": {
+      "found": false
+    },
+    "tree01.tem": {
+      "found": true,
+      "bytes": 3360,
+      "sha256": "619cb6cba054eaf7c00cb6331eb70a686be25e60fd86573b352df22e22b1956e"
+    }
+  }
+}

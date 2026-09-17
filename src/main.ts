@@ -1,7 +1,10 @@
+// Main application lifecycle: mode selection, shared lobby and one simulation/render loop.
 import './style.css';
 import { mountBuildVersion } from './build-version';
 import { APP_TITLE } from './project';
 import { projectNotice, sourceCodeLink } from './project-notice';
+import { mountRendererSwitch } from './bootcamp/switcher';
+import { bootcampTypes } from './bootcamp/catalog.js';
 import { mountDebugPanel } from './debug-panel';
 import { appUrl } from './urls';
 import { t, registerTranslations, localizeElement, languageControl, bindLanguageControl } from './i18n';
@@ -9,6 +12,7 @@ import { probeOriginalAssets, showAssetSetup, OriginalAssetsError } from './asse
 import { Assets, SoundSystem } from './assets';
 import { initializeMaps, listMaps, loadMap, registerImportedMap, isWithinPlayableArea, type MapData, type MapDefinition } from './maps';
 import { customMapToMapData } from './custom-maps';
+import {createTrainingMap,TRAINING_MAP_ID} from './bootcamp/training-map';
 import { readSkirmishMap } from './map-files';
 import { mountMapEditor } from './map-editor';
 import { GameEngine, COUNTRIES, CATALOG, CATEGORY_NAMES, PLAYER_COLORS, countryById, getDefinition, type CountryId, type Difficulty, type PlayerConfig, type ProductionCategory, type Entity } from './game';
@@ -17,7 +21,18 @@ import { BattlefieldRenderer, type RenderMap } from './renderer';
 const app = document.querySelector<HTMLDivElement>('#app')!;
 mountBuildVersion();
 registerTranslations({
-  '地图编辑器':'Map editor', '上传地图':'Upload map', '编辑器地图':'Editor map',
+  '新兵训练营':'Bootcamp', '选择模式':'Choose a mode', '返回模式选择':'Choose mode',
+  '准备原版素材':'Prepare original assets', '传统战场，建立基地并击败电脑对手。':'Build a base and defeat computer opponents.',
+  '自由建造、即时招募、充足资金。敌方不会主动进攻。':'Free building, instant recruitment and replenished credits. Enemies stay passive.',
+  '仅开放已有 3D 模型的 12 种单位和建筑。每次进入默认 2D，可在调试面板切换 3D。':'12 units and buildings with verified 3D models. Starts in 2D; switch to 3D in Debug Panel.',
+  '训练营已就绪。自由建造和招募，敌方不会主动进攻。':'Bootcamp ready. Build and recruit freely; enemies remain passive.',
+  '训练营尚无此型号的 3D 模型':'This type has no verified Bootcamp 3D model',
+  '没有适合该单位的空闲地形':'No free terrain suitable for this unit',
+  '训练营尚无基地车的 3D 模型':'No MCV model is available in Bootcamp',
+  '该分类尚无已验证的 3D 模型。':'No verified 3D models in this category yet.',
+  '8 种已支持部队 + 建造厂':'8 supported unit types + construction yard',
+  '结束训练':'End training', '退出到模式选择':'Return to mode selection',
+  '地图编辑器':'Map editor', '上传地图':'Upload map', '编辑器地图':'Editor map', '已有素材训练场':'Existing asset training field',
   '上传地图文件':'Upload map file', '自定义地图文件超过 2 MB。':'Custom map files must be under 2 MB.',
   '地图文件超过 16 MB。':'Map files must be under 16 MB.',
   '下载的 .ra2map 文件可在此上传使用，也支持原版 .map / .mpr。':'Upload a shared .ra2map file here, or an original .map / .mpr file.',
@@ -40,6 +55,9 @@ const escape = (value: unknown) => String(value).replace(/[&<>"']/g, s => ({'&':
 const $ = <T extends HTMLElement = HTMLElement>(selector: string, parent: ParentNode = document): T => parent.querySelector(selector)!;
 interface Slot { country: CountryId | 'random'; difficulty: Difficulty | 'closed' | 'human'; color: number; team: number; position: number }
 const slots: Slot[] = Array.from({length:8},(_,i)=>({country:i===0?'america':i===1?'russia':'random',difficulty:i===0?'human':i===1?'medium':'closed',color:i,team:0,position:i===0?0:i===1?4:-1}));
+let mode: 'skirmish' | 'bootcamp' = 'skirmish';
+let loaded = false;
+let disposeSwitch: (()=>void) | undefined;
 let selectedMapId = 'mp22s8';
 let selectedMap: MapData;
 let credits = 10000, startingUnits = 5, gameSpeed = 1, fog = true, superweapons = true, shortGame = true;
@@ -56,28 +74,55 @@ let supportSignature = '';
 let disposeEditor: (() => void) | undefined;
 const groups = new Map<string, number[]>();
 
-async function init() {
-  if(!await probeOriginalAssets()){showAssetSetup(app);return;}
+function renderModeSelect() {
+  disposeSwitch?.();disposeSwitch=undefined;disposeEditor?.();disposeEditor=undefined;
+  playing=false;cancelAnimationFrame(animation);renderer?.destroy();renderer=undefined;game=undefined;
+  app.innerHTML=`<main class="shell mode-screen" data-testid="mode-screen"><header class="header"><h1 class="app-title">${APP_TITLE}</h1>${languageControl()}</header><h2>选择模式</h2>
+    <div class="mode-options"><section class="metal mode-card"><h3>遭遇战</h3><p>传统战场，建立基地并击败电脑对手。</p><button class="primary" data-testid="mode-skirmish">遭遇战</button></section>
+    <section class="metal mode-card"><h3>新兵训练营</h3><p>自由建造、即时招募、充足资金。敌方不会主动进攻。</p><p>仅开放已有 3D 模型的 12 种单位和建筑。每次进入默认 2D，可在调试面板切换 3D。</p><button class="primary" data-testid="mode-bootcamp">新兵训练营</button></section></div>
+    <div class="mode-tools"><button data-testid="mode-assets">准备原版素材</button><button data-testid="mode-editor">地图编辑器</button></div>${sourceCodeLink()}${projectNotice()}</main>`;
+  translateUI();bindLanguage();
+  let entering=false;
+  const enter=async(next:'skirmish'|'bootcamp',editor=false)=>{
+    if(entering)return;entering=true;const previous=mode;mode=next;
+    try{await prepareGame();if(loaded){
+      if(next==='bootcamp'&&(previous!==next||selectedMapId==='mp22s8')){selectedMap=await loadMap(TRAINING_MAP_ID);selectedMapId=selectedMap.id;fog=false;slots[1].position=1;}
+      else if(next==='skirmish'&&selectedMapId===TRAINING_MAP_ID){selectedMap=await loadMap('mp22s8');selectedMapId=selectedMap.id;fog=true;slots[1].position=4;}
+      renderLobby();if(editor)openMapEditor();}}
+    catch(error){renderModeSelect();toast(error instanceof Error?error.message:String(error));}
+    finally{entering=false;}
+  };
+  $('[data-testid="mode-skirmish"]').onclick=()=>void enter('skirmish');
+  $('[data-testid="mode-bootcamp"]').onclick=()=>void enter('bootcamp');
+  $('[data-testid="mode-editor"]').onclick=()=>void enter('skirmish',true);
+  $('[data-testid="mode-assets"]').onclick=()=>{showAssetSetup(app);addSetupBack();};
+}
+function addSetupBack(){const button=document.createElement('button');button.textContent=t('返回模式选择');button.className='setup-mode-back';button.onclick=renderModeSelect;app.prepend(button);}
+async function prepareGame() {
+  if(loaded)return;
+  if(!await probeOriginalAssets()){showAssetSetup(app);addSetupBack();return;}
   await initializeMaps();
+  registerImportedMap(createTrainingMap());
   registerTranslations(Object.fromEntries(listMaps().map(map => [map.name, map.nameEn])));
   app.innerHTML = `<div class="loading-screen"><div><h1 class="app-title">${APP_TITLE}</h1><p id="loading-label">正在读取原版战场资料</p><div class="loading-bar"><i id="loading-progress" style="width:5%"></i></div></div></div>`;
   translateUI();
   const mapPromise = loadMap(selectedMapId);
   await assets.load(progress => { const el = document.querySelector<HTMLElement>('#loading-progress');if(el)el.style.width=`${5+progress*90}%`; });
   selectedMap = await mapPromise;
-  renderLobby();
+  loaded = true;
 }
 function countryOptions(value: string, random = true) {
   return `${random?`<option value="random" ${value==='random'?'selected':''}>随机国家</option>`:''}${COUNTRIES.map(c=>`<option value="${c.id}" ${value===c.id?'selected':''}>${c.flag} ${c.name}</option>`).join('')}`;
 }
 function option(value: number | string, text: string, current: number | string) { return `<option value="${value}" ${value===current?'selected':''}>${text}</option>`; }
 function renderLobby() {
+  disposeSwitch?.();disposeSwitch=undefined;
   disposeEditor?.();disposeEditor=undefined;
   playing = false; shownResult = false; cancelAnimationFrame(animation); renderer?.destroy();renderer=undefined;game=undefined;
   const def = listMaps().find(m=>m.id===selectedMapId)!;
   app.innerHTML = `<main class="shell">
-    <header class="header"><div class="brand"><h1 class="app-title">${APP_TITLE}</h1><div class="brand-caption"><strong>遭遇战</strong><span class="eyebrow">SKIRMISH OPERATIONS</span></div></div><div class="header-right">${languageControl()}<span class="technical"><i class="status-light"></i>本地战场已就绪</span><button id="sound-toggle" class="icon-button" title="音效">${sound.enabled?'♪':'♩'}</button><button id="help">操作说明</button></div></header>
-    <div class="lobby"><section class="map-panel metal">${bolts}<div class="panel-title"><h2>战场情报</h2><span>THEATER / ${escape(def.theater.toUpperCase())}</span></div><div class="map-viewport"><canvas id="map-preview" aria-label="${escape(def.name)}"></canvas><i class="map-corner tl"></i><i class="map-corner tr"></i><i class="map-corner bl"></i><i class="map-corner br"></i><span class="map-coordinate">SATELLITE RECONNAISSANCE · ${escape(def.id.toUpperCase())}</span></div><div class="map-info"><div><h3>${escape(def.name)}</h3><p>${escape(def.nameEn.toUpperCase())} · ${def.players} PLAYERS</p></div><button id="choose-map">选择地图 ▸</button></div><div class="map-details"><div><label>战场规模</label><strong>${def.width} × ${def.height}</strong></div><div><label>作战地形</label><strong>${({snow:'雪地 · 海岛',temperate:'温带',urban:'城市'} as Record<string,string>)[def.theater] || def.theater}</strong></div><div><label>地图来源</label><strong>${def.official?'Westwood 原版':selectedMap.layout==='rectangular'?'编辑器地图':'本地导入'}</strong></div></div></section>
+    <header class="header"><div class="brand"><h1 class="app-title">${APP_TITLE}</h1><div class="brand-caption"><strong>${mode==='bootcamp'?'新兵训练营':'遭遇战'}</strong><span class="eyebrow">${mode.toUpperCase()}</span></div></div><div class="header-right"><button id="mode-back" data-testid="mode-back">返回模式选择</button>${languageControl()}<span class="technical"><i class="status-light"></i>本地战场已就绪</span><button id="sound-toggle" class="icon-button" title="音效">${sound.enabled?'♪':'♩'}</button><button id="help">操作说明</button></div></header>
+    <div class="lobby"><section class="map-panel metal">${bolts}<div class="panel-title"><h2>战场情报</h2><span>THEATER / ${escape(def.theater.toUpperCase())}</span></div><div class="map-viewport"><canvas id="map-preview" aria-label="${escape(def.name)}"></canvas><i class="map-corner tl"></i><i class="map-corner tr"></i><i class="map-corner bl"></i><i class="map-corner br"></i><span class="map-coordinate">SATELLITE RECONNAISSANCE · ${escape(def.id.toUpperCase())}</span></div><div class="map-info"><div><h3>${escape(def.name)}</h3><p>${escape(def.nameEn.toUpperCase())} · ${def.players} PLAYERS</p></div><button id="choose-map">选择地图 ▸</button></div><div class="map-details"><div><label>战场规模</label><strong>${def.width} × ${def.height}</strong></div><div><label>作战地形</label><strong>${({snow:'雪地 · 海岛',temperate:'温带',urban:'城市'} as Record<string,string>)[def.theater] || def.theater}</strong></div><div><label>地图来源</label><strong>${selectedMap.id===TRAINING_MAP_ID?'已有素材训练场':def.official?'Westwood 原版':selectedMap.layout==='rectangular'?'编辑器地图':'本地导入'}</strong></div></div></section>
     <section class="settings-panel metal">${bolts}<div class="panel-title"><h2>作战部署</h2><span>COMBATANTS / ${slots.filter(s=>s.difficulty!=='closed').length}</span></div><table class="player-table"><thead><tr><th></th><th>指挥官</th><th>国家</th><th>颜色</th><th>盟友</th><th>位置</th></tr></thead><tbody>${slots.map((slot,i)=>renderSlot(slot,i,def.players)).join('')}</tbody></table><p class="country-note" id="country-note">${escape(countryById(slots[0].country).name)}：${escape(countryById(slots[0].country).description)}</p>
     <div class="lobby-options"><div class="field"><label for="credits">初始资金</label><select id="credits">${[5000,10000,20000,30000,50000].map(v=>option(v,`$ ${v.toLocaleString()}`,credits)).join('')}</select></div><div class="field"><label for="units">初始部队</label><select id="units">${[0,3,5,10].map(v=>option(v,`${v} 支部队 + 基地车`,startingUnits)).join('')}</select></div><div class="field"><label for="speed">游戏速度</label><select id="speed">${option(.75,'慢速',gameSpeed)}${option(1,'正常',gameSpeed)}${option(1.5,'快速',gameSpeed)}${option(2,'最快',gameSpeed)}</select></div></div><div class="checks"><label><input type="checkbox" id="fog" ${fog?'checked':''}/>战争迷雾</label><label><input type="checkbox" id="superweapons" ${superweapons?'checked':''}/>超级武器</label><label><input type="checkbox" id="short-game" ${shortGame?'checked':''}/>快速游戏</label><label><input type="checkbox" id="music" ${sound.musicEnabled?'checked':''}/>原版音乐</label></div>
     </section></div>
@@ -86,6 +131,15 @@ function renderLobby() {
   </main>`;
   translateUI();bindLanguage();
   drawMapPreview($('#map-preview'), selectedMap);
+  $('#mode-back').onclick = renderModeSelect;
+  if(mode==='bootcamp') {
+    $<HTMLSelectElement>('#credits').replaceChildren(new Option('99,999,999','99999999'));
+    $<HTMLSelectElement>('#units').replaceChildren(new Option('8 种已支持部队 + 建造厂','8'));
+    $<HTMLInputElement>('#superweapons').checked=false;$<HTMLInputElement>('#short-game').checked=false;
+    $('#country-note').textContent='仅开放已有 3D 模型的 12 种单位和建筑。每次进入默认 2D，可在调试面板切换 3D。';
+    for(const id of ['credits','units','superweapons','short-game']) $<HTMLInputElement>('#'+id).disabled=true;
+    $('.transmission div').textContent='自由建造、即时招募、充足资金。敌方不会主动进攻。';translateUI();
+  }
   $('#choose-map').onclick = openMapChooser;
   $('#open-map-editor').onclick = openMapEditor;
   $('#upload-map').onclick = () => $('#lobby-map-file').click();
@@ -179,23 +233,23 @@ async function startGame(){
     const configs:PlayerConfig[]=active.map((s,i)=>({id:i,name:i===0?'玩家':`${s.difficulty==='hard'?'冷酷':s.difficulty==='easy'?'简单':'中等'}的电脑 ${i}`,country:s.country==='random'?COUNTRIES[Math.floor(Math.random()*COUNTRIES.length)].id:s.country,team:s.team||s.index+10,ai:i!==0,difficulty:s.difficulty==='human'||s.difficulty==='closed'?'medium':s.difficulty,color:PLAYER_COLORS[s.color]}));
     const map:RenderMap={...selectedMap,cells:selectedMap.cells.map((t,i)=>selectedMap.valid[i]&&isWithinPlayableArea(selectedMap,i%selectedMap.width,Math.floor(i/selectedMap.width))?t:'void'),spawns:active.map(s=>selectedMap.spawns[s.position>=0?s.position:available.shift()!]),terrainObjects:selectedMap.scenery,structures:[]};
     const neutralStructures=selectedMap.structures.filter(s=>isWithinPlayableArea(selectedMap,s.x,s.y)).map(s=>{const sprite=assets.scenery[`${selectedMap.theater}:${s.type.toLowerCase()}`];const foundation: [number,number]=sprite?.foundation||[1,1];return {nativeType:s.type,x:s.x+foundation[0]/2,y:s.y+foundation[1]/2,health:s.health,foundation};});
-    game=new GameEngine({map,players:configs,startingCredits:credits,startingUnits,fogOfWar:fog,superweapons,shortGame,neutralStructures,localPlayerId:0,seed:Date.now()});game.speed=gameSpeed;
+    game=new GameEngine({mode,map,players:configs,startingCredits:credits,startingUnits:mode==='bootcamp'?8:startingUnits,fogOfWar:fog,superweapons,shortGame,neutralStructures,localPlayerId:0,seed:Date.now()});game.speed=gameSpeed;
     category='structure';lastSoundEffect=0;buildSignature='';supportSignature='';lastEvent=0;lastComplete=0;notices=[];groups.clear();supportMode=undefined;
     sound.setMusic(sound.musicEnabled);renderGame(map);playing=true;lastTick=performance.now();lastUI=0;shownResult=false;
     sound.play(`${configs[0].country==='russia'||countryById(configs[0].country).faction==='soviet'?'soviet':'allied'}_establishingbattlefieldcontrol`);
     const mcv=game.entities.find(e=>e.owner===0&&e.type.includes('mcv'));if(mcv)renderer!.setSelection([mcv.id]);
-    notice('战场控制已建立。双击基地车或按 D 展开基地。');if(selectedMap.notes)notice(selectedMap.notes);animation=requestAnimationFrame(frame);
+    if(!game.bootcamp)notice('战场控制已建立。双击基地车或按 D 展开基地。');if(selectedMap.notes)notice(selectedMap.notes);animation=requestAnimationFrame(frame);
   }catch(error){toast(`无法启动战场：${error instanceof Error?error.message:String(error)}`);console.error(error);}
 }
 function renderGame(map:RenderMap){
   const faction=game!.players[0].faction;
-  app.innerHTML=`<main class="game-screen"><header class="game-top"><div class="left"><button id="game-options">选项 <small>Esc</small></button><div class="game-heading"><h1 class="app-title">${APP_TITLE}</h1><span class="game-title">${escape(selectedMap.name)} · 遭遇战</span></div></div><div class="right">${languageControl()}<span class="game-time" id="game-time">00:00</span><span class="speed-label">速度</span><button id="game-speed">${gameSpeed}×</button><button id="game-help" title="操作说明">?</button></div></header><div class="game-body"><section class="battlefield" id="battlefield"><canvas id="battlefield-canvas" tabindex="0" aria-label="即时战略战场"></canvas><div class="hud-message" id="hud-message"></div><div class="battlefield-tools" id="battlefield-tools"><div class="hud-objective" id="hud-objective"></div></div><div class="selection-info" id="selection-info"></div></section><aside class="sidebar ${faction}"><div class="sidebar-brand"><span class="faction-symbol">${faction==='soviet'?'★':'◆'}</span>${faction==='soviet'?'SOVIET':'ALLIED'}<span class="eyebrow">COMMAND</span></div><div class="credits"><small>$</small><span id="money">${credits.toLocaleString()}</span></div><div class="radar"><canvas id="radar" aria-label="战场雷达"></canvas><span class="radar-label">TACTICAL RADAR</span></div><div class="power-line"><span>ϟ</span><div class="power-bar" id="power-bar"><i></i></div><span class="power-readout" id="power-readout">0 / 0</span></div><div class="sidebar-tools"><button id="repair" title="修理建筑">维修</button><button id="sell" title="出售建筑">出售</button><button id="deploy" title="部署选中单位（D）">部署</button><button id="home" title="返回基地（H）">基地</button></div><nav class="build-tabs" aria-label="建造分类"><button data-category="structure" class="active" title="建筑"><span>▥</span><small>建筑</small></button><button data-category="defense" title="防御"><span>⌖</span><small>防御</small></button><button data-category="infantry" title="步兵"><span>♟</span><small>步兵</small></button><button data-category="vehicle" title="战车 / 飞机 / 舰艇"><span>▰</span><small>载具</small></button></nav><div class="build-list" id="build-list"></div><div id="support-list" class="support-list"></div><div class="build-detail" id="build-detail"><strong>建造面板</strong><br>选择建筑或部队开始生产。</div></aside></div><footer class="game-bottom"><span id="selection-label">没有选中单位</span><span class="hotkeys">左键选择 · 右键命令 · D 部署 · H 基地 · 滚轮缩放</span><span id="battle-status">战场控制在线</span></footer></main>`;
+  app.innerHTML=`<main class="game-screen"><header class="game-top"><div class="left"><button id="game-options">选项 <small>Esc</small></button><div class="game-heading"><h1 class="app-title">${APP_TITLE}</h1><span class="game-title">${escape(selectedMap.name)} · ${mode==='bootcamp'?'新兵训练营':'遭遇战'}</span></div></div><div class="right">${languageControl()}<span class="game-time" id="game-time">00:00</span><span class="speed-label">速度</span><button id="game-speed">${gameSpeed}×</button><button id="game-help" title="操作说明">?</button></div></header><div class="game-body"><section class="battlefield" id="battlefield"><canvas id="battlefield-canvas" tabindex="0" aria-label="即时战略战场"></canvas><div class="hud-message" id="hud-message"></div><div class="battlefield-tools" id="battlefield-tools"><div class="hud-objective" id="hud-objective"></div></div><div class="selection-info" id="selection-info"></div></section><aside class="sidebar ${faction}"><div class="sidebar-brand"><span class="faction-symbol">${faction==='soviet'?'★':'◆'}</span>${faction==='soviet'?'SOVIET':'ALLIED'}<span class="eyebrow">COMMAND</span></div><div class="credits"><small>$</small><span id="money">${credits.toLocaleString()}</span></div><div class="radar"><canvas id="radar" aria-label="战场雷达"></canvas><span class="radar-label">TACTICAL RADAR</span></div><div class="power-line"><span>ϟ</span><div class="power-bar" id="power-bar"><i></i></div><span class="power-readout" id="power-readout">0 / 0</span></div><div class="sidebar-tools"><button id="repair" title="修理建筑">维修</button><button id="sell" title="出售建筑">出售</button><button id="deploy" title="部署选中单位（D）">部署</button><button id="home" title="返回基地（H）">基地</button></div><nav class="build-tabs" aria-label="建造分类"><button data-category="structure" class="active" title="建筑"><span>▥</span><small>建筑</small></button><button data-category="defense" title="防御"><span>⌖</span><small>防御</small></button><button data-category="infantry" title="步兵"><span>♟</span><small>步兵</small></button><button data-category="vehicle" title="战车 / 飞机 / 舰艇"><span>▰</span><small>载具</small></button></nav><div class="build-list" id="build-list"></div><div id="support-list" class="support-list"></div><div class="build-detail" id="build-detail"><strong>建造面板</strong><br>选择建筑或部队开始生产。</div></aside></div><footer class="game-bottom"><span id="selection-label">没有选中单位</span><span class="hotkeys">左键选择 · 右键命令 · D 部署 · H 基地 · 滚轮缩放</span><span id="battle-status">战场控制在线</span></footer></main>`;
   renderer=new BattlefieldRenderer($('#battlefield-canvas'),game!,map,assets,{
     onSelection:()=>{updateSelection();const selected=game!.entities.find(e=>renderer?.selection.has(e.id));if(selected)sound.voice(selected.type,'select');},onCommand:(kind)=>{const selected=game!.entities.find(e=>renderer?.selection.has(e.id));if(kind==='deploy')sound.play('uplace');else if(selected)sound.voice(selected.type,kind==='attack'?'attack':'move');if(renderer&&!renderer.attackMove)$('#battlefield').classList.remove('attack-mode');},onNotice:text=>{notice(text);clearTools();},
     onPlace:(x,y)=>{
       if(supportMode){const success=game!.support(0,supportMode,x,y,[...renderer!.selection]);if(success){supportMode=undefined;renderer!.tool='select';notice('支援命令已下达。');}return success;}
       const def=renderer!.placement;if(!def)return false;
-      const success=game!.place(0,def.id,x,y);if(success){renderer!.placement=undefined;$('#battlefield').classList.remove('build-mode');sound.play(`${game!.players[0].faction}_constructioncomplete`);renderBuildList();}else{notice('无法在此建造。请选择已探明、平坦且靠近基地的区域。',true);sound.play(`${game!.players[0].faction}_cannotdeployhere`);}return success;
+      const success=game!.place(0,def.id,x,y);if(success){renderer!.placement=undefined;$('#battlefield').classList.remove('build-mode');sound.play(`${game!.players[0].faction}_constructioncomplete`);renderBuildList();}else{notice(game!.bootcamp?game!.lastMessage:'无法在此建造。请选择已探明、平坦且靠近基地的区域。',true);sound.play(`${game!.players[0].faction}_cannotdeployhere`);}return success;
     },
     onEntityClick:e=>{
       if(renderer!.tool==='repair'){if(e.owner===0)game!.repair(e.id);return true;}
@@ -207,7 +261,9 @@ function renderGame(map:RenderMap){
   $('#game-speed').onclick=()=>{gameSpeed=gameSpeed===.75?1:gameSpeed===1?1.5:gameSpeed===1.5?2:.75;game!.speed=gameSpeed;$('#game-speed').textContent=`${gameSpeed}×`;};
   $('#repair').onclick=()=>setTool('repair');$('#sell').onclick=()=>setTool('sell');$('#home').onclick=()=>renderer!.home();$('#deploy').onclick=deploySelection;
   document.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(el=>el.onclick=()=>{category=el.dataset.category as ProductionCategory;renderBuildList();});
-  mountDebugPanel($('#battlefield-tools'),game!,sound,()=>{updateUI();renderer!.draw();});
+  const debug = mountDebugPanel($('#battlefield-tools'),game!,sound,()=>{updateUI();renderer!.draw();});
+  if(game!.bootcamp)disposeSwitch=mountRendererSwitch(debug,renderer);
+  renderer.canvas.dataset.renderer='2d';
   renderBuildList();updateUI();bindLanguage();
 }
 function setTool(tool:'repair'|'sell'){if(!renderer)return;const next=renderer.tool===tool?'select':tool;clearTools();renderer.tool=next;renderer.placement=undefined;renderer.attackMove=false;$('#repair').classList.toggle('active',renderer.tool==='repair');$('#sell').classList.toggle('active',renderer.tool==='sell');$('#battlefield').className='battlefield '+(renderer.tool==='select'?'':`${renderer.tool}-mode`);}
@@ -217,15 +273,16 @@ function cameoUrl(cameo:string,sprite:string){const key=cameo.replace(/icon$/,''
 function renderBuildList(){
   if(!game||!renderer)return;if(document.querySelector('.build-item:active'))return;const p=game.players[0];
   document.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(el=>el.classList.toggle('active',el.dataset.category===category));
-  const all=Object.values(CATALOG).filter(d=>!d.neutral&&(category==='vehicle'?['vehicle','aircraft','naval'].includes(d.category):d.category===category)&&(d.faction===p.faction||d.faction==='both')&&(!d.country||d.country===p.country)&&!d.id.includes('construction_yard'));
+  const all=Object.values(CATALOG).filter(d=>!d.neutral&&(category==='vehicle'?['vehicle','aircraft','naval'].includes(d.category):d.category===category)&&(game!.bootcamp?bootcampTypes.has(d.id):(d.faction===p.faction||d.faction==='both')&&(!d.country||d.country===p.country)&&!d.id.includes('construction_yard')));
   const hasYard=game.entities.some(e=>e.owner===0&&e.type.includes('construction_yard')&&e.hp>0);
-  if(!hasYard&&(category==='structure'||category==='defense')){buildSignature='';$('#build-list').innerHTML='<div class="empty-production"><span>⌘</span><strong>等待基地部署</strong><p>选中基地车<br>双击或按 D 展开</p></div>';translateUI($('#build-list'));return;}
+  if(!game.bootcamp&&!hasYard&&(category==='structure'||category==='defense')){buildSignature='';$('#build-list').innerHTML='<div class="empty-production"><span>⌘</span><strong>等待基地部署</strong><p>选中基地车<br>双击或按 D 展开</p></div>';translateUI($('#build-list'));return;}
   const unlocked = new Set(game.getAvailable(0).map(d=>d.id));
   const canSee=all.filter(d=>unlocked.has(d.id)||p.queues[d.category].some(q=>q.type===d.id)||d.category==='structure'||d.category==='defense').filter(d=>superweapons||!['chronosphere','weather_control','iron_curtain','nuclear_silo'].includes(d.id));
   const signature=category+canSee.map(d=>`${d.id}:${game!.canBuild(0,d.id)}:${p.queues[d.category].map(q=>q.type+q.ready).join(',')}`).join('|');
   if(signature===buildSignature){document.querySelectorAll<HTMLElement>('[data-build]').forEach(el=>{const def=CATALOG[el.dataset.build!],first=p.queues[def.category][0],mask=el.querySelector<HTMLElement>('.progress-mask');if(mask&&first?.type===def.id)mask.style.setProperty('--progress',`${Math.round(first.progress*100)}%`);});return;}buildSignature=signature;
-  $('#build-list').innerHTML=canSee.map(d=>{const q=p.queues[d.category],items=q.filter(v=>v.type===d.id),first=q[0]?.type===d.id?q[0]:undefined;const ready=items.some(v=>v.ready),can=game!.canBuild(0,d.id)||items.length>0;const url=cameoUrl(d.cameo,d.sprite);return `<button class="build-item ${can?'':'locked'} ${items.length?'queued':''}" data-build="${d.id}" aria-label="${escape(d.name)}，${d.cost} 资金${ready?'，就绪':''}" title="${escape(d.name)} — $${d.cost}\n${escape(d.description)}\n${escape(game!.getBuildReason(0,d.id))}">${url?`<img src="${url}" alt="${escape(d.name)}" draggable="false"/>`:`<div class="placeholder-cameo">${d.name.slice(0,2)}</div>`}<span class="cost">${d.cost}</span>${first&&!ready?`<span class="progress-mask" style="--progress:${Math.round(first.progress*100)}%"></span>`:''}${items.length>1?`<span class="queue-count">${items.length}</span>`:''}${ready?'<span class="ready-text">就 绪</span>':''}<span class="item-name">${escape(d.name)}</span></button>`;}).join('');
-  if(!canSee.length)$('#build-list').innerHTML='<div class="empty-production"><strong>尚无生产设施</strong><p>先在建筑页建造对应的兵营、战车工厂或船坞。</p></div>';
+  $('#build-list').innerHTML=canSee.map(d=>{const q=p.queues[d.category],items=q.filter(v=>v.type===d.id),first=q[0]?.type===d.id?q[0]:undefined;const ready=items.some(v=>v.ready),can=game!.canBuild(0,d.id)||items.length>0;const url=cameoUrl(d.cameo,d.sprite);return `<button class="build-item ${can?'':'locked'} ${items.length?'queued':''}" data-testid="build-item" data-build="${d.id}" aria-label="${escape(d.name)}，${d.cost} 资金${ready?'，就绪':''}" title="${escape(d.name)} — $${d.cost}\n${escape(d.description)}\n${escape(game!.getBuildReason(0,d.id))}">${url?`<img src="${url}" alt="${escape(d.name)}" draggable="false"/>`:`<div class="placeholder-cameo">${d.name.slice(0,2)}</div>`}<span class="cost">${d.cost}</span>${first&&!ready?`<span class="progress-mask" style="--progress:${Math.round(first.progress*100)}%"></span>`:''}${items.length>1?`<span class="queue-count">${items.length}</span>`:''}${ready?'<span class="ready-text">就 绪</span>':''}<span class="item-name">${escape(d.name)}</span></button>`;}).join('');
+  if(!canSee.length && game.bootcamp)$('#build-list').innerHTML='<p class="empty-production">该分类尚无已验证的 3D 模型。</p>';
+  else if(!canSee.length)$('#build-list').innerHTML='<div class="empty-production"><strong>尚无生产设施</strong><p>先在建筑页建造对应的兵营、战车工厂或船坞。</p></div>';
   document.querySelectorAll<HTMLButtonElement>('[data-build]').forEach(el=>{
     const id=el.dataset.build!,d=CATALOG[id];
     el.onclick=()=>{const item=game!.players[0].queues[d.category].find(q=>q.type===id&&q.ready);if(item){clearTools();renderer!.placement=d;renderer!.tool='select';$('#battlefield').className='battlefield build-mode';notice(`选择 ${d.name} 的建造位置。右键取消。`);}else{if(!game!.build(0,id)){notice(game!.getBuildReason(0,id)||'当前无法生产。',true);}else sound.play(`${p.faction}_${d.kind==='building'?'building':d.category==='infantry'?'training':'unitready'}`);renderBuildList();}};
@@ -246,11 +303,11 @@ function updateUI(){
   const mins=Math.floor(game.time/60),secs=Math.floor(game.time%60);$('#game-time').textContent=`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
   $('#battle-status').textContent=game.paused?'已暂停':p.powerConsumed>p.powerProduced?'电力不足':`剩余阵营 ${new Set(game.players.filter(v=>!v.defeated).map(v=>v.team)).size}`;
   const hasYard=game.entities.some(e=>e.owner===0&&e.type.includes('construction_yard')&&e.hp>0),hasRefinery=game.entities.some(e=>e.owner===0&&e.type.includes('refinery')&&e.hp>0);
-  $('#hud-objective').innerHTML=!hasYard?'<strong>基地尚未部署</strong>　选中基地车，双击或按 D 展开。':selectedMap.specialMode==='megawealth'?'<strong>巨富地图</strong>　训练工程师，占领钻油井取得持续收入。':!hasRefinery?'<strong>发展基地</strong>　建造发电厂和矿石精炼厂，开始采矿。':`<strong>作战目标</strong>　${shortGame?'摧毁所有敌方建筑及基地车。':'消灭所有敌方建筑和部队。'}`;
+  $('#hud-objective').innerHTML=game.bootcamp?'自由建造、即时招募、充足资金。敌方不会主动进攻。':!hasYard?'<strong>基地尚未部署</strong>　选中基地车，双击或按 D 展开。':selectedMap.specialMode==='megawealth'?'<strong>巨富地图</strong>　训练工程师，占领钻油井取得持续收入。':!hasRefinery?'<strong>发展基地</strong>　建造发电厂和矿石精炼厂，开始采矿。':`<strong>作战目标</strong>　${shortGame?'摧毁所有敌方建筑及基地车。':'消灭所有敌方建筑和部队。'}`;
   const events=game.events.filter(e=>e.id>lastEvent&&(e.owner===undefined||e.owner===0));for(const ev of events){notice(ev.text,ev.kind==='warning');if(ev.kind==='complete'){sound.play(`${p.faction}_${ev.text.includes('单位')||ev.text.includes('训练')?'unitready':'constructioncomplete'}`);lastComplete=ev.id;}}lastEvent=game.events.at(-1)?.id||lastEvent;
   notices=notices.filter(n=>n.until>performance.now());$('#hud-message').innerHTML=notices.slice(-3).map(n=>`<div class="notice ${n.warn?'warn':''}">${escape(n.text)}</div>`).join('');
   renderer.drawMinimap();updateSelection();renderBuildList();updateSupport();
-   $<HTMLButtonElement>('#deploy').disabled=!game.entities.some(e=>renderer!.selection.has(e.id)&&(getDefinition(e.type).kind==='unit'||e.type.includes('construction_yard')));
+   $<HTMLButtonElement>('#deploy').disabled=!game.entities.some(e=>renderer!.selection.has(e.id)&&(getDefinition(e.type).kind==='unit'||(!game!.bootcamp&&e.type.includes('construction_yard'))));
   translateUI();
   if(game.status!=='playing'&&!shownResult){shownResult=true;showResult();}
 }
@@ -277,8 +334,8 @@ function notice(text:string,warn=false){notices.push({text,until:performance.now
 function toast(text:string){document.querySelector('.error-toast')?.remove();const el=document.createElement('div');el.className='error-toast';el.textContent=t(text);document.body.append(el);setTimeout(()=>el.remove(),5000);}
 function showPause(){
   if(!game||shownResult)return;
-  showModal('游戏暂停',`<div class="pause-items"><button id="resume" class="primary">返回战场</button><button id="pause-help">操作说明</button><button id="pause-music">${sound.musicEnabled?'关闭':'开启'}原版音乐</button><button id="pause-sound">${sound.enabled?'关闭':'开启'}游戏音效</button><button id="surrender">投降并结束战斗</button><button id="leave">退出到遭遇战设置</button></div>${sourceCodeLink()}${projectNotice()}`,'',true);
-  $('#resume').onclick=closeModal;$('#pause-help').onclick=showHelp;$('#pause-music').onclick=()=>{sound.setMusic(!sound.musicEnabled);$('#pause-music').textContent=t(`${sound.musicEnabled?'关闭':'开启'}原版音乐`);};$('#pause-sound').onclick=()=>{sound.enabled=!sound.enabled;$('#pause-sound').textContent=t(`${sound.enabled?'关闭':'开启'}游戏音效`);};$('#surrender').onclick=()=>{closeModal();game!.surrender(0);updateUI();};$('#leave').onclick=()=>{closeModal();renderLobby();};
+  showModal('游戏暂停',`<div class="pause-items"><button id="resume" class="primary">返回战场</button><button id="pause-help">操作说明</button><button id="pause-music">${sound.musicEnabled?'关闭':'开启'}原版音乐</button><button id="pause-sound">${sound.enabled?'关闭':'开启'}游戏音效</button><button id="surrender">${game.bootcamp?'结束训练':'投降并结束战斗'}</button><button id="leave">退出到模式选择</button></div>${sourceCodeLink()}${projectNotice()}`,'',true);
+  $('#resume').onclick=closeModal;$('#pause-help').onclick=showHelp;$('#pause-music').onclick=()=>{sound.setMusic(!sound.musicEnabled);$('#pause-music').textContent=t(`${sound.musicEnabled?'关闭':'开启'}原版音乐`);};$('#pause-sound').onclick=()=>{sound.enabled=!sound.enabled;$('#pause-sound').textContent=t(`${sound.enabled?'关闭':'开启'}游戏音效`);};$('#surrender').onclick=()=>{closeModal();if(game!.bootcamp)renderModeSelect();else{game!.surrender(0);updateUI();}};$('#leave').onclick=()=>{closeModal();renderModeSelect();};
 }
 function showResult(){
   if(!game)return;const won=game.winnerTeam===game.players[0].team;sound.play(`${game.players[0].faction}_${won?'victorious':'defeated'}`);
@@ -301,4 +358,4 @@ window.addEventListener('keyup',e=>renderer?.keys.delete(e.key.toLowerCase()));
 window.addEventListener('blur',()=>{renderer?.keys.clear();if(playing&&!modalOpen&&!shownResult)showPause();});
 // Integration handle for deterministic browser verification and inspection.
 Object.defineProperty(window,'ra2',{get:()=>({game,renderer,map:selectedMap,assets,slots})});
-init().catch(error=>{if(error instanceof OriginalAssetsError || /素材|地图|资源/.test(error instanceof Error?error.message:String(error))){showAssetSetup(app,error instanceof Error?error.message:String(error));return;}console.error(error);app.innerHTML=`<div class="fatal"><h1>战场载入失败</h1><pre>${escape(error instanceof Error?error.message:String(error))}</pre><button onclick="location.reload()">重新载入</button></div>`;translateUI();});
+Promise.resolve().then(renderModeSelect).catch(error=>{if(error instanceof OriginalAssetsError || /素材|地图|资源/.test(error instanceof Error?error.message:String(error))){showAssetSetup(app,error instanceof Error?error.message:String(error));return;}console.error(error);app.innerHTML=`<div class="fatal"><h1>战场载入失败</h1><pre>${escape(error instanceof Error?error.message:String(error))}</pre><button onclick="location.reload()">重新载入</button></div>`;translateUI();});

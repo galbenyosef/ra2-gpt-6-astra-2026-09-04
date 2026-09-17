@@ -1,0 +1,64 @@
+{
+  "id": "curved-road",
+  "file": "curved-road.glb",
+  "source": "temperate:177 / droadc02.tem",
+  "footprintCells": [
+    2,
+    2
+  ],
+  "triangles": 2,
+  "bytes": 2982380,
+  "sha256": "44cf9df689d0a907ac4b1b6f18a770c268ab8175ada5594f1c685650c87e48b0",
+  "up": "+Y",
+  "bounds": [
+    [
+      -1,
+      0,
+      -1
+    ],
+    [
+      1,
+      0,
+      1
+    ]
+  ],
+  "ports": [
+    {
+      "edge": "north",
+      "center": [
+        -0.5,
+        0,
+        -1
+      ],
+      "widthCells": 1
+    },
+    {
+      "edge": "east",
+      "center": [
+        1,
+        0,
+        0.5
+      ],
+      "widthCells": 1
+    }
+  ],
+  "edgeMaxDifference": {
+    "north": 0,
+    "east": 0,
+    "south": 0,
+    "west": 0
+  },
+  "textureSize": [
+    1024,
+    1024
+  ],
+  "textureFormat": "embedded lossless PNG",
+  "pipeline": "ImageGen source-guided albedo + authored flat ground quad; no Meshy",
+  "master": ".cache/batch-three/curved-road/master.glb",
+  "limitations": [
+    "One 90-degree bend; quarter-turn placement supported",
+    "Flat terrain intentionally uses 2 triangles, not redundant 30K geometry",
+    "Four corner texels excluded from edge comparison",
+    "Mipmap filtering and distant texture contrast require browser review"
+  ]
+}

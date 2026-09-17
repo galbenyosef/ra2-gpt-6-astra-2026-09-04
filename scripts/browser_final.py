@@ -1,3 +1,4 @@
+"""Skirmish capture, result dismissal and responsive-layout browser acceptance."""
 from playwright.sync_api import sync_playwright
 import json
 with sync_playwright() as p:
@@ -6,7 +7,7 @@ with sync_playwright() as p:
     errors=[];external=[]
     page.on('pageerror',lambda e:errors.append(str(e)))
     page.on('request',lambda r:external.append(r.url) if not r.url.startswith(('http://127.0.0.1:4173','data:','blob:')) else None)
-    page.goto('http://127.0.0.1:4173/',wait_until='networkidle');page.wait_for_selector('#start',timeout=90000)
+    page.goto('http://127.0.0.1:4173/',wait_until='networkidle');page.get_by_test_id('mode-skirmish').click(timeout=90000);page.wait_for_selector('#start',timeout=90000)
     page.locator('#music').uncheck()
     print('ASSETS',page.evaluate('({sprites:Object.keys(ra2.assets.manifest.sprites).length,terrain:Object.keys(ra2.assets.terrain).length,scenery:Object.keys(ra2.assets.scenery).length,failures:ra2.assets.failures})'))
     page.screenshot(path='/tmp/ra2-final-lobby.png')

@@ -49,3 +49,28 @@ html[lang=en] .player-table select{padding-right:6px}html[lang=en] .item-name{fo
 .map-sharing-actions{display:flex;gap:8px;flex-shrink:0}.map-sharing-actions button{letter-spacing:0;min-height:36px}
 .map-sharing-bar :focus-visible{outline:2px solid #eddaa5;outline-offset:3px}
 @media(max-width:800px){.map-sharing-bar{align-items:stretch;flex-direction:column;gap:10px}.map-sharing-actions button{flex:1}.map-sharing-actions{width:100%}.modal-actions{flex-wrap:wrap}}
+
+/* The mode menu shares the existing metal panels and language controls. */
+.setup-local-installer { margin-block:16px; padding:16px; border:1px solid #789871; background:#1b3025; }
+.setup-local-installer p { margin-block-end:12px; line-height:1.6; }
+.setup-local-installer button { max-inline-size:100%; overflow-wrap:anywhere; }
+.mode-screen { max-inline-size: 1080px; margin: auto; }
+.mode-options { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 24px; margin-block: 28px; }
+.mode-card { padding: 28px; display: flex; flex-direction: column; gap: 16px; }
+.mode-card h3 { font-size: 24px; margin: 0; }
+.mode-card p { line-height: 1.7; color: #bdcaba; }
+.mode-card button { margin-block-start: auto; min-block-size: 48px; }
+.mode-tools { display:flex; gap:12px; margin-block-end:24px; }
+.setup-mode-back { position:relative; z-index:3; margin:12px; }
+.renderer-switch { border:1px solid #697d58; padding:8px; margin-block-end:10px; }
+.renderer-switch button { min-inline-size:64px; min-block-size:32px; margin-inline-end:8px; }
+.renderer-switch button[aria-pressed="true"] { background:#597845; color:white; border-color:#bad593; }
+.renderer-switch p { max-inline-size:240px; }
+.bootcamp-camera { position:absolute; inset-block-start:12px; inset-inline-end:12px; z-index:4; padding:8px; border:1px solid #75876a; background:#122319ed; max-inline-size:calc(100% - 24px); }
+.bootcamp-camera[hidden] { display:none; }
+.bootcamp-camera>div { display:flex; flex-wrap:wrap; align-items:center; gap:6px; }
+.bootcamp-camera label { display:flex; align-items:center; gap:6px; }
+.bootcamp-camera select { inline-size:auto; }
+.bootcamp-camera button { min-block-size:32px; padding:6px 9px; }
+.bootcamp-camera small { display:block; margin-block-start:6px; color:#bdccae; }
+@media(max-width:700px) { .mode-options { grid-template-columns:1fr; } }

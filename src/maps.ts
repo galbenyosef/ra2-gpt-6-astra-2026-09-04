@@ -26,6 +26,7 @@ export interface MapData {
   ini: IniFile; official: boolean; source: string; warnings: string[];
   specialMode?: 'megawealth' | 'unfinished'; notes?: string;
   layout?: 'rectangular';
+  environmentProps?: {id:string;x:number;y:number;rotation?:number}[];
 }
 export interface TileDefinition { file: string; set: number; name: string; subtiles: (null | [number, number, number, number[], number[]])[] }
 export interface OverlayDefinition { id: number; name: string; wall: boolean; ore: boolean; land: string }

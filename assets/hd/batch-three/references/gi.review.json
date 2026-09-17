@@ -1,0 +1,32 @@
+{
+  "asset": "gi",
+  "status": "accepted",
+  "referenceSha256": "f77e7e2ce1d8b834398b31c9e8f7187eb075633ceecd86252cae1138eecfb538",
+  "originalOpaqueBounds": [
+    32,
+    10,
+    50,
+    39
+  ],
+  "referenceBounds": [
+    289,
+    249,
+    782,
+    1206
+  ],
+  "originalSize": [
+    18,
+    29
+  ],
+  "downsampleSize": [
+    15,
+    29
+  ],
+  "widthRatio": 0.8333333333333334,
+  "comparison": ".cache/batch-three/reference-check/comparison.png",
+  "alignment": "same facing, uniform height match, opaque ground baseline; no aspect distortion",
+  "limitations": "charcoal threshold gives approximate reference bounds; no automatic fidelity claim",
+  "reviewer": "Codex visual review",
+  "visualJudgment": "Helmet, red upper torso, bare arms, olive legs and dark boots/rifle agree at native scale. The ready stance is an adaptation with separated planted feet; exact boot pose and weapon detail remain inferred. Candidate v1 was rejected for crossed legs.",
+  "scope": "Reference accepted for one Meshy generation; not a completed or user-approved GLB"
+}

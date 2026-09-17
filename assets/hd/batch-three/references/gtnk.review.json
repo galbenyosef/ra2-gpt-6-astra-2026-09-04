@@ -1,0 +1,32 @@
+{
+  "asset": "gtnk",
+  "status": "accepted",
+  "referenceSha256": "91140f97a6154aff03f0183f88a42f88838d071c0c4b27809bd00af988c493ee",
+  "originalOpaqueBounds": [
+    39,
+    44,
+    91,
+    79
+  ],
+  "referenceBounds": [
+    75,
+    266,
+    1132,
+    997
+  ],
+  "originalSize": [
+    52,
+    35
+  ],
+  "downsampleSize": [
+    51,
+    35
+  ],
+  "widthRatio": 0.9807692307692307,
+  "comparison": ".cache/batch-three/reference-check/comparison.png",
+  "alignment": "same facing, uniform height match, opaque ground baseline; no aspect distortion",
+  "limitations": "charcoal threshold gives approximate reference bounds; no automatic fidelity claim",
+  "reviewer": "Codex visual review",
+  "visualJudgment": "Frame 24 view, two tracked sponsons, compact turret, barrel and rear grilles align. Front and barrel both point upper right. V2 removes literal voxel steps. Small paneling and gun muzzle internals inferred.",
+  "scope": "Reference accepted for one Meshy generation; not a completed or user-approved GLB"
+}

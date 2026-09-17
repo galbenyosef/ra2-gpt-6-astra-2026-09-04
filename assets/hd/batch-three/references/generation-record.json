@@ -1,0 +1,400 @@
+{
+  "records": [
+    {
+      "asset": "tree01",
+      "tool": "built-in image_gen",
+      "toolOutputPath": "/Users/zzn/.codex/generated_images/01a0c934-e4cf-7da2-bc73-3bae5ab78203/exec-4f0203b2-f81d-48f2-aa41-9666b15474fc.png",
+      "output": {
+        "path": "assets/hd/batch-three/references/tree01.png",
+        "bytes": 1543089,
+        "sha256": "7182cb646c7a4167f35849a2863f86080348e0c234d2d50728eb6b38dca48d8b",
+        "size": [
+          1041,
+          1510
+        ],
+        "mode": "RGB"
+      },
+      "inputs": [
+        {
+          "path": ".cache/batch-three/source/tree01.png",
+          "bytes": 3736,
+          "sha256": "35888ef6f43d0235290e3e475c9e408e9235f3be5fb8aa976a75ecc4f78ca526",
+          "size": [
+            155,
+            155
+          ],
+          "mode": "RGBA"
+        }
+      ],
+      "promptKey": "tree01",
+      "promptFile": "assets/hd/batch-three/references/prompts.json",
+      "status": "selected candidate",
+      "unknown": [
+        "seed",
+        "API quality setting",
+        "model version"
+      ]
+    },
+    {
+      "asset": "gi-v1",
+      "tool": "built-in image_gen",
+      "toolOutputPath": "/Users/zzn/.codex/generated_images/01a0c934-e4cf-7da2-bc73-3bae5ab78203/exec-c9b51b62-12a7-4222-803a-805d0262067e.png",
+      "output": {
+        "path": "assets/hd/batch-three/references/gi-v1.png",
+        "bytes": 1196538,
+        "sha256": "f6f5ce5763f90348621982cf90d13a788122cf3a5bdf9f9ac3374c2e0cd97650",
+        "size": [
+          996,
+          1579
+        ],
+        "mode": "RGB"
+      },
+      "inputs": [
+        {
+          "path": ".cache/batch-three/source/gi-composite.png",
+          "bytes": 838,
+          "sha256": "6afb2c4db9614f4ec0c0769e958004640218f469a7e9e430fa59b339caa6ec60",
+          "size": [
+            78,
+            66
+          ],
+          "mode": "RGBA"
+        },
+        {
+          "path": ".cache/batch-three/source/gi-evidence.png",
+          "bytes": 28021,
+          "sha256": "9ef7588be56d7f4820a4243e388393dc70c758b0750850679bb8bb066f56f257",
+          "size": [
+            1872,
+            594
+          ],
+          "mode": "RGBA"
+        }
+      ],
+      "promptKey": "gi-v1",
+      "promptFile": "assets/hd/batch-three/references/prompts.json",
+      "status": "rejected draft",
+      "unknown": [
+        "seed",
+        "API quality setting",
+        "model version"
+      ]
+    },
+    {
+      "asset": "nahand",
+      "tool": "built-in image_gen",
+      "toolOutputPath": "/Users/zzn/.codex/generated_images/01a0c934-e4cf-7da2-bc73-3bae5ab78203/exec-518549e6-09c9-4469-9f69-d85cf7927a95.png",
+      "output": {
+        "path": "assets/hd/batch-three/references/nahand.png",
+        "bytes": 1341686,
+        "sha256": "a20977fa035b8cc2dd8b5bebcaae898a5652edc1401c6bc54cec40092f2a5f92",
+        "size": [
+          1318,
+          1193
+        ],
+        "mode": "RGB"
+      },
+      "inputs": [
+        {
+          "path": ".cache/batch-three/source/nahand.png",
+          "bytes": 13597,
+          "sha256": "158ec91e7245862cc0c8ede44b65364277049306b6b390296f2b5d09003773ab",
+          "size": [
+            254,
+            230
+          ],
+          "mode": "RGBA"
+        }
+      ],
+      "promptKey": "nahand",
+      "promptFile": "assets/hd/batch-three/references/prompts.json",
+      "status": "selected candidate",
+      "unknown": [
+        "seed",
+        "API quality setting",
+        "model version"
+      ]
+    },
+    {
+      "asset": "gtnk-v1",
+      "tool": "built-in image_gen",
+      "toolOutputPath": "/Users/zzn/.codex/generated_images/01a0c934-e4cf-7da2-bc73-3bae5ab78203/exec-6a2a526c-0df7-4f65-88b2-95cc0c659578.png",
+      "output": {
+        "path": "assets/hd/batch-three/references/gtnk-v1.png",
+        "bytes": 1426036,
+        "sha256": "587c99299484d36ae2b6469a9b57ea5f4a854e4f1702cb3b0a8d619ed230002b",
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGB"
+      },
+      "inputs": [
+        {
+          "path": ".cache/batch-three/source/gtnk.png",
+          "bytes": 2381,
+          "sha256": "bde96efc4f40ee0b39722283e6a39c4b2a5b99cd3e8b20acb1336a664bf3e24c",
+          "size": [
+            128,
+            128
+          ],
+          "mode": "RGBA"
+        },
+        {
+          "path": ".cache/batch-three/inspection/original-gtnk-threequarter.png",
+          "bytes": 52640,
+          "sha256": "86c29771fd49253cf7255b3de1b1ba5cca51c26d85f77b5d5d8dd051c84df168",
+          "size": [
+            690,
+            802
+          ],
+          "mode": "RGB"
+        },
+        {
+          "path": ".cache/batch-three/inspection/original-gtnk-top.png",
+          "bytes": 23787,
+          "sha256": "3efeecc9b90487b1ea37287fd12746b8d57078afa34f6bfec3c7127910537a86",
+          "size": [
+            690,
+            802
+          ],
+          "mode": "RGB"
+        },
+        {
+          "path": ".cache/batch-three/inspection/original-gtnk-left.png",
+          "bytes": 23965,
+          "sha256": "1948feb91e08ea41b8091f04f5bb152c6a09cf298a72883ab1c1944f4b848d67",
+          "size": [
+            690,
+            802
+          ],
+          "mode": "RGB"
+        }
+      ],
+      "promptKey": "gtnk-v1",
+      "promptFile": "assets/hd/batch-three/references/prompts.json",
+      "status": "rejected draft",
+      "unknown": [
+        "seed",
+        "API quality setting",
+        "model version"
+      ]
+    },
+    {
+      "asset": "dred-v1",
+      "tool": "built-in image_gen",
+      "toolOutputPath": "/Users/zzn/.codex/generated_images/01a0c934-e4cf-7da2-bc73-3bae5ab78203/exec-3473a28a-98f6-4630-866a-dd0fd7012e7f.png",
+      "output": {
+        "path": "assets/hd/batch-three/references/dred-v1.png",
+        "bytes": 1450547,
+        "sha256": "bd45c37202d7c32e6ba189b3d8f3ee5ed09853c3b4a9de6e572c0a744ae99816",
+        "size": [
+          1448,
+          1086
+        ],
+        "mode": "RGB"
+      },
+      "inputs": [
+        {
+          "path": ".cache/batch-three/source/dred.png",
+          "bytes": 5801,
+          "sha256": "1421224073c2c511888e5ce41b58051c35ec6fce7af456e22d678c070df66bc0",
+          "size": [
+            200,
+            200
+          ],
+          "mode": "RGBA"
+        },
+        {
+          "path": ".cache/batch-three/inspection/original-dred-threequarter.png",
+          "bytes": 69536,
+          "sha256": "8539e86eb2dd2ab9ed4e1540af2feeee09096da63b006563705e07d781c3d307",
+          "size": [
+            690,
+            802
+          ],
+          "mode": "RGB"
+        },
+        {
+          "path": ".cache/batch-three/inspection/original-dred-top.png",
+          "bytes": 32744,
+          "sha256": "c2de54bb39819c4909fdf470feb7736fae4a01623319ee6f7c66a0af1aecc7d8",
+          "size": [
+            690,
+            802
+          ],
+          "mode": "RGB"
+        },
+        {
+          "path": ".cache/batch-three/inspection/original-dred-left.png",
+          "bytes": 29130,
+          "sha256": "8cb853102ff5bb6af52ee58f1b3283a78cd791d09492a75a48e68b6308d8840f",
+          "size": [
+            690,
+            802
+          ],
+          "mode": "RGB"
+        }
+      ],
+      "promptKey": "dred-v1",
+      "promptFile": "assets/hd/batch-three/references/prompts.json",
+      "status": "rejected draft",
+      "unknown": [
+        "seed",
+        "API quality setting",
+        "model version"
+      ]
+    },
+    {
+      "asset": "gtnk",
+      "tool": "built-in image_gen",
+      "toolOutputPath": "/Users/zzn/.codex/generated_images/01a0c934-e4cf-7da2-bc73-3bae5ab78203/exec-c46302a9-29e4-41fb-a9d3-06716112518b.png",
+      "output": {
+        "path": "assets/hd/batch-three/references/gtnk.png",
+        "bytes": 1626687,
+        "sha256": "91140f97a6154aff03f0183f88a42f88838d071c0c4b27809bd00af988c493ee",
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGB"
+      },
+      "inputs": [
+        {
+          "path": "assets/hd/batch-three/references/gtnk-v1.png",
+          "bytes": 1426036,
+          "sha256": "587c99299484d36ae2b6469a9b57ea5f4a854e4f1702cb3b0a8d619ed230002b",
+          "size": [
+            1254,
+            1254
+          ],
+          "mode": "RGB"
+        }
+      ],
+      "promptKey": "gtnk",
+      "promptFile": "assets/hd/batch-three/references/prompts.json",
+      "status": "selected candidate",
+      "unknown": [
+        "seed",
+        "API quality setting",
+        "model version"
+      ]
+    },
+    {
+      "asset": "dred",
+      "tool": "built-in image_gen",
+      "toolOutputPath": "/Users/zzn/.codex/generated_images/01a0c934-e4cf-7da2-bc73-3bae5ab78203/exec-902edb32-31bd-4fe9-9d50-067b055d6c80.png",
+      "output": {
+        "path": "assets/hd/batch-three/references/dred.png",
+        "bytes": 1611905,
+        "sha256": "f1d0e2ba926b3f41943a41faa5707f2e3d5e3a99b4f16b29ca628ccf05b7e060",
+        "size": [
+          1448,
+          1086
+        ],
+        "mode": "RGB"
+      },
+      "inputs": [
+        {
+          "path": "assets/hd/batch-three/references/dred-v1.png",
+          "bytes": 1450547,
+          "sha256": "bd45c37202d7c32e6ba189b3d8f3ee5ed09853c3b4a9de6e572c0a744ae99816",
+          "size": [
+            1448,
+            1086
+          ],
+          "mode": "RGB"
+        }
+      ],
+      "promptKey": "dred",
+      "promptFile": "assets/hd/batch-three/references/prompts.json",
+      "status": "selected candidate",
+      "unknown": [
+        "seed",
+        "API quality setting",
+        "model version"
+      ]
+    },
+    {
+      "asset": "gi",
+      "tool": "built-in image_gen",
+      "toolOutputPath": "/Users/zzn/.codex/generated_images/01a0c934-e4cf-7da2-bc73-3bae5ab78203/exec-cddbc114-8ab3-4d59-a2a1-eebbc338f885.png",
+      "output": {
+        "path": "assets/hd/batch-three/references/gi.png",
+        "bytes": 1373692,
+        "sha256": "f77e7e2ce1d8b834398b31c9e8f7187eb075633ceecd86252cae1138eecfb538",
+        "size": [
+          996,
+          1579
+        ],
+        "mode": "RGB"
+      },
+      "inputs": [
+        {
+          "path": "assets/hd/batch-three/references/gi-v1.png",
+          "bytes": 1196538,
+          "sha256": "f6f5ce5763f90348621982cf90d13a788122cf3a5bdf9f9ac3374c2e0cd97650",
+          "size": [
+            996,
+            1579
+          ],
+          "mode": "RGB"
+        },
+        {
+          "path": ".cache/batch-three/source/gi.png",
+          "bytes": 933,
+          "sha256": "aaefcc73901c6709603de9496bc11ca002c4c8c4d1672c902885eb5f01c95e63",
+          "size": [
+            78,
+            66
+          ],
+          "mode": "RGBA"
+        }
+      ],
+      "promptKey": "gi",
+      "promptFile": "assets/hd/batch-three/references/prompts.json",
+      "status": "selected candidate",
+      "unknown": [
+        "seed",
+        "API quality setting",
+        "model version"
+      ]
+    },
+    {
+      "asset": "curved-road",
+      "tool": "built-in image_gen",
+      "toolOutputPath": "/Users/zzn/.codex/generated_images/01a0c934-e4cf-7da2-bc73-3bae5ab78203/exec-c0ab1534-c535-4d06-80d0-3cb948fc03fb.png",
+      "output": {
+        "path": "assets/hd/batch-three/references/curved-road.png",
+        "bytes": 3535217,
+        "sha256": "284188aba7c623f0c046071c3a550c4810ba8cf84f49273056c176a0c8b4ff3e",
+        "size": [
+          1254,
+          1254
+        ],
+        "mode": "RGB"
+      },
+      "inputs": [
+        {
+          "path": ".cache/batch-three/source/road-177-top.png",
+          "bytes": 304881,
+          "sha256": "7de91c6da5438afcf465d2b683785dc10fab7a47f096acb9e9819375cc5f4afd",
+          "size": [
+            512,
+            512
+          ],
+          "mode": "RGB"
+        }
+      ],
+      "promptKey": "curved-road",
+      "promptFile": "assets/hd/batch-three/references/prompts.json",
+      "status": "selected candidate",
+      "unknown": [
+        "seed",
+        "API quality setting",
+        "model version"
+      ]
+    }
+  ],
+  "meshyStatus": "No task submitted; explicit user upload authorization pending after automatic approval review rejected the attempt."
+}

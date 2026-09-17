@@ -1,3 +1,6 @@
+// Simulation owns all gameplay. Bootcamp changes are gated by mode; renderer switches never create an engine.
+// This pre-existing monolithic class exceeds the normal file limit; splitting its private simulation state is outside this integration.
+import { bootcampTypes, BOOTCAMP_CREDITS } from '../bootcamp/catalog.js';
 import { CATALOG, CATEGORIES, countryById, getDefinition, PLAYER_COLORS } from './data';
 import { findPath } from './pathfinding';
 import type { Definition, Effect, Entity, GameEvent, GameMap, GameOptions, Order, PlayerState, Point, ProductionCategory, Terrain } from './types';
@@ -15,6 +18,8 @@ const abilities: Record<string, { name: string; building?: string; duration: num
 
 /** Deterministic tile-space skirmish simulation, independent of rendering and DOM. */
 export class GameEngine {
+  readonly mode: 'skirmish' | 'bootcamp';
+  get bootcamp(): boolean { return this.mode === 'bootcamp'; }
   readonly map: GameMap;
   readonly players: PlayerState[];
   readonly localPlayerId: number;
@@ -47,6 +52,8 @@ export class GameEngine {
   private neutralPlayer: PlayerState;
 
   constructor(options: GameOptions) {
+    this.mode = options.mode ?? 'skirmish';
+    this.instantProduction = this.bootcamp;
     this.map = { ...options.map, cells: [...options.map.cells] };
     this.localPlayerId = options.localPlayerId ?? options.players.find(p => !p.ai)?.id ?? 0;
     this.fogOfWar = options.fogOfWar ?? true;
@@ -73,7 +80,7 @@ export class GameEngine {
       kills: 0, losses: 0, buildingsBuilt: 0, unitsBuilt: 0, fog: new Uint8Array(this.blocked.length), explored: new Uint8Array(this.blocked.length),
       supportCooldown: 0, abilityCooldowns: {}, spawn: { x: 0, y: 0 }, aiTimer: 0, aiAttackTimer: 0,
     };
-    for (const [index, item] of (options.neutralStructures ?? []).entries()) {
+    for (const [index, item] of (this.bootcamp ? [] : options.neutralStructures ?? []).entries()) {
       const native = item.nativeType.toLowerCase(), id = `neutral_${native}`;
       const techNames: Record<string, string> = { caoild: '科技钻油井', cahosp: '市民医院', caoutp: '科技前哨站', caairp: '科技机场' };
       const hp = native === 'caoild' ? 1000 : native === 'caoutp' ? 2000 : 800;
@@ -89,6 +96,7 @@ export class GameEngine {
       e.mapStructureIndex = index;
     }
     for (const player of this.players) {
+      if (this.bootcamp) { this.initializeBootcamp(player, options.startingUnits ?? 4); continue; }
       const mcvType = player.faction === 'allied' ? 'allied_mcv' : 'soviet_mcv';
       const mcvDef = getDefinition(mcvType);
       const position = this.findDeployPosition(player.spawn, getDefinition(mcvDef.deploysTo!), undefined, 18) ?? this.nearestPassable(player.spawn, mcvDef);
@@ -105,7 +113,48 @@ export class GameEngine {
     this.updatePower();
     this.updateFog();
     this.rebuildSpatial();
-    this.event('战场已就绪。选中基地车，按 D 或双击部署。', this.localPlayerId);
+    this.event(this.bootcamp ? '训练营已就绪。自由建造和招募，敌方不会主动进攻。' : '战场已就绪。选中基地车，按 D 或双击部署。', this.localPlayerId);
+  }
+
+  private initializeBootcamp(player: PlayerState, count: number) {
+    if (player.id === this.localPlayerId) player.credits = BOOTCAMP_CREDITS;
+    const yard = getDefinition('construction_yard');
+    const position = this.findDeployPosition(player.spawn, yard, undefined, 24);
+    if (position) {
+      const b = this.getPlacementBounds(yard.id, position.x, position.y);
+      this.spawnEntity(yard.id, player.id, b.centerX, b.centerY);
+      player.spawn = {x:b.centerX, y:b.centerY};
+    }
+    // Every opponent remains a real target even when starting units is set to zero.
+    const roster = ['rhino', 'conscript', 'tanya', 'apocalypse', 'rocketeer', 'war_miner', 'destroyer', 'giant_squid'];
+    for (let i = 0; i < Math.max(1, count); i++) {
+      const type = roster[i % roster.length], point = this.trainingSpawn(player.id, getDefinition(type));
+      if (point) this.spawnEntity(type, player.id, point.x, point.y);
+    }
+  }
+  /** A producer-free training exit, respecting map bounds, occupancy and land/sea/air. */
+  private trainingSpawn(playerId: number, def: Definition): Point | undefined {
+    const origin = this.getPlayer(playerId)!.spawn;
+    if (def.naval && !this.map.cells.includes('water')) return undefined;
+    const ox=Math.floor(origin.x),oy=Math.floor(origin.y);
+    // Search outward so routine sidebar affordability checks do not scan the entire map.
+    for (let radius=0; radius<=Math.max(this.map.width,this.map.height); radius++) {
+      let best: Point | undefined, score=Infinity;
+      const consider=(x:number,y:number)=>{
+        const point={x:x+.5,y:y+.5};
+        if (!this.isPassable(point.x,point.y,def)) return;
+        if (this.entities.some(e=>e.hp>0&&!e.transportedBy&&!!getDefinition(e.type).flying===!!def.flying&&distance(e,point)<1)) return;
+        const d=distance(origin,point);if(d<score){best=point;score=d;}
+      };
+      for(let x=Math.max(0,ox-radius);x<=Math.min(this.map.width-1,ox+radius);x++) {
+        consider(x,oy-radius);if(radius)consider(x,oy+radius);
+      }
+      for(let y=Math.max(0,oy-radius+1);y<=Math.min(this.map.height-1,oy+radius-1);y++) {
+        consider(ox-radius,y);if(radius)consider(ox+radius,y);
+      }
+      if(best)return best;
+    }
+    return undefined;
   }
 
   private random() {
@@ -121,7 +170,7 @@ export class GameEngine {
     if (player && !player.defeated && this.status === 'playing') player.credits += 10000;
   }
   setDebugInstantProduction(enabled: boolean): void {
-    this.instantProduction = enabled;
+    this.instantProduction = this.bootcamp || enabled;
     const player = this.getPlayer();
     if (!enabled || !player || player.defeated || this.status !== 'playing') return;
     // Complete already-paid queues as well as future purchases. Buildings still need placement.
@@ -170,6 +219,7 @@ export class GameEngine {
     return Object.values(CATALOG).filter(d => {
       if (category && category !== d.category) return false;
       if (d.neutral) return false;
+      if (this.bootcamp) return bootcampTypes.has(d.id);
       if (d.id.includes('construction_yard')) return false;
       if (d.faction !== 'both' && d.faction !== p.faction) return false;
       if (d.country && d.country !== p.country) return false;
@@ -181,8 +231,10 @@ export class GameEngine {
   getBuildReason(playerId: number, type: string): string {
     const p = this.getPlayer(playerId), def = CATALOG[type];
     if (!p || !def || p.defeated || this.status !== 'playing') return '无法生产';
+    if (this.bootcamp && !bootcampTypes.has(type)) return '训练营尚无此型号的 3D 模型';
     if (!this.getAvailable(playerId).some(d => d.id === type)) return '需要前置建筑';
-    if (p.credits < def.cost) return '资金不足';
+    if (this.bootcamp && def.kind === 'unit' && !this.trainingSpawn(playerId, def)) return '没有适合该单位的空闲地形';
+    if (!this.bootcamp && p.credits < def.cost) return '资金不足';
     const queue = p.queues[def.category];
     if (queue.length >= (def.kind === 'building' ? 1 : 12)) return '生产队列已满';
     return '';
@@ -192,10 +244,10 @@ export class GameEngine {
     const reason = this.getBuildReason(playerId, type);
     if (reason) { this.lastMessage = reason; return false; }
     const p = this.getPlayer(playerId)!, d = getDefinition(type);
-    p.credits -= d.cost;
+    p.credits = this.bootcamp && playerId === this.localPlayerId ? BOOTCAMP_CREDITS : p.credits - d.cost;
     p.queues[d.category].push({ type, progress: 0, duration: d.buildTime, ready: false, paid: d.cost });
     this.lastMessage = `${d.name}：开始生产`;
-    if (this.instantProduction && playerId === this.localPlayerId) this.advanceProduction(p, 0);
+    if ((this.bootcamp || this.instantProduction) && playerId === this.localPlayerId) this.advanceProduction(p, 0);
     return true;
   }
   cancelBuild(playerId: number, category: ProductionCategory): boolean {
@@ -225,10 +277,11 @@ export class GameEngine {
   getPlacementReason(playerId: number, type: string, x: number, y: number): string {
     const def = CATALOG[type];
     if (!def || def.kind !== 'building') return '选择要建造的建筑';
+    if (this.bootcamp && !bootcampTypes.has(type)) return '训练营尚无此型号的 3D 模型';
     if (!this.footprintClear(def, x, y)) return def.naval ? '船坞需要空旷水面' : '此处无法建造';
     const bounds = this.getPlacementBounds(type, x, y);
     const center = { x: bounds.centerX, y: bounds.centerY };
-    if (!this.entities.some(e => {
+    if (!this.bootcamp && !this.entities.some(e => {
       if (e.owner !== playerId || e.kind !== 'building' || e.hp <= 0) return false;
       const size = getDefinition(e.type).size ?? [1, 1];
       const dx = Math.max(0, Math.abs(e.x - center.x) - (size[0] + bounds.width) / 2);
@@ -255,6 +308,7 @@ export class GameEngine {
   }
 
   spawnEntity(type: string, owner: number, x: number, y: number): Entity {
+    if (this.bootcamp && !bootcampTypes.has(type)) throw new Error('Unsupported Bootcamp model: ' + type);
     const d = getDefinition(type);
     const e: Entity = {
       id: this.nextId++, type, kind: d.kind, owner, x, y, hp: d.hp, maxHp: d.hp, angle: Math.PI / 2,
@@ -264,7 +318,7 @@ export class GameEngine {
     };
     this.entities.push(e); this.entityMap.set(e.id, e);
     if (e.kind === 'building') { this.rebuildBlocked(); this.updatePower(); }
-    if (d.harvest) this.assignHarvest(e);
+    if (d.harvest && (!this.bootcamp || owner === this.localPlayerId)) this.assignHarvest(e);
     return e;
   }
   private onBuildingComplete(e: Entity) {
@@ -273,9 +327,9 @@ export class GameEngine {
     this.effect({ kind: 'deploy', x: e.x, y: e.y, duration: 1, color: p.color, radius: 2 });
     this.event(`${d.name}建造完成。`, p.id, 'complete');
     if (e.type === 'refinery' || e.type === 'soviet_refinery') {
-      const type = p.faction === 'allied' ? 'chrono_miner' : 'war_miner';
-      const pos = this.exitPosition(e, getDefinition(type));
-      this.spawnEntity(type, e.owner, pos.x, pos.y);
+      const type = this.bootcamp ? 'war_miner' : p.faction === 'allied' ? 'chrono_miner' : 'war_miner';
+      const pos = this.bootcamp ? this.trainingSpawn(e.owner, getDefinition(type)) : this.exitPosition(e, getDefinition(type));
+      if (pos) this.spawnEntity(type, e.owner, pos.x, pos.y);
     }
     for (const [key, value] of Object.entries(abilities)) {
       if (value.building === e.type && (key !== 'paradrop' || p.country === 'america')) p.abilityCooldowns[key] = value.duration;
@@ -305,6 +359,7 @@ export class GameEngine {
       } else if (e.type === 'yuri' && e.cooldown <= 0) {
         this.psychicPulse(e, 250, 3); e.cooldown = 4; deployed++;
       } else if (e.type.includes('construction_yard')) {
+        if (this.bootcamp) { this.lastMessage = '训练营尚无基地车的 3D 模型'; continue; }
         const target = getDefinition(e.type === 'construction_yard' ? 'allied_mcv' : 'soviet_mcv');
         const ratio = e.hp / e.maxHp;
         e.type = target.id; e.kind = 'unit'; e.maxHp = target.hp; e.hp = target.hp * ratio;
@@ -464,7 +519,7 @@ export class GameEngine {
   }
 
   getSupport(playerId: number): { id: string; name: string; remaining: number; total: number; ready: boolean }[] {
-    const p = this.getPlayer(playerId); if (!p) return [];
+    const p = this.getPlayer(playerId); if (!p || this.bootcamp) return [];
     return Object.entries(abilities).filter(([id, a]) => id === 'paradrop' ? (this.has(playerId, 'neutral_caairp') || (this.has(playerId, a.building!) && p.country === 'america')) : this.has(playerId, a.building!))
       .map(([id, a]) => ({ id, name: a.name, remaining: p.abilityCooldowns[id] ?? a.duration, total: a.duration, ready: (p.abilityCooldowns[id] ?? a.duration) <= 0 && this.isPowered(playerId) }));
   }
@@ -512,6 +567,7 @@ export class GameEngine {
   }
   private tick(dt: number) {
     this.time += dt;
+    if (this.bootcamp) this.getPlayer()!.credits = BOOTCAMP_CREDITS;
     this.visibilityTimer -= dt; this.economyTimer -= dt;
     if (this.visibilityTimer <= 0) { this.visibilityTimer = .4; this.updateFog(); this.rebuildSpatial(); }
     if (this.economyTimer <= 0) { this.economyTimer = 1; this.updatePower(); this.checkVictory(); }
@@ -521,10 +577,11 @@ export class GameEngine {
       if (this.isPowered(p.id)) for (const key of Object.keys(p.abilityCooldowns)) p.abilityCooldowns[key] = Math.max(0, p.abilityCooldowns[key] - dt);
       const support = this.getSupport(p.id);
       p.supportCooldown = support.length ? Math.min(...support.map(a => a.remaining)) : 0;
-      if (p.ai) { p.aiTimer -= dt; p.aiAttackTimer -= dt; if (p.aiTimer <= 0) { p.aiTimer = p.difficulty === 'easy' ? 4 : p.difficulty === 'hard' ? 1.4 : 2.5; this.runAI(p); } }
+      if (p.ai && !this.bootcamp) { p.aiTimer -= dt; p.aiAttackTimer -= dt; if (p.aiTimer <= 0) { p.aiTimer = p.difficulty === 'easy' ? 4 : p.difficulty === 'hard' ? 1.4 : 2.5; this.runAI(p); } }
     }
     for (const e of [...this.entities]) {
       if (e.hp <= 0) continue;
+      if (this.bootcamp && e.owner !== this.localPlayerId) continue;
       if (e.bomb && e.bomb.detonatesAt <= this.time) this.detonateBomb(e);
       if (e.hp <= 0) continue;
       if (e.transportedBy) { const transport = this.getEntity(e.transportedBy); if (transport) { e.x = transport.x; e.y = transport.y; } continue; }
@@ -544,21 +601,23 @@ export class GameEngine {
       const item = p.queues[category][0]; if (!item || item.ready) continue;
       const d = getDefinition(item.type);
       const producer = d.kind === 'building' ? this.has(p.id, 'yard') : this.entities.some(e => e.owner === p.id && getDefinition(e.type).producer === category);
-      if (!producer) continue;
+      if (!producer && !this.bootcamp) continue;
+      if (this.bootcamp && !bootcampTypes.has(item.type)) { p.queues[category].shift(); continue; }
       const producers = Math.min(3, this.entities.filter(e => e.owner === p.id && getDefinition(e.type).producer === category).length);
       const powered = this.isPowered(p.id) ? 1 : .35;
       const difficulty = !p.ai ? 1 : p.difficulty === 'easy' ? .75 : p.difficulty === 'hard' ? 1.15 : 1;
-      item.progress = this.instantProduction && p.id === this.localPlayerId ? 1
+      item.progress = (this.bootcamp || this.instantProduction) && p.id === this.localPlayerId ? 1
         : Math.min(1, item.progress + dt / item.duration * powered * difficulty * (1 + Math.max(0, producers - 1) * .2));
       if (item.progress < 1) continue;
       if (d.kind === 'building') { item.ready = true; this.event(`${d.name}已就绪，请选择放置位置。`, p.id, 'complete'); }
       else {
         const factory = this.entities.find(e => e.owner === p.id && getDefinition(e.type).producer === category);
-        if (!factory) continue;
-        const pos = this.exitPosition(factory, d);
+        if (!factory && !this.bootcamp) continue;
+        const pos = this.bootcamp ? this.trainingSpawn(p.id, d) : this.exitPosition(factory!, d);
+        if (!pos) continue;
         const e = this.spawnEntity(d.id, p.id, pos.x, pos.y);
         p.queues[category].shift(); p.unitsBuilt++;
-        if (!d.harvest) {
+        if (!d.harvest && factory && !this.bootcamp) {
           const rally = this.nearestPassable({ x: factory.x + 4, y: factory.y + 5 }, d);
           this.setOrder(e, { kind: 'move', x: rally.x, y: rally.y });
         }
@@ -731,6 +790,7 @@ export class GameEngine {
     return true;
   }
   private combat(e: Entity, dt: number, chase = true): boolean {
+    if (this.bootcamp && e.owner !== this.localPlayerId) return false;
     if (e.holdFire && e.order.kind !== 'attack') return false;
     const d = this.getCombatDefinition(e);
     if (!d.damage) return false;
@@ -1011,6 +1071,7 @@ export class GameEngine {
     return result;
   }
   private checkVictory(force = false) {
+    if (this.bootcamp && !force) return;
     if ((!force && this.time < 2) || this.status !== 'playing') return;
     for (const p of this.players) {
       if (p.defeated) continue;
