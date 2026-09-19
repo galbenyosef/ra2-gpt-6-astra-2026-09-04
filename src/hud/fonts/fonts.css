@@ -1,0 +1,4 @@
+/* Fira Sans Condensed matches the reference menu; bundled locally under OFL-1.1. */
+@font-face { font-family:'Fira Sans Condensed'; font-style:normal; font-weight:500; font-display:swap; src:url('./fira-sans-condensed-500-latin.woff2') format('woff2'); }
+@font-face { font-family:'Fira Sans Condensed'; font-style:normal; font-weight:700; font-display:swap; src:url('./fira-sans-condensed-700-latin.woff2') format('woff2'); }
+:root { --menu-font:'Fira Sans Condensed','Microsoft YaHei','PingFang SC',sans-serif; }

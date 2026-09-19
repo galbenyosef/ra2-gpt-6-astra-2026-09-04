@@ -67,6 +67,7 @@ export default defineConfig(async ({ command, isPreview }): Promise<UserConfig> 
       });
     },
     generateBundle(_options,bundle) {
+      this.emitFile({type:'asset',fileName:'Fira-Sans-Condensed-OFL.txt',source:fs.readFileSync('src/hud/fonts/OFL.txt','utf8')});
       for(const model of models)this.emitFile({type:'asset',fileName:model.fileName,source:model.source});
       for(const [source,target] of [['License.txt','7z-wasm-LICENSE.txt'],['unRarLicense.txt','7z-wasm-unRAR.txt']])
         this.emitFile({type:'asset',fileName:target!,source:fs.readFileSync('node_modules/7z-wasm/'+source,'utf8')});

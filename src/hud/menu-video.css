@@ -1,0 +1,9 @@
+/* Original video already contains the metal CRT surround and RA2 title artwork. */
+.menu-video { position:absolute; inset:0; width:100%; height:100%; object-fit:fill; display:none; }
+.menu-monitor.has-video { padding:0; border:0; border-radius:0; background:#000; box-shadow:none; }
+.has-video .menu-video { display:block; }
+.has-video .monitor-glass { position:absolute; inset:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.has-video .monitor-glass::after,.has-video .radar-sweep { display:none; }
+.has-video .rust-logo { position:absolute; left:0; top:62.28%; width:100%; transform:translateY(-50%); font:700 clamp(18px,3.8cqw,54px)/1 var(--menu-font); letter-spacing:.12em; color:#c9270b!important; -webkit-text-stroke:.6px #e5c877; text-shadow:1px 2px #dbb96e,3px 5px 3px #000; }
+.has-video .rust-logo span { display:inline; }
+.has-video .rust-logo span+span::before { content:' '; }

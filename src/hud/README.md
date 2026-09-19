@@ -11,6 +11,8 @@ availability.ts          unlocked/queued categories, shared by pointer and keybo
 menu-skin.ts + menus.css  locally converted dialog/buttons/checkboxes
 menu-shell.ts + CSS      CRT entry, 3-second splash and native mechanical command rail
 menu-entry.css           fitted 4:3 entry composition
+menu-video.ts + CSS      local original movie, reduced motion and exit cleanup
+fonts/                   licensed Fira Sans Condensed 500/700 and menu font tokens
 command-bar.ts + CSS     native groups/type/deploy/stop/waypoint controls
 entity-tooltip.ts        delayed visibility-aware 2D/3D names
 lobby-layout.ts + lobby.css compact player/rules panel and right map/commands

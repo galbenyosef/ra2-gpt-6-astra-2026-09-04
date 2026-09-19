@@ -1,5 +1,5 @@
 /** Download and convert original RA2 data. The Windows installer is never run. */
-import { missingNativeUiAssets } from '../src/hud/skin';
+import { missingNativeUiAssets, MENU_VIDEO_PATH } from '../src/hud/skin';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -27,7 +27,7 @@ export interface AssetReadiness {
 /** Validate metadata and every referenced image, native map and sound; no mutations. */
 export async function checkAssetsReady(publicDir = publicDirectory(), requireSidebar = true): Promise<AssetReadiness> {
   const missing: string[] = [];
-  const files = new Set<string>();
+  const files = new Set<string>(requireSidebar?[MENU_VIDEO_PATH.slice(1)]:[]);
   const documents = new Map<string, unknown>();
   const required = ['assets/manifest.json', 'assets/terrain/manifest-tiles.json',
     'assets/scenery/manifest-scenery.json', 'maps/catalog.json', 'maps/terrain.json',

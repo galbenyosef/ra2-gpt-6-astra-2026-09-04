@@ -35,7 +35,7 @@ rejection inline. Settings apply immediately and survive closing/reopening dialo
 within the page. They are not saved across a page reload. Controls provide edge
 scrolling, camera speed and the existing key reference; key remapping is not added.
 
-Readiness schema 5 checks the added menu files. The `--sidebar-only` native upgrade
+Readiness schema 6 checks the added menu files. The `--sidebar-only` native upgrade
 also refreshes menu resources; browser conversion reuses its verified installer.
 Audio tests verify changes to active sound/music channels and music track retention.
 
@@ -53,7 +53,7 @@ loads cannot overwrite newer selections or a closed picker. See
 `node scripts/browser_lobby_skin.mjs` for both modes, languages, two sizes,
 filter/sort/cancel/confirm, player-setting retention and actual match startup.
 
-Final desktop Lighthouse on a local static build with separate prepared originals:
+Earlier desktop Lighthouse on a local static build with separate prepared originals:
 performance 96, accessibility 100, best practices 100, SEO 100. Vite development
 scores are not representative because modules are unminified and unknown text
 routes receive the SPA shell. Originals remain absent from the audited dist.
@@ -62,9 +62,9 @@ routes receive the SPA shell. Originals remain absent from the audited dist.
 
 The title is Rust Alarm. A skippable CRT/radar splash closes at 3 seconds,
 independently of loading, with the requested Victor Zhou / EA fan-remake credit.
-The curved monitor and radar sweep are CSS approximations; the right rail uses
-original sdtp, sdbtnbkgd, sdbtnanm, sdbtm and lwscrnl frames/palettes. Original
-Chrono Divide video and branding are not copied. ESC keeps the paused battlefield
+The main monitor plays locally converted original RA2 video with Fira typography;
+see [video verification](menu-video-verification.md). The right rail uses original
+sdtp, sdbtnbkgd, sdbtnanm, sdbtm and lwscrnl frames/palettes. ESC keeps the paused battlefield
 behind a native 168px right rail, with options and language switching.
 
 The top toolbar is removed. Original 52×32 command SHPs implement teams 1–3,

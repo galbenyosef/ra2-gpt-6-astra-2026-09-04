@@ -10,7 +10,7 @@ main.ts -> mode menu -> asset preparation -> lobby/editor -> battle
   bootcamp/            training map, verified GLBs, rotating camera and switch lifecycle
   hud/                 native faction sidebar, entry/ESC shell, commands, tooltips and options
   assets.ts            browser original-art/audio consumers
-  asset-setup/worker   local download and conversion
+  asset-setup/worker   local download and conversion; menu-video-converter runs FFmpeg WASM
   maps/custom-*        original and portable editor maps
   map-editor*          editor UI and terrain painting
   i18n.ts / urls.ts    locale and deployment-path boundaries

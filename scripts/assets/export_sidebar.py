@@ -36,5 +36,7 @@ def main():
  if b and pal:e.export('mouse',b,bytes(v*4 for v in pal),kind='ui',maxframes=512,shadow=False,anchor=(0,0))
  e.manifest['source']['sha256']='5388c54d7d7b73060083563ff1926bca0d2663a76678b807e23e9a8d491441ce'
  e.manifest['source']['formatReferences']=['https://moddingwiki.shikadi.net/wiki/Westwood_SHP_Format_(TS)','https://github.com/OpenRA/OpenRA/blob/bleed/OpenRA.Mods.Cnc/FileSystem/MixFile.cs','https://github.com/sh4faq/Red-Alert-2--Modding-Guide/blob/master/01-VXL-HVA-Format.md','https://ppmforums.com/topic-46489/audioidxbag-format/']
+ from export_menu_video import export_menu_video
+ export_menu_video()
  (e.OUT/'manifest.json').write_text(json.dumps(e.manifest,indent=2));print('ui',len(e.manifest['ui']))
 if __name__=='__main__':main()

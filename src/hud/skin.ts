@@ -3,6 +3,7 @@ import required from '../../scripts/assets/sidebar-assets.json';
 import menus from '../../scripts/assets/menu-assets.json';
 import type { Sprite } from '../assets';
 
+export const MENU_VIDEO_PATH = '/assets/ui/ra2ts_l.webm';
 export type Faction = 'allied' | 'soviet';
 export const nativeUiAssets = [...Object.entries(required).flatMap(([name, frames]) =>
   ['sidec01', 'sidec02'].map(side => ({key:`${side}-${name}`, frames}))),

@@ -8,6 +8,7 @@ import { Sidebar, sidebarMarkup } from './hud/sidebar';
 import { renderProduction } from './hud/production';
 import { availableTabs } from './hud/availability';
 import { loadMenuSkin } from './hud/menu-skin';
+import { mountMenuVideo } from './hud/menu-video';
 import { monitorMarkup, railHeader, showEntrySplash } from './hud/menu-shell';
 import { mountCommandBar, updateCommandBar, selectType } from './hud/command-bar';
 import { showOptions, applyScreenSize } from './hud/options';
@@ -77,23 +78,26 @@ let notices: {text:string;until:number;warn:boolean}[] = [];
 let shownResult = false;
 let buildSignature = '';
 let supportSignature = '';
+let disposeMenuVideo: (()=>void) | undefined;
 let disposeEditor: (() => void) | undefined;
 const groups = new Map<string, number[]>();
 
 function renderModeSelect() {
-  void loadMenuSkin();
+  disposeMenuVideo?.();disposeMenuVideo=undefined;
   sidebar?.destroy();sidebar=undefined;
   disposeSwitch?.();disposeSwitch=undefined;disposeEditor?.();disposeEditor=undefined;
   playing=false;cancelAnimationFrame(animation);renderer?.destroy();renderer=undefined;game=undefined;
   app.innerHTML=`<main class="shell mode-screen" data-testid="mode-screen">${monitorMarkup}<aside class="command-rail">${railHeader('主菜单')}
     <nav class="mode-options" aria-label="选择模式"><button data-testid="mode-skirmish">遭遇战</button><button data-testid="mode-bootcamp">新兵训练营</button></nav>
     <div class="mode-tools"><button data-testid="mode-editor">地图编辑器</button><button data-testid="mode-assets">游戏素材</button><button id="menu-info">信息与制作人员</button></div>${languageControl()}<div class="rail-bottom"><button id="menu-fullscreen">全屏</button></div></aside><div class="menu-status" aria-hidden="true"></div></main>`;
+  const menuRoot=$<HTMLElement>('.mode-screen');
+  void loadMenuSkin().then(src=>{if(menuRoot.isConnected&&!entering)disposeMenuVideo=mountMenuVideo(menuRoot,src);});
   $('#menu-info').onclick=()=>{const root=showModal('信息与制作人员',`${sourceCodeLink()}${projectNotice()}`,'');root.querySelector('details')?.setAttribute('open','');};
   $('#menu-fullscreen').onclick=()=>void (document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()).catch(()=>toast('浏览器未能切换全屏。'));
   translateUI();bindLanguage();
   let entering=false;
   const enter=async(next:'skirmish'|'bootcamp',editor=false)=>{
-    if(entering)return;entering=true;const previous=mode;mode=next;
+    if(entering)return;entering=true;disposeMenuVideo?.();disposeMenuVideo=undefined;const previous=mode;mode=next;
     try{await prepareGame();if(loaded){
       if(next==='bootcamp'&&(previous!==next||selectedMapId==='mp22s8')){selectedMap=await loadMap(TRAINING_MAP_ID);selectedMapId=selectedMap.id;fog=false;slots[1].position=1;}
       else if(next==='skirmish'&&selectedMapId===TRAINING_MAP_ID){selectedMap=await loadMap('mp22s8');selectedMapId=selectedMap.id;fog=true;slots[1].position=4;}
@@ -104,7 +108,7 @@ function renderModeSelect() {
   $('[data-testid="mode-skirmish"]').onclick=()=>void enter('skirmish');
   $('[data-testid="mode-bootcamp"]').onclick=()=>void enter('bootcamp');
   $('[data-testid="mode-editor"]').onclick=()=>void enter('skirmish',true);
-  $('[data-testid="mode-assets"]').onclick=()=>{showAssetSetup(app);addSetupBack();};
+  $('[data-testid="mode-assets"]').onclick=()=>{disposeMenuVideo?.();disposeMenuVideo=undefined;showAssetSetup(app);addSetupBack();};
 }
 function addSetupBack(){const button=document.createElement('button');button.textContent=t('返回模式选择');button.className='setup-mode-back';button.onclick=renderModeSelect;app.prepend(button);}
 async function prepareGame() {

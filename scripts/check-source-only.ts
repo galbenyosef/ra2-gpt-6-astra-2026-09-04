@@ -7,14 +7,14 @@ import { pathToFileURL } from 'node:url';
 export function forbiddenOriginalPath(path:string):boolean {
   const name=path.replaceAll('\\','/').toLowerCase();
   return /^(public\/(assets|maps)|docs\/screenshots|\.cache|dist|node_modules)(\/|$)/.test(name)
-    || /\.(mix|map|mpr|shp|vxl|hva|pal|bag|idx|exe|iso|pyc|pyo)$/.test(name)
+    || /\.(mix|map|mpr|shp|vxl|hva|pal|bag|idx|exe|iso|bik|webm|mp4|pyc|pyo)$/.test(name)
     || /(^|\/)__pycache__\//.test(name);
 }
 /** A deployable bundle contains code and WASM, never original-media output. */
 export function forbiddenBuildPath(path:string):boolean {
   const name=path.replaceAll('\\','/').toLowerCase();
   return /^(assets|maps|docs\/screenshots|public|\.cache)(\/|$)/.test(name)
-    || /\.(mix|map|mpr|shp|vxl|hva|pal|bag|idx|exe|iso|png|jpg|jpeg|gif|webp|wav|mp3|ogg|flac)$/.test(name);
+    || /\.(mix|map|mpr|shp|vxl|hva|pal|bag|idx|exe|iso|bik|webm|mp4|png|jpg|jpeg|gif|webp|wav|mp3|ogg|flac)$/.test(name);
 }
 function main(){
   if(process.argv.includes('--build')){

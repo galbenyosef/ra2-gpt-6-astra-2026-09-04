@@ -35,7 +35,7 @@ When conversion is needed, dev/preview offers a detected local installer. Set
 This skips the archive download only; the browser still verifies and converts it.
 
 - Skirmish retains countries, teams, native maps, mining, production and combat.
-- Original-art entry, lobby and faction sidebars; a 3-second fan-remake splash.
+- Original menu video, Fira typography, lobby and sidebars; a 3-second entry splash.
 - ESC opens options/language controls. Native bottom icons command groups and
   waypoints; hovering reveals unit/building names in both 2D and 3D.
 - Bootcamp defaults to traditional Canvas 2D on **every** entry. Open the lower-left

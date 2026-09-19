@@ -25,6 +25,7 @@ const stages:Record<string,[string,string]>={
   sidebar:['Preparing the original interface','正在转换原版界面'],
   terrain:['Preparing snow, temperate and urban terrain','正在转换雪地、温带和城市地形'],
   scenery:['Preparing map scenery','正在转换地图场景'],
+  video:['Converting the original menu video','正在转换原版菜单视频'],
   previews:['Decoding original map previews','正在解码原版地图预览'],
   storage:['Saving assets in this browser','正在存入本机浏览器缓存'],
 };

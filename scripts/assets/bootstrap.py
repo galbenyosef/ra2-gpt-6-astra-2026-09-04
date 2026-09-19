@@ -36,6 +36,7 @@ def main():
         required(archive, name, mixes / name.lower())
         count += 1
     required(Mix(game / 'language.mix'), 'audio.mix', mixes / 'audio.mix')
+    required(Mix(game / 'language.mix'), 'ra2ts_l.bik', raw / 'ra2ts_l.bik')
     local = Mix(mixes / 'local.mix')
     for name in ['rules.ini', 'art.ini', 'snow.ini', 'temperat.ini', 'urban.ini',
                  'eva.ini', 'sound.ini', 'theme.ini']:

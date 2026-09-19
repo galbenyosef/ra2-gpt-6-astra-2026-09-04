@@ -77,3 +77,6 @@
 }
 
 .renderer-switch [role=status]:empty { display:none; }
+
+/* Match the reference UI typeface while preserving CJK fallback. */
+:is(.shell,.modal),:is(.shell,.modal) :is(button,select,input,label,th) { font-family:var(--menu-font); font-weight:500; }

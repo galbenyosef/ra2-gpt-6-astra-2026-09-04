@@ -2,7 +2,7 @@
 const BASE = new URL(self.registration.scope).pathname;
 const cacheName = name => BASE === '/' ? name : name + ':' + BASE;
 const ORIGINALS = cacheName('ra2-originals-v2');
-const APP = cacheName('ra2-app-v9');
+const APP = cacheName('ra2-app-v10');
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(APP);
@@ -28,7 +28,7 @@ self.addEventListener('fetch', event => {
       const cache = await caches.open(ORIGINALS);
       const response = await cache.match(logicalPath);
       if (!response) return new Response('Original asset is not present in this browser.', {status:404});
-      // HTMLAudioElement can request byte ranges when seeking cached PCM music.
+      // Audio/video elements request byte ranges when seeking cached media.
       const range = event.request.headers.get('range');
       if (!range) return response;
       const match = /^bytes=(\d+)-(\d*)$/.exec(range);

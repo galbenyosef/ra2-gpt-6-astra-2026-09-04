@@ -23,7 +23,7 @@ A rejected file never replaces a verified cached installer or triggers a downloa
 2. Mount it with `7z-wasm` WORKERFS; extract only the four required MIX archives.
 3. Load Pyodide, Pillow, PyCryptodome and audioop-lts from the runtime CDN.
 4. Run the shared Python stages for maps, sprites, voxels, sound and terrain.
-5. Encode map previews, save outputs in CacheStorage and verify every required file.
+5. Convert the menu Bink with FFmpeg WASM, encode previews and verify cached outputs.
 6. Write the readiness marker last. Reload; the service worker serves originals
    from browser storage, including offline. Clearing site data removes this cache.
 
@@ -56,7 +56,7 @@ npm run assets:setup
 npm run assets:check
 ```
 
-Requires Python 3.10+, 7-Zip (`7zz`/`7z`) and FFmpeg with MP3 support. Python packages
+Requires Python 3.10+, 7-Zip (`7zz`/`7z`) and FFmpeg with MP3/libvpx support. Python packages
 are pinned in a cache-local virtual environment. Default cache: `.cache/ra2-assets/`;
 outputs: `public/assets/` and `public/maps/`. `RA2_ASSET_CACHE` and `RA2_PUBLIC_DIR`
 override these paths. `--force` reconstructs; `--check` validates without download.
@@ -79,6 +79,8 @@ preparation and actual gameplay; evidence remains under ignored `.cache/`.
 under LGPL 2.1-or-later and the unRAR restriction; its package includes licenses and
 source/build references. [Pyodide](https://pyodide.org/) and its packages retain
 their respective licenses. Original game media belongs to Westwood Studios / EA.
+Menu conversion uses [ffmpeg.wasm](https://github.com/ffmpegwasm/ffmpeg.wasm),
+wrapper 0.12.15 and single-thread core 0.12.10 downloaded from jsDelivr.
 
 ## Interface upgrades
 
@@ -89,5 +91,9 @@ output and extracted converter cache, `npm run assets:setup -- --sidebar-only`
 updates just the UI; see [sidebar verification](../../docs/sidebar-verification.md).
 `menu-assets.json` adds dialog, button, checkbox and mechanical menu-rail art. The same
 upgrade refreshes these assets with their original palettes.
-Browser readiness schema 5 forces older caches through verified local preparation;
+`export_menu_video.py` extracts `ra2ts_l.bik` and records the separate `menuVideo`
+manifest entry. Native FFmpeg or the browser worker encodes a muted VP8 WebM;
+the temporary Bink is deleted before outputs are stored. `RA2_FFMPEG` overrides
+the native executable. The video remains local original media, excluded from builds.
+Browser readiness schema 6 forces older caches through verified local preparation;
 the cached installer is reused without re-downloading.

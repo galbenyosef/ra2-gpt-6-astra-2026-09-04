@@ -1,4 +1,7 @@
 // Verified browser preparation; only complete native sidebar atlases are marked ready.
+// This legacy worker exceeds 5 KB to keep the ordered cache transaction together;
+// menu encoding is split into its own module.
+import { convertMenuVideo } from './menu-video-converter';
 import { missingNativeUiAssets } from './hud/skin';
 import SevenZip from '7z-wasm';
 import sevenWasm from '7z-wasm/7zz.wasm?url';
@@ -12,7 +15,7 @@ const DOWNLOAD_URL = 'https://cors.archive.org/cors/red-alert-2-multiplayer/Red-
 const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.mjs';
 const pythonSources = import.meta.glob('../scripts/{assets,maps}/*.{py,json}', {query:'?raw',import:'default',eager:true}) as Record<string,string>;
 const notify = (stage:string,percent?:number,message?:string) => postMessage({type:'progress',stage,percent,message} satisfies SetupProgress);
-const mime = (name:string) => name.endsWith('.png')?'image/png':name.endsWith('.wav')?'audio/wav':name.endsWith('.json')?'application/json':'text/plain';
+const mime = (name:string) => name.endsWith('.webm')?'video/webm':name.endsWith('.png')?'image/png':name.endsWith('.wav')?'audio/wav':name.endsWith('.json')?'application/json':'text/plain';
 
 async function getArchive():Promise<Blob> {
   const cache = await caches.open(ARCHIVE_CACHE);
@@ -75,6 +78,10 @@ async function install(localFile?: Blob) {
     const disposable:Record<string,string>={extract:'ra2.mix',maps:'multi.mix',sprites:'language.mix',audio:'theme.mix'};
     if(disposable[stages[i]!])py.FS.unlink('/cache/game/'+disposable[stages[i]!]);
   }
+  notify('video',84);
+  const rawVideo='/public/assets/ui/ra2ts_l.bik';
+  py.FS.writeFile('/public/assets/ui/ra2ts_l.webm',await convertMenuVideo(py.FS.readFile(rawVideo),progress=>notify('video',84+progress*2)));
+  py.FS.unlink(rawVideo);
   notify('previews',86);
   const json=(name:string)=>JSON.parse(py.FS.readFile('/public/maps/'+name,{encoding:'utf8'}));
   configureMapData({catalog:json('catalog.json'),terrain:json('terrain.json'),overlays:json('overlays.json')});

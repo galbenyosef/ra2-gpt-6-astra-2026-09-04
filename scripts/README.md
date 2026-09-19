@@ -70,3 +70,8 @@ and starting the chosen map. Screenshots remain in the same ignored cache.
 eight colors, right-side ESC/language controls, bottom group and waypoint commands,
 and delayed 2D/3D name tooltips including fog and death. Screenshots stay in
 `.cache/sidebar/evidence/rust-alarm-*.png`.
+
+`node scripts/browser_menu_video.mjs` verifies original playback, loop, Fira font,
+teardown, reduced motion and media failure at port 4226. Set
+`RA2_TEST_VIDEO_CONVERTER=1` with local `.cache/menu-video/ra2ts_l.bik` to also
+exercise real nested-worker Bink encoding. Evidence stays in `.cache/menu-video/`.

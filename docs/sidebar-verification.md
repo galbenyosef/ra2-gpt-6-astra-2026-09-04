@@ -23,12 +23,12 @@ RA2_ASSET_CACHE=/path/to/existing/converter-cache npm run assets:setup -- --side
 The cache must contain extracted `mixes`, `game`, `raw` and its Python `venv`.
 `RA2_PYTHON` can select an environment with Pillow/PyCryptodome; `RA2_PUBLIC_DIR`
 selects the output directory. The command verifies the existing set, exports only
-the interface atlases, verifies the result and writes readiness last. It does not download.
+the interface atlases and menu video, verifies the result and writes readiness last. It does not download.
 Restart Vite afterwards. Without prepared output, the existing browser preparation
-flow remains available. Older browser installations are rejected by schema 5;
+flow remains available. Older browser installations are rejected by schema 6;
 preparation reuses the SHA-256-verified cached installer and reconverts locally.
 The originals cache namespace remains unchanged; original files never fall through
-to a hosted URL. Readiness checks all required faction/menu PNGs, and conversion checks
+to a hosted URL. Readiness checks faction/menu PNGs and menu WebM; conversion checks
 frame metadata before committing the marker.
 
 ## Measured source contract

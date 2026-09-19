@@ -1,11 +1,11 @@
 /* Mechanical rail from local SHP atlases; CRT surround is CSS, with original map art. */
 .command-rail { background:#171717 var(--ui-sdbtnbkgd,none) top/100% auto repeat-y; display:flex; flex-direction:column; }
 .rail-preview { aspect-ratio:168/199; flex:none; background:var(--ui-sdtp,none) 0 0/200% 100% no-repeat; }
-.rail-preview h2 { margin:0; height:20%; display:flex; align-items:center; justify-content:center; color:#ffff00; font:bold clamp(11px,1.7cqw,21px) 'Arial Narrow',sans-serif; }
+.rail-preview h2 { margin:0; height:20%; display:flex; align-items:center; justify-content:center; color:#ffff00; font:500 clamp(11px,1.625cqw,23px) var(--menu-font); }
 :is(.mode-screen,.pause-shell) .command-rail button {
   flex:none; width:92.857%; height:5.25cqw; min-height:0; margin:0 0 0 7.143%; padding:0 8% 0 0;
   border:0; border-radius:0; box-shadow:none; background:#260000 var(--ui-sdbtnanm,none) 13.333333% 0/1600% 200% no-repeat;
-  font:bold clamp(10px,1.9cqw,23px) 'Arial Narrow',sans-serif; color:#ffff00; text-shadow:1px 1px #500; letter-spacing:-.02em;
+  font:500 clamp(11px,1.625cqw,23px) var(--menu-font); color:#ffff00; text-shadow:1px 1px #500; letter-spacing:0;
 }
 :is(.mode-screen,.pause-shell) .command-rail button:hover { background-position:20% 0; color:#ffff00; text-shadow:1px 1px #500; }
 :is(.mode-screen,.pause-shell) .command-rail button:active { background-position:26.666667% 0; color:#111; }
@@ -30,8 +30,8 @@
 .pause-shell .rail-bottom { flex:1; min-height:40px; background:var(--ui-sdbtm,none) center bottom/100% auto no-repeat; }
 .pause-shell .language-control { display:block; flex:0 0 auto; width:100%; padding:12px; }
 .pause-shell .language-control select { width:100%; min-width:0; }
-.pause-shell .command-rail button { height:42px; font-size:14px; }
-.pause-shell .rail-preview h2 { font-size:14px; }
+.pause-shell .command-rail button { height:42px; font-size:13px; }
+.pause-shell .rail-preview h2 { font-size:13px; }
 .pause-shell .command-rail { overflow-y:auto; }
 body:has(.entry-splash)>.build-version { visibility:hidden; }
 @keyframes menu-radar { to { transform:rotate(360deg); } }

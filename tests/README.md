@@ -18,3 +18,5 @@ i18n + urls                                     -> language and base-path behavi
 Run `npm test`. Local-installer tests use synthetic sparse files and a temporary
 loopback HTTP server; no original installer or remote network is needed. Real
 browser flows live in `scripts/browser_*.mjs` and save evidence under ignored caches.
+Readiness tests require the menu WebM in both the marker and actual cache;
+publication tests reject original Bink/WebM/MP4 while allowing licensed fonts.
