@@ -1,0 +1,41 @@
+/* Map selection is a full menu panel with plain red list selection, not dialog buttons. */
+.modal-shade:has(.map-select-dialog) { background:#080808; }
+.modal.metal.map-select-dialog {
+  width:min(872px,100%); min-height:540px; padding:20px; border:0; background:#080808; box-shadow:none;
+}
+.map-select-dialog .modal-title { font-size:18px; letter-spacing:0; }
+.map-select-dialog .modal-body { padding:0; background:none; overflow:auto; }
+.map-select-dialog .map-browser { display:grid; grid-template-columns:minmax(0,612px) 200px; gap:20px; }
+.map-catalog { display:grid; grid-template-columns:126px minmax(0,1fr); gap:16px; padding:36px 26px; min-height:460px; background:#130000 var(--ui-mnscrnl) center/100% 100% no-repeat; }
+.map-types h3 { font-size:13px; font-weight:400; height:28px; line-height:26px; margin:0 0 10px; }
+.map-types { display:flex; flex-direction:column; align-items:stretch; }
+.map-types button { text-align:left; }
+.map-choices { min-width:0; display:flex; flex-direction:column; }
+.map-sort { display:flex; align-items:center; gap:8px; height:28px; margin-bottom:10px; }
+.map-sort select { min-height:26px; flex:1; border-color:red; }
+.map-select-dialog .map-list { height:300px; min-height:140px; border:1px solid red; background:#070000c9; padding:0; gap:0; box-shadow:none; scrollbar-color:#a00000 #200000; }
+.modal.map-select-dialog :is(.map-list,.map-types) button {
+  flex:none; display:flex; justify-content:space-between; align-items:center; gap:8px;
+  min-height:26px; height:26px; padding:3px 6px; font:12px Tahoma,sans-serif;
+  background:none; border:0; box-shadow:none; color:#ffff00; text-shadow:none;
+}
+.map-list button span:first-child { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.modal.map-select-dialog .map-list button span { font:12px Tahoma,sans-serif; color:inherit; }
+.modal.map-select-dialog :is(.map-list,.map-types) button:hover { background:#730000; color:#ffff00; }
+.modal.map-select-dialog .map-list button.active,.modal.map-select-dialog .map-types button[aria-pressed=true] { background:#c00000; color:#ffff00; }
+.map-select-dialog .map-search { margin:12px 0 0; background:#090000; color:#ffff00; border:1px solid red; min-height:26px; padding:4px 6px; }
+.map-select-dialog .preview-column { display:flex; flex-direction:column; gap:12px; padding-top:36px; min-width:0; }
+.map-select-dialog .map-modal-preview { width:200px; height:150px; flex:none; border:1px solid red; background:#000; }
+.map-select-dialog .preview-column h3 { margin:0; font-size:14px; line-height:1.5; font-weight:400; text-align:center; }
+.map-select-dialog .preview-column>p { text-align:center; font-size:12px; color:#ffff00; }
+.map-select-dialog #map-error:empty { display:none; }
+.map-select-dialog .modal-actions { display:flex; flex-direction:column; gap:14px; flex:1; margin:0; padding:16px 0 0; }
+.map-select-dialog .modal-actions button { width:100%; min-width:0; }
+.map-select-dialog #map-cancel { margin-top:auto; }
+@media(max-height:650px) { .modal.metal.map-select-dialog { min-height:0; }.map-catalog { min-height:400px; padding:24px; }.map-select-dialog .map-list { height:270px; } }
+@media(max-width:700px) {
+  .map-select-dialog .map-browser { grid-template-columns:1fr; }
+  .map-catalog { grid-template-columns:100px minmax(0,1fr); padding:20px 14px; gap:10px; }
+  .map-select-dialog .preview-column { display:flex; align-items:center; padding:0; }
+  .map-select-dialog .modal-actions { width:100%; }
+}

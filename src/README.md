@@ -8,7 +8,7 @@ main.ts -> mode menu -> asset preparation -> lobby/editor -> battle
   game/                deterministic simulation, data and tests
   renderer.ts          original terrain, controls, sprites, minimap and HUD
   bootcamp/            training map, verified GLBs, rotating camera and switch lifecycle
-  hud/                 native faction sidebar frames, geometry and production cards
+  hud/                 native faction sidebar, original-art menus and live options
   assets.ts            browser original-art/audio consumers
   asset-setup/worker   local download and conversion
   maps/custom-*        original and portable editor maps

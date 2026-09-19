@@ -1,0 +1,5 @@
+/* Classic square slider handles and inset tracks for live audio/camera options. */
+
+.modal input[type=range] { appearance:none; height:8px; background:#111; border:2px inset #888; }
+.modal input[type=range]::-webkit-slider-thumb { appearance:none; width:12px; height:22px; background:#e6ba16; border:2px outset #ffe45f; border-radius:0; }
+.modal input[type=range]::-moz-range-thumb { width:12px; height:22px; background:#e6ba16; border:2px outset #ffe45f; border-radius:0; }

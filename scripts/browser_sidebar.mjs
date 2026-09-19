@@ -93,6 +93,12 @@ try {
     await card(id).click();
     await page.evaluate(()=>window.ra2.game.setDebugInstantProduction(true));await tick();
     assert.equal(await card(id).locator('.ready-text').count(),1);
+    // Pagination now needs unlocked technology: unavailable structures have no cameo.
+    await page.evaluate(faction=>{
+      const g=window.ra2.game,p=g.players[0];
+      const types=faction==='allied'?['power_plant','barracks','refinery','war_factory','airforce_command','battle_lab']:['tesla_reactor','soviet_barracks','soviet_refinery','soviet_war_factory','radar','soviet_battle_lab'];
+      types.forEach((type,i)=>g.spawnEntity(type,0,p.spawn.x+10+i,p.spawn.y+10));
+    },faction);await tick();
     await tab('defense').click();assert.equal(await tab('structure').evaluate(el=>el.classList.contains('has-ready')),true);
     await tab('structure').click();
     await page.getByTestId('production-next').click();await tick();

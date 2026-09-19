@@ -1,0 +1,79 @@
+/* Original dialog/menu artwork and button states, scoped away from the native sidebar. */
+:root { --menu-ink:#ffff00; }
+.shell,.modal,.game-top,.game-bottom,.debug-panel,.bootcamp-camera { color:#eee; }
+.shell {
+  background:#090909 var(--ui-mnscrnl) center/cover no-repeat;
+  padding:24px; gap:16px;
+}
+.shell::after { display:none; }
+.shell .metal,.modal.metal {
+  border:2px ridge #9c9c9c; outline:none; border-radius:0;
+  background:#080808e8; box-shadow:0 3px 12px #0009;
+}
+.shell .bolt,.modal .bolt { display:none; }
+.shell :is(h1,h2,h3),.modal :is(h2,h3),.debug-panel summary { color:var(--menu-ink); }
+.shell :is(p,label,th),.modal :is(p,label,th),.help-grid,.help-grid kbd { color:#e1e1dc; }
+.shell .header { padding-block:8px; }
+.shell button,.shell button.primary,.modal button,.modal button.primary,.game-top button,.debug-panel button,.bootcamp-camera button {
+  border:1px solid #ac0000; border-radius:0; box-shadow:none; transform:none;
+  background:#210000 var(--ui-mnbttn) 0 0/300% 100% no-repeat;
+  color:var(--menu-ink); text-shadow:1px 1px #000; letter-spacing:0;
+  padding:4px 12px; min-height:25px; font-size:12px; font-weight:400;
+}
+[data-native-menu=true] :is(.shell,.modal,.game-top,.debug-panel,.bootcamp-camera) button { border-color:transparent; }
+:is(.shell,.modal,.game-top,.debug-panel,.bootcamp-camera) button:hover:not(:disabled) {
+  background-position:50% 0; filter:none; color:#000; text-shadow:none;
+}
+:is(.shell,.modal,.game-top,.debug-panel,.bootcamp-camera) button:active:not(:disabled),
+.modal button[aria-pressed=true] { background-position:100% 0; color:#000; text-shadow:none; }
+:is(.shell,.modal,.game-top,.debug-panel,.bootcamp-camera) button:disabled { opacity:.5; filter:grayscale(1); }
+:is(.shell,.modal,.game-top,.debug-panel,.bootcamp-camera) button:focus-visible { outline:2px solid #ffff00; outline-offset:2px; }
+:is(.shell,.modal,.game-top,.bootcamp-camera) select,.modal input[type=text] {
+  color:#ffff00; background:#050505; border:1px solid #888; min-height:28px;
+}
+:is(.shell,.modal,.debug-panel) input[type=checkbox] {
+  appearance:none; width:18px; height:18px; flex:none; margin:0;
+  background:#111 var(--ui-cue_i) center no-repeat; border:1px solid #aaa;
+}
+:is(.shell,.modal,.debug-panel) input[type=checkbox]:checked { background-image:var(--ui-cce_i); background-color:#afa000; }
+[data-native-menu=true] :is(.shell,.modal,.debug-panel) input[type=checkbox] { border:0; }
+.game-top,.game-bottom { background:#171717; border-color:#888; }
+.debug-panel,.bootcamp-camera,.hud-objective,.map-sharing-bar { background:#080808ed; border:1px solid #888; }
+.modal-shade { background:#0009; padding:16px; backdrop-filter:none; }
+.modal.metal {
+  width:min(720px,100%); max-height:calc(100dvh - 32px); padding:24px;
+  background:#070707 var(--ui-pudlgbgn) center/100% 100% no-repeat;
+  display:flex; flex-direction:column;
+}
+.modal.metal.small { width:min(451px,100%); min-height:326px; }
+.modal-title { flex:none; margin:0 0 16px; border:0; padding:0; font-size:18px; text-shadow:1px 1px #000; }
+.modal-title .icon-button { min-width:25px; padding:0; }
+.modal-body { min-height:0; overflow:auto; padding:12px; background:#000c; }
+.modal-actions { flex:none; border:0; padding:16px 0 0; gap:12px; }
+.modal-actions:empty { display:none; }
+.modal-actions button { min-width:126px; }
+.pause-items { padding:0; gap:10px; align-items:center; }
+.pause-items button { width:240px; max-width:100%; min-height:25px; padding:4px; font-size:12px; }
+.help-grid { line-height:1.5; gap:12px; }
+.options-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+.options-tabs button { flex:1; min-width:90px; }
+.option-fields { display:grid; gap:18px; }
+.option-fields label { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.option-fields label>span:first-child { min-width:120px; }
+.option-fields select { flex:1; min-width:140px; width:auto; }
+.option-fields input[type=range] { flex:1; min-width:100px; accent-color:#ffff00; }
+.option-fields output { min-width:42px; text-align:end; color:#ffff00; }
+.option-fields .option-check { justify-content:flex-start; }
+.options-message { min-height:18px; margin-top:12px; }
+.options-message:empty { display:none; }
+.game-screen { margin:auto; max-width:100%; max-height:100dvh; }
+@media(max-width:650px) {
+  .mode-screen.shell { padding:20px; min-height:100%; background-size:auto 100%; }
+  .mode-screen .app-title { font-size:20px; }
+  .mode-options,.mode-tools { width:100%; margin-inline:0; }
+  .modal.metal { padding:16px; }
+  .modal-body { padding:10px; }
+  .option-fields label>span:first-child { min-width:100%; }
+}
+
+.renderer-switch [role=status]:empty { display:none; }

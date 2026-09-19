@@ -1,5 +1,6 @@
 """Convert original faction sidebar chrome and cursor SHP animations."""
-import json
+import json, io
+from PIL import Image
 from pathlib import Path
 import export_assets as e
 
@@ -19,6 +20,17 @@ def main():
  for name,pal,archive in [('mnscrnl','shell','neutral'),('mnscrns','shell','neutral'),('glsl','gls','local')]:
   b=e.M[archive].get(name+'.shp');pb=e.find(pal+'.pal')
   if b and pb:e.export(name,b,bytes(v*4 for v in pb),kind='ui',shadow=False,anchor=(0,0))
+ for name,spec in json.loads(Path(__file__).with_name('menu-assets.json').read_text()).items():
+  source,b=next(((key,m.get(spec['file'])) for key,m in e.M.items() if m.get(spec['file'])),(None,None))
+  if not b:raise RuntimeError(f'Missing menu asset: {spec["file"]}')
+  if spec['file'].endswith('.shp'):
+   entry=e.export(name,b,e.palette(spec['palette']),kind='ui',maxframes=spec['frames'],shadow=False,anchor=(0,0))
+  else:
+   im=Image.open(io.BytesIO(b)).convert('RGB');im.save(e.OUT/'ui'/f'{name}.png')
+   entry={'src':f'/assets/ui/{name}.png','width':im.width,'height':im.height,'frameWidth':im.width,'frameHeight':im.height,'frames':1,'columns':1,'anchorX':0,'anchorY':0}
+   e.manifest['ui'][name]=entry
+  if entry['frames']!=spec['frames']:raise RuntimeError(f'Incomplete menu frames: {name}')
+  entry.update(originalFile=spec['file'],originalArchive=source+'.mix')
  # Cursor .sha has the same TS SHP frame layout.
  b=e.find('mouse.sha');pal=e.find('mousepal.pal')
  if b and pal:e.export('mouse',b,bytes(v*4 for v in pal),kind='ui',maxframes=512,shadow=False,anchor=(0,0))

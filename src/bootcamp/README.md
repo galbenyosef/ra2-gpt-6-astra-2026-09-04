@@ -25,7 +25,8 @@ It uses engine time for existing clips, and mesh raycasting for picking. It owns
 simulation loop or game state. The shared controller routes pointer input through
 the active projection. `switcher.ts` owns per-match
 abort/disposal, handles import/model/context failure and always begins in 2D. Loading
-keeps 2D interactive. Returning to the lobby disposes the layer and aborts pending loads.
+keeps 2D interactive. Controls show status only while loading or on failure;
+normal 2D/3D states need no explanatory caption. Returning to the lobby disposes the layer and aborts pending loads.
 
 The default 48×40 Asset Training Field uses grass, ocean, plateau, ramp, three trees
 and straight/curved roads already in the repository. Native 2D consumes the same

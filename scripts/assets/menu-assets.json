@@ -1,0 +1,6 @@
+{
+  "pudlgbgn": {"file":"pudlgbgn.shp","palette":"dialog","frames":1},
+  "mnbttn": {"file":"mnbttn.shp","palette":"mainbttn","frames":3},
+  "cue_i": {"file":"cue_i.pcx","frames":1},
+  "cce_i": {"file":"cce_i.pcx","frames":1}
+}

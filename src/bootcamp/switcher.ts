@@ -3,7 +3,7 @@ import type {BattlefieldRenderer} from '../renderer';
 import type {ModelLayer} from './model-layer.js';
 import {registerTranslations, localizeElement} from '../i18n';
 registerTranslations({
- '渲染器':'Renderer', '正在加载 3D 模型，仍可操作 2D 战场。':'Loading 3D models. The 2D battlefield remains playable.',
+ '渲染器':'Renderer', '正在加载 3D…':'Loading 3D…',
  '3D 加载失败，已继续使用 2D。可重试。':'3D failed to load. Continuing in 2D. You can retry.',
  '3D：地形与真实模型，可旋转视角':'3D: terrain and authored models with a rotating camera',
  '2D：传统原版画面':'2D: classic original graphics',
@@ -16,7 +16,7 @@ export function mountRendererSwitch(root:HTMLElement, view:BattlefieldRenderer):
  controls.innerHTML=`<legend>渲染器</legend><button type="button" data-testid="renderer-2d" aria-pressed="true">2D</button><button type="button" data-testid="renderer-3d" aria-pressed="false">3D</button><p role="status" data-testid="renderer-status"></p>`;
  root.prepend(controls);
  const cameraControls=document.createElement('div');cameraControls.className='bootcamp-camera';cameraControls.dataset.testid='camera-controls';cameraControls.hidden=true;
- cameraControls.innerHTML=`<div><label>视角 <select data-testid="camera-preset"><option value="isometric">等距</option><option value="perspective">透视</option><option value="top">俯视</option></select></label><button type="button" data-testid="camera-left">左转 45°</button><button type="button" data-testid="camera-right">右转 45°</button><button type="button" data-testid="camera-reset">重置视角</button></div><small>Alt + 左键拖动旋转 · 中键平移 · 滚轮缩放</small>`;
+ cameraControls.innerHTML=`<div><label>视角 <select data-testid="camera-preset"><option value="isometric">等距</option><option value="perspective">透视</option><option value="top">俯视</option></select></label><button type="button" data-testid="camera-left">左转 45°</button><button type="button" data-testid="camera-right">右转 45°</button><button type="button" data-testid="camera-reset">重置视角</button></div>`;
  view.canvas.parentElement!.append(cameraControls);
  const preset=cameraControls.querySelector<HTMLSelectElement>('select')!;
  for(const type of ['keydown','keyup','pointerdown'])cameraControls.addEventListener(type,event=>event.stopPropagation());
@@ -32,11 +32,11 @@ export function mountRendererSwitch(root:HTMLElement, view:BattlefieldRenderer):
    view.canvas.dataset.renderer=mode;two.setAttribute('aria-pressed',String(mode==='2d'));three.setAttribute('aria-pressed',String(mode==='3d'));status.textContent=message;localizeElement(controls);view.draw();
  };
  const failure=()=>{if(disposed)return;desired='2d';view.modelLayer=undefined;layer?.dispose();layer=undefined;show('2d','3D 加载失败，已继续使用 2D。可重试。');};
- two.onclick=()=>{desired='2d';show('2d','2D：传统原版画面');};
+ two.onclick=()=>{desired='2d';show('2d','');};
  three.onclick=()=>{
    desired='3d';
-   if(layer){show('3d','3D：地形与真实模型，可旋转视角');return;}
-   status.textContent='正在加载 3D 模型，仍可操作 2D 战场。';localizeElement(controls);
+   if(layer){show('3d','');return;}
+   status.textContent='正在加载 3D…';localizeElement(controls);
    if(pending)return;
    controller=new AbortController();const signal=controller.signal;
    pending=(async()=>{
@@ -45,11 +45,11 @@ export function mountRendererSwitch(root:HTMLElement, view:BattlefieldRenderer):
        if(signal.aborted)return;
        const loaded=await ModelLayer.load(failure,signal);
        if(disposed||signal.aborted){loaded.dispose();return;}
-       layer=loaded;preset.value=layer.rig.preset;if(desired==='3d')show('3d','3D：地形与真实模型，可旋转视角');
+       layer=loaded;preset.value=layer.rig.preset;if(desired==='3d')show('3d','');
      } catch(error){if(!disposed && !signal.aborted)failure();}
      finally{pending=undefined;}
    })();
  };
- show('2d','2D：传统原版画面');
+ show('2d','');
  return ()=>{disposed=true;controller?.abort();view.modelLayer=undefined;layer?.dispose();layer=undefined;controls.remove();cameraControls.remove();};
 }

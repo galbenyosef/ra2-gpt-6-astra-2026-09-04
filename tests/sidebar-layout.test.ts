@@ -3,7 +3,7 @@
  */
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import {sidebarLayout,sidebarAssets,missingSidebarAssets,framePosition,clockFrame} from '../src/hud/skin';
+import {sidebarLayout,nativeUiAssets,missingNativeUiAssets,framePosition,clockFrame} from '../src/hud/skin';
 import type {Sprite} from '../src/assets';
 const sprite=(w:number,h:number,frames=1):Sprite=>({src:'/synthetic.png',width:w*Math.min(16,frames),height:h*Math.ceil(frames/16),frameWidth:w,frameHeight:h,frames,columns:Math.min(16,frames),anchorX:0,anchorY:0});
 for(const arrowHeight of [25,27])test(`native ${arrowHeight}px arrows fit all supported sidebar heights`,()=>{
@@ -16,10 +16,10 @@ for(const arrowHeight of [25,27])test(`native ${arrowHeight}px arrows fit all su
   }
 });
 test('readiness rejects missing and truncated state atlases',()=>{
-  const ui=Object.fromEntries(sidebarAssets.map(({key,frames})=>[key,sprite(60,48,frames)]));
-  assert.deepEqual(missingSidebarAssets(ui),[]);
+  const ui=Object.fromEntries(nativeUiAssets.map(({key,frames})=>[key,sprite(60,48,frames)]));
+  assert.deepEqual(missingNativeUiAssets(ui),[]);
   delete ui['sidec01-tab00'];ui['sidec02-gclock2']=sprite(60,48,40);
-  assert.deepEqual(new Set(missingSidebarAssets(ui)),new Set(['sidec01-tab00','sidec02-gclock2']));
+  assert.deepEqual(new Set(missingNativeUiAssets(ui)),new Set(['sidec01-tab00','sidec02-gclock2']));
 });
 test('progress reaches the last of 55 source frames and crosses atlas rows',()=>{
   const s=sprite(60,48,55);

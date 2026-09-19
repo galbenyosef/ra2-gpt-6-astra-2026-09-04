@@ -67,8 +67,6 @@
   content:''; position:absolute; inset:0; border:1px solid white; pointer-events:none; z-index:3;
 }
 .ra2-sidebar .ra2-icon:focus-visible { outline:1px solid white; outline-offset:-1px; }
-.ra2-sidebar .empty-production { grid-column:1/-1; padding:8px 3px; font:10px/1.6 Tahoma,sans-serif; color:#ccc; }
-.ra2-sidebar .empty-production p { margin-block-start:8px; font:inherit; }
 .ra2-sidebar .build-detail {
   position:fixed; inset:auto 174px 40px auto; z-index:15; max-width:260px; min-height:0;
   padding:8px 10px; color:#fff; border:1px solid #999; background:#000e; font:12px/1.5 Tahoma,sans-serif;

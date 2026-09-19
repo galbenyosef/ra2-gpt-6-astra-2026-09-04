@@ -53,6 +53,7 @@ export class BattlefieldRenderer {
   private worldBounds: WorldRect;
   private time = 0;
   edgeScroll = true;
+  scrollSpeed = 1;
   hdEffects = false;
   // Optional authored preview presentation; absent in normal games.
   comparisonEntities: Entity[] = [];
@@ -227,8 +228,8 @@ export class BattlefieldRenderer {
       if (this.mouse.x < 12) dx--; if (this.mouse.x > this.width - 12) dx++;
       if (this.mouse.y < 12) dy--; if (this.mouse.y > this.height - 12) dy++;
     }
-    if(this.modelLayer){if(dx||dy)this.modelLayer.pan(dx*dt*760,dy*dt*600,this);}
-    else{this.camera.x += dx * dt * 760 / this.zoom; this.camera.y += dy * dt * 600 / this.zoom;}
+    if(this.modelLayer){if(dx||dy)this.modelLayer.pan(dx*dt*760*this.scrollSpeed,dy*dt*600*this.scrollSpeed,this);}
+    else{this.camera.x += dx * dt * 760 * this.scrollSpeed / this.zoom; this.camera.y += dy * dt * 600 * this.scrollSpeed / this.zoom;}
     if(dx || dy) this.clampCamera();
     for (const id of this.selection) if (!this.game.entities.some(e => e.id === id && e.hp > 0)) this.selection.delete(id);
     this.draw();

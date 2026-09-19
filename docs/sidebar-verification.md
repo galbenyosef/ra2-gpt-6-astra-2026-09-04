@@ -2,8 +2,8 @@
 # Native production sidebar verification
 
 Allied and Soviet production sidebars now use original locally converted artwork.
-Game rules, battlefield rendering, lobby/menu styling and pause-dialog styling are
-outside this change. The same HUD serves Canvas 2D and optional Bootcamp 3D.
+Entry, lobby, pause, help and result dialogs now also use original menu artwork.
+Game rules and battlefield rendering remain unchanged. The same HUD serves Canvas 2D and optional Bootcamp 3D.
 
 ## Run locally
 
@@ -23,12 +23,12 @@ RA2_ASSET_CACHE=/path/to/existing/converter-cache npm run assets:setup -- --side
 The cache must contain extracted `mixes`, `game`, `raw` and its Python `venv`.
 `RA2_PYTHON` can select an environment with Pillow/PyCryptodome; `RA2_PUBLIC_DIR`
 selects the output directory. The command verifies the existing set, exports only
-the sidebar, verifies the result and writes readiness last. It does not download.
+the interface atlases, verifies the result and writes readiness last. It does not download.
 Restart Vite afterwards. Without prepared output, the existing browser preparation
-flow remains available. Schema 2 browser installations are rejected by schema 3;
+flow remains available. Older browser installations are rejected by schema 4;
 preparation reuses the SHA-256-verified cached installer and reconverts locally.
 The originals cache namespace remains unchanged; original files never fall through
-to a hosted URL. Readiness checks all required faction PNGs, and conversion checks
+to a hosted URL. Readiness checks all required faction/menu PNGs, and conversion checks
 frame metadata before committing the marker.
 
 ## Measured source contract
@@ -47,7 +47,8 @@ Compared both local Chrono Divide references at
 `hud/SidebarTabs.js`, `hud/SidebarCard.js`, `hud/SidebarPower.js` and
 `GameLoader.js`, then decoded and inspected both actual MIX palettes/frames.
 Both referenced Hud implementations match. No reference implementation was vendored.
-The 20-entry, two-faction JSON contract is consumed by both converters and runtime readiness.
+The faction and menu JSON contracts are shared by conversion and runtime readiness.
+See [menu verification](menus-verification.md) for shared dialog art and empty categories.
 
 ## Checks
 
@@ -57,6 +58,7 @@ npm run build
 npm run repo:check
 node --import tsx scripts/check-source-only.ts --build
 RA2_BROWSER_URL=http://127.0.0.1:4226/ node scripts/browser_sidebar.mjs
+RA2_BROWSER_URL=http://127.0.0.1:4226/ node scripts/browser_menus.mjs
 RA2_BROWSER_URL=http://127.0.0.1:4226/ node scripts/browser_prepared_assets.mjs
 ```
 
@@ -89,5 +91,5 @@ The radar uses the correct static closed/open frames without the source opening
 animation. Long translated cameo names are ellipsized at native size; the full
 name, cost, description and prerequisite reason are available on hover/focus.
 The status button reports players/teams only; this phase does not add diplomacy
-rules or style the settings dialog. Browser schema upgrade uses full conversion,
+rules. Browser schema upgrade uses full conversion,
 while the native developer command supports a sidebar-only upgrade.

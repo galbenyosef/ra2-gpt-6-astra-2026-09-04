@@ -57,3 +57,11 @@ the same pixel test; it does not modify source or shared game state.
 `browser_sidebar.mjs` launches isolated Chrome at port 4226 by default and checks
 both native skins, two sizes, bilingual controls, production/repair/sale and 2D/3D.
 Evidence stays in `.cache/sidebar/evidence/`; see `docs/sidebar-verification.md`.
+
+`browser_menus.mjs` checks blank/disabled production categories, loss of a producer,
+entry/menu art and live audio, camera, speed and viewport settings in both languages
+and 2D/3D. Use `RA2_EMPTY_ONLY=1` for the focused category regression.
+
+`browser_lobby_skin.mjs` checks original-style lobby/map layout in both modes and
+languages, category filters, map sorting/cancel/confirm, retained player settings
+and starting the chosen map. Screenshots remain in the same ignored cache.

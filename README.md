@@ -35,8 +35,8 @@ When conversion is needed, dev/preview offers a detected local installer. Set
 This skips the archive download only; the browser still verifies and converts it.
 
 - Skirmish retains countries, teams, native maps, mining, production and combat.
-- Allied/Soviet production sidebars use native original-art frames, power pips,
-  two-column cameos and production clocks in both 2D and 3D.
+- Original-art entry, lobby, dialogs and Allied/Soviet production sidebars.
+  Live sound, display, speed and camera options work in both 2D and 3D.
 - Bootcamp defaults to traditional Canvas 2D on **every** entry. Open the lower-left
   **Debug Panel** and select **2D / 3D** to change the renderer in the same match.
 - Bootcamp has immediate production and replenished finite credits. It unlocks the
@@ -79,8 +79,7 @@ The footer embeds the checkout commit and its commit time. No deployment is impl
 [Source map](src/README.md) · [Browser tests](scripts/README.md) · [Local model tools](tools/README.md) ·
 [Earlier verification](docs/verification.md) · [Asset workflow](.agents/skills/ra2-hd-blender/SKILL.md)
 
-Original-media screenshots stay in ignored `.cache/bootcamp/evidence/` and
-`.cache/sidebar/evidence/`; they are not published as README media.
+Original-media screenshots stay local under ignored `.cache/`; never published.
 
 ## Rights and contact
 

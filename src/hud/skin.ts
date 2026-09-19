@@ -1,13 +1,15 @@
 /** Native sidebar geometry and atlas frames, shared with conversion readiness checks. */
 import required from '../../scripts/assets/sidebar-assets.json';
+import menus from '../../scripts/assets/menu-assets.json';
 import type { Sprite } from '../assets';
 
 export type Faction = 'allied' | 'soviet';
-export const sidebarAssets = Object.entries(required).flatMap(([name, frames]) =>
-  ['sidec01', 'sidec02'].map(side => ({key:`${side}-${name}`, frames})));
+export const nativeUiAssets = [...Object.entries(required).flatMap(([name, frames]) =>
+  ['sidec01', 'sidec02'].map(side => ({key:`${side}-${name}`, frames}))),
+  ...Object.entries(menus).map(([key,{frames}])=>({key,frames}))];
 
-export function missingSidebarAssets(ui: Record<string, unknown>): string[] {
-  return sidebarAssets.filter(({key,frames}) => {
+export function missingNativeUiAssets(ui: Record<string, unknown>): string[] {
+  return nativeUiAssets.filter(({key,frames}) => {
     const s = ui[key] as Sprite | undefined;
     return !s || s.frames !== frames || !s.frameWidth || !s.frameHeight || !s.columns ||
       s.width !== s.frameWidth * s.columns || s.height !== s.frameHeight * Math.ceil(frames / s.columns);

@@ -39,3 +39,34 @@ test('global mute stops current audio, blocks new playback and preserves sound p
     else Reflect.deleteProperty(globalThis, 'Audio');
   }
 });
+
+// Options must change already-playing channels independently, and preserve track selection.
+test('live audio options change active volume and stop effects without stopping music', () => {
+  const audios: FakeAudio[]=[];
+  class FakeAudio {
+    paused=true; volume=0; loop=false;
+    constructor(public src:string){audios.push(this);}
+    play(){this.paused=false;return Promise.resolve();}
+    pause(){this.paused=true;}
+  }
+  const original=Object.getOwnPropertyDescriptor(globalThis,'Audio');
+  Object.defineProperty(globalThis,'Audio',{value:FakeAudio,configurable:true});
+  try {
+    const assets=new Assets();
+    assets.manifest={sprites:{},sounds:{click:'click.wav'},music:{hm2:{src:'march.wav'},grinder:{src:'grinder.wav'}}};
+    const sound=new SoundSystem(assets);
+    sound.setMusic(true);sound.play('click');
+    sound.setVolume('sound',.8);sound.setVolume('music',.1);
+    assert.equal(audios[0].volume,.1);assert.equal(audios[1].volume,.8);
+    sound.setEnabled(false);
+    assert.equal(audios[1].paused,true);assert.equal(audios[0].paused,false);
+    sound.setMusic(false,'grinder');sound.setMusic(true);
+    assert.equal(audios.at(-1)?.src,'grinder.wav');
+    assert.equal(audios.at(-1)?.volume,.1);
+    sound.setMuted(true);sound.setMuted(false);
+    assert.equal(audios.at(-1)?.src,'grinder.wav');
+    assert.equal(audios.at(-1)?.paused,false);
+  } finally {
+    if(original)Object.defineProperty(globalThis,'Audio',original);else Reflect.deleteProperty(globalThis,'Audio');
+  }
+});

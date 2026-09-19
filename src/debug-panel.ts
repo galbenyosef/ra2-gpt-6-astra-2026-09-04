@@ -4,13 +4,11 @@ import type { SoundSystem } from './assets';
 import { localizeElement, registerTranslations } from './i18n';
 
 registerTranslations({
-  '训练营：资金自动补充，瞬间生产；仅限已有模型。':'Bootcamp: replenished credits and instant production; verified models only.',
   '调试面板': 'Debug Panel',
   '增加 10,000 金币': 'Add 10,000 credits',
   '地图全开': 'Reveal entire map',
   '瞬间建造和雇佣': 'Instant construction & recruitment',
   '关闭所有声音': 'Mute all audio',
-  '当前玩家；建造仍需资金、前置建筑和放置位置。': 'Current player only. Production still requires credits, prerequisites and building placement.',
   '本场战斗已结束，开始新游戏后可使用调试选项。': 'This battle has ended. Start a new game to use the debug options.',
 });
 
@@ -18,7 +16,6 @@ export function mountDebugPanel(root: HTMLElement, game: GameEngine, sound: Soun
   const panel = document.createElement('details');
   panel.className = 'debug-panel';
   panel.innerHTML = `<summary>调试面板</summary><div class="debug-controls">
-    <p>${game.bootcamp?'训练营：资金自动补充，瞬间生产；仅限已有模型。':'当前玩家；建造仍需资金、前置建筑和放置位置。'}</p>
     <button type="button" data-debug="credits">增加 10,000 金币</button>
     <label><input type="checkbox" data-debug="reveal" ${game.debugRevealMap ? 'checked' : ''}>地图全开</label>
     <label><input type="checkbox" data-debug="instant" ${game.bootcamp?'disabled':''} ${game.debugInstantProduction ? 'checked' : ''}>瞬间建造和雇佣</label>

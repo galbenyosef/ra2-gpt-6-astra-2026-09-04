@@ -1,5 +1,5 @@
 /** Download and convert original RA2 data. The Windows installer is never run. */
-import { missingSidebarAssets } from '../src/hud/skin';
+import { missingNativeUiAssets } from '../src/hud/skin';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -43,7 +43,7 @@ export async function checkAssetsReady(publicDir = publicDirectory(), requireSid
   for (const [key, minimum] of [['sprites', 130], ['cameos', 130], ['ui', 47], ['sounds', 1375], ['music', 3], ['overlays', 978]] as const) {
     if (Object.keys(record(manifest[key])).length < minimum) missing.push(`assets/manifest.json:${key} (expected at least ${minimum})`);
   }
-  if (requireSidebar) for (const key of missingSidebarAssets(record(manifest.ui))) missing.push(`assets/manifest.json:ui.${key}`);
+  if (requireSidebar) for (const key of missingNativeUiAssets(record(manifest.ui))) missing.push(`assets/manifest.json:ui.${key}`);
   if (record(manifest.source).sha256 !== SOURCE_SHA256) missing.push('assets/manifest.json:source.sha256');
   const sprites = record(manifest.sprites);
   for (const name of ['fv-turret0', 'fv-turret1', 'fv-turret2', 'fv-turret3']) {

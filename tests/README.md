@@ -11,7 +11,7 @@ bootcamp-map + bootcamp-resources               -> shared field, asset coverage,
 
 bootcamp-flat-highland                          -> continuous plateau/ramp corners without state changes
 sprite-* + hd-actions + sound                    -> presentation data contracts
-sidebar-layout                                  -> native footer bounds and atlas completeness
+sidebar-layout                                  -> native footer bounds and menu/sidebar atlas completeness
 i18n + urls                                     -> language and base-path behavior
 ```
 

@@ -1,0 +1,65 @@
+/* Compact RA2/Chrono Divide skirmish table, rules below and map/commands to the right. */
+.skirmish-lobby.shell { width:min(900px,100%); padding:16px 24px; margin:auto; background:#080808; gap:16px; }
+.skirmish-lobby .header { gap:12px; padding:0; min-height:32px; }
+.skirmish-lobby .app-title { font-size:13px; font-weight:400; }
+.skirmish-lobby .header-right { flex:none; gap:8px; }
+.skirmish-lobby .lobby {
+  display:grid; grid-template-columns:minmax(0,632px) 200px; gap:20px;
+  flex:0 0 auto; min-height:568px; margin:auto;
+}
+.skirmish-lobby .settings-panel {
+  display:flex; padding:30px 26px; border:0; outline:0; box-shadow:none;
+  background:#080000 var(--ui-mnscrnl) center/100% 100% no-repeat;
+}
+.skirmish-lobby .panel-title { border:0; margin:0 0 18px; padding:0; }
+.skirmish-lobby .panel-title h2 { font-size:15px; letter-spacing:0; color:#ffff00; }
+.skirmish-lobby .panel-title span { color:#ffff00; }
+.skirmish-lobby .player-table { table-layout:fixed; }
+.skirmish-lobby .player-table th { font-size:11px; color:#ffff00; letter-spacing:0; padding:0 3px 5px; }
+.skirmish-lobby .player-table th:first-child { width:20px; }
+.skirmish-lobby .player-table th:nth-child(2) { width:25%; }
+.skirmish-lobby .player-table th:nth-child(3) { width:28%; }
+.skirmish-lobby .player-table th:nth-child(4) { width:17%; }
+.skirmish-lobby .player-table th:nth-child(5) { width:11%; }
+.skirmish-lobby .player-table td { height:29px; padding:1px 3px; border:0; }
+.skirmish-lobby .player-table td:first-child { color:#ffff00; font-size:11px; }
+.skirmish-lobby select { min-height:26px; height:26px; padding:2px 16px 2px 4px; border:1px solid #f00; background:#090000bd; font-size:11px; }
+.skirmish-lobby .player-name { padding:4px; color:#ffff00; }
+.skirmish-lobby .player-name::before { display:none; }
+.skirmish-lobby .closed-row { opacity:.55; }
+.skirmish-lobby .lobby-rules { display:grid; grid-template-columns:1fr 1.2fr; gap:16px; margin-top:28px; }
+.skirmish-lobby .checks { display:flex; flex-direction:column; align-items:flex-start; gap:12px; margin:0; padding:0; }
+.skirmish-lobby .checks label { color:#ffff00; font-size:12px; }
+.skirmish-lobby .lobby-options { display:flex; flex-direction:column; gap:12px; margin:0; padding:0; border:0; }
+.skirmish-lobby .field { display:flex; align-items:center; gap:8px; }
+.skirmish-lobby .field label { min-width:82px; margin:0; color:#ffff00; letter-spacing:0; }
+.skirmish-lobby .field select { min-width:0; }
+.skirmish-lobby .map-sharing-bar { margin-top:auto; padding:18px 0 0; border:0; background:none; }
+.skirmish-lobby .map-sharing-actions { gap:10px; }
+.skirmish-lobby .map-sharing-actions button { min-height:25px; padding:3px 8px; }
+.lobby-rail { display:flex; flex-direction:column; gap:20px; padding:24px 0; }
+.lobby-rail>h2 { text-align:center; font-size:21px; font-weight:400; letter-spacing:0; }
+.skirmish-lobby .map-panel { padding:0; border:0; outline:0; box-shadow:none; background:none; height:auto; flex:none; }
+.skirmish-lobby .map-viewport { flex:none; width:200px; height:150px; min-height:0; border:1px solid #f00; background:#000; }
+.skirmish-lobby .map-viewport::after,.skirmish-lobby .map-corner { display:none; }
+.skirmish-lobby .map-info { padding:12px 0; text-align:center; display:block; }
+.skirmish-lobby .map-info h3 { font-size:14px; font-weight:400; letter-spacing:0; line-height:1.5; }
+.skirmish-lobby .map-info p { font:12px Tahoma,sans-serif; letter-spacing:0; color:#ffff00; }
+.skirmish-lobby .map-details { display:none; }
+.lobby-commands { display:flex; flex-direction:column; gap:14px; flex:1; }
+.lobby-commands button { width:100%; min-width:0; min-height:25px; padding:4px 8px; }
+.lobby-commands #mode-back { margin-top:auto; }
+.lobby-commands .start-button::after { display:none; }
+.skirmish-lobby>.source-code-link,.skirmish-lobby>.project-notice { flex:none; }
+@media(max-height:740px) and (min-width:801px) {
+  .skirmish-lobby .lobby { min-height:480px; }
+  .skirmish-lobby .settings-panel { padding:22px 24px; }
+  .skirmish-lobby .panel-title { margin-bottom:12px; }
+  .skirmish-lobby .lobby-rules { margin-top:18px; }
+}
+@media(max-width:800px) {
+  .skirmish-lobby .lobby { display:flex; flex-direction:column; }
+  .skirmish-lobby .settings-panel { min-height:520px; padding:24px 16px; }
+  .lobby-rail { align-items:center; padding:0; }
+  .lobby-commands { width:100%; }
+}

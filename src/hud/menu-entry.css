@@ -1,0 +1,16 @@
+/* Original map panel and vertical entry commands; readable before local art is ready. */
+.mode-screen.shell {
+  width:min(1000px,100%); max-inline-size:1000px; min-height:568px; height:100%;
+  background-size:auto min(100%,568px); background-position:left center;
+  padding:32px; margin:auto; isolation:isolate;
+}
+.mode-screen>.header { align-items:flex-start; }
+.mode-screen .app-title { max-width:560px; font-size:28px; text-shadow:2px 2px #000; }
+.mode-screen>h2 { font-size:16px; font-weight:400; letter-spacing:.15em; }
+.mode-options { display:flex; flex-direction:column; width:280px; margin:20px 0 0 auto; gap:24px; }
+.mode-options>button { width:100%; min-height:36px; font-size:16px; }
+.mode-tools { width:280px; margin:10px 0 0 auto; flex-direction:column; gap:10px; }
+.mode-screen>.source-code-link { margin-top:auto; }
+.mode-screen>.project-notice { margin:0; }
+
+.lobby-bottom,.map-sharing-bar { justify-content:flex-end; }

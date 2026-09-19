@@ -5,6 +5,7 @@ import type { GameEngine, ProductionCategory } from '../game';
 import { getLocale, registerTranslations, t } from '../i18n';
 import { framePosition, setSprite, sidebarLayout, skinOffsets, type Faction } from './skin';
 import './sidebar.css';
+import { availableTabs } from './availability';
 
 registerTranslations({'关系':'Relationship','友方':'Allied','敌方':'Enemy','外交与战况':'Diplomacy and status','上一页':'Previous page','下一页':'Next page','电力：产出':'Power: output','消耗':'drain'});
 export const sidebarMarkup = `<aside class="ra2-sidebar" data-testid="production-sidebar">
@@ -83,8 +84,10 @@ export class Sidebar {
     const player=game.players[0];
     this.root.querySelector('#money')!.textContent=Math.floor(player.credits).toLocaleString(getLocale());
     for(const name of ['repair','sell'])this.root.querySelector(`#${name}`)!.setAttribute('aria-pressed',String(tool===name));
-    this.root.querySelectorAll<HTMLElement>('[data-category]').forEach(el => {
+    const available=availableTabs(game);
+    this.root.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(el => {
       const tab=el.dataset.category;
+      el.disabled=!available.includes(tab as ProductionCategory);
       el.setAttribute('aria-pressed',String(category===tab));
       const categories = tab==='vehicle'?['vehicle','aircraft','naval']:[tab!];
       const ready = categories.some(c=>player.queues[c as ProductionCategory].some(q=>q.ready));
