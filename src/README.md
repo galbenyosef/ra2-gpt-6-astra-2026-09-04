@@ -4,7 +4,7 @@ Browser application code uses TypeScript, native Canvas and a lazy Three.js worl
 presenter. Hosted original assets stay in the player's browser storage; local dev can reuse verified disk output.
 
 ```text
-main.ts -> mode menu -> asset preparation -> lobby/editor -> battle
+main.ts -> asset readiness/preparation -> mode menu -> lobby/editor -> battle
   game/                deterministic simulation, data and tests
   renderer.ts          original terrain, controls, sprites, minimap and HUD
   bootcamp/            training map, verified GLBs, rotating camera and switch lifecycle

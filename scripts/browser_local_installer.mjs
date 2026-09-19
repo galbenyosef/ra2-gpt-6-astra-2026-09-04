@@ -14,7 +14,7 @@ context.on('request',request=>{if(new URL(request.url()).hostname.endsWith('arch
 await context.route('**/*archive.org/**',route=>route.abort());
 async function setup(language='zh-CN'){
   await page.goto(url);await page.locator('[data-language-select]').selectOption(language);
-  await page.getByTestId('mode-assets').click();
+  if(await page.getByTestId('mode-assets').isVisible())await page.getByTestId('mode-assets').click();
 }
 try{
   await page.route('**/__local-installer',route=>route.fulfill({json:{available:false}}));

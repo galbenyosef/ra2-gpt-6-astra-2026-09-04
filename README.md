@@ -18,7 +18,7 @@ npm ci
 npm run dev
 ```
 
-Open the printed localhost URL. Choose a mode. If originals are not prepared, use
+Open the printed localhost URL. Before choosing a mode, prepare missing originals using
 the browser's consent/download or local installer import flow. Files are verified and converted locally; the published app never hosts or uploads original media.
 
 Local dev reuses complete converted `public/assets/` and `public/maps/`

@@ -3,6 +3,8 @@
 
 The shared 2D/3D HUD displays locally converted Allied/Soviet SHP atlases at their
 native 168px width. No original media is imported into the application bundle.
+Hosted entry connects browser storage and checks readiness before showing the menu.
+Missing or outdated originals open preparation; local dev still reuses disk output.
 
 ```text
 main.ts -> sidebar.ts     shell, native buttons, radar cover, power, resize/disposal

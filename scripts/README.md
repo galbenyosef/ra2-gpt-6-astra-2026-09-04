@@ -15,7 +15,7 @@ browser_local_installer.mjs -> local copy, failure/retry and full conversion
 browser_*.py / *.mjs     -> other existing UI regression suites
 ```
 
-Existing skirmish/editor suites select `mode-skirmish` after navigation or reload.
+Prepared skirmish/editor suites select `mode-skirmish` after navigation or reload.
 The setup suite also does so after conversion, cached re-entry and offline reload;
 the locale audit re-enters after restoring and rechecking deliberately missing assets.
 
@@ -75,3 +75,6 @@ and delayed 2D/3D name tooltips including fog and death. Screenshots stay in
 teardown, reduced motion and media failure at port 4226. Set
 `RA2_TEST_VIDEO_CONVERTER=1` with local `.cache/menu-video/ra2ts_l.bik` to also
 exercise real nested-worker Bink encoding. Evidence stays in `.cache/menu-video/`.
+
+`browser_menu_cache.mjs` checks source-only static hosting on port 4229: missing
+assets open preparation; cached native art/video work after a cold worker start.

@@ -25,6 +25,7 @@ npm run build
 npm run repo:check
 node --import tsx scripts/check-source-only.ts --build
 node scripts/browser_menu_video.mjs
+RA2_BROWSER_URL=http://127.0.0.1:4229/ node scripts/browser_menu_cache.mjs
 RA2_TEST_VIDEO_CONVERTER=1 node scripts/browser_menu_video.mjs
 ```
 
@@ -42,3 +43,14 @@ Production desktop Lighthouse on the separate local-originals fixture: performan
 94, accessibility 100, best practices 100, SEO 100. The original movie adds about
 4 MB to local playback; it remains absent from the audited dist. Build and tracked
 source isolation checks pass. The font OFL notice is present in dist.
+
+Hosted entry now connects the service worker and validates originals before mode
+selection. Missing/old caches open preparation instead of silently showing CSS
+fallback chrome. The installer still requires consent or a local file; localhost
+storage is separate from the production domain. The hosted-cache regression fails
+on 3d128d1 and uses real local menu media with synthetic readiness padding for
+unrelated gameplay files. It never uploads media or substitutes host-served originals.
+Serve `dist` with a static server for this check. Vite preview adds `Vary: Origin`,
+which prevents its precached script response from matching offline module requests.
+The fixed entry passes this regression, the existing playback suite and 133 unit
+tests. Static-host entry Lighthouse scores are 100 in all four categories.

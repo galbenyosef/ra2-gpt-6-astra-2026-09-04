@@ -11,7 +11,8 @@ with sync_playwright() as p:
     page.on('pageerror',lambda error:errors.append(str(error)))
     page.on('console',lambda msg:console.append(msg.text))
     page.goto(URL,wait_until='networkidle')
-    page.get_by_test_id('mode-skirmish').click(timeout=90000)
+    page.wait_for_selector('#setup-download, [data-testid="mode-skirmish"]',timeout=90000)
+    if page.get_by_test_id('mode-skirmish').count():page.get_by_test_id('mode-skirmish').click()
     page.wait_for_selector('#setup-download, #start',timeout=30000)
     if page.locator('#setup-download').count():
         assert not any('archive.org' in url for url in requests), 'Originals downloaded before consent'
