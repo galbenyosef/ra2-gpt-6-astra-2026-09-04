@@ -65,3 +65,8 @@ and 2D/3D. Use `RA2_EMPTY_ONLY=1` for the focused category regression.
 `browser_lobby_skin.mjs` checks original-style lobby/map layout in both modes and
 languages, category filters, map sorting/cancel/confirm, retained player settings
 and starting the chosen map. Screenshots remain in the same ignored cache.
+
+`node scripts/browser_fidelity.mjs` verifies the 3-second entry splash, original
+eight colors, right-side ESC/language controls, bottom group and waypoint commands,
+and delayed 2D/3D name tooltips including fog and death. Screenshots stay in
+`.cache/sidebar/evidence/rust-alarm-*.png`.

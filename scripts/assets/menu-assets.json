@@ -1,6 +1,50 @@
 {
-  "pudlgbgn": {"file":"pudlgbgn.shp","palette":"dialog","frames":1},
-  "mnbttn": {"file":"mnbttn.shp","palette":"mainbttn","frames":3},
-  "cue_i": {"file":"cue_i.pcx","frames":1},
-  "cce_i": {"file":"cce_i.pcx","frames":1}
+  "pudlgbgn": {
+    "file": "pudlgbgn.shp",
+    "palette": "dialog",
+    "frames": 1
+  },
+  "mnbttn": {
+    "file": "mnbttn.shp",
+    "palette": "mainbttn",
+    "frames": 3
+  },
+  "cue_i": {
+    "file": "cue_i.pcx",
+    "frames": 1
+  },
+  "cce_i": {
+    "file": "cce_i.pcx",
+    "frames": 1
+  },
+  "lwscrnl": {
+    "file": "lwscrnl.shp",
+    "palette": "shell",
+    "frames": 1
+  },
+  "sdtp": {
+    "file": "sdtp.shp",
+    "palette": "shell",
+    "frames": 2
+  },
+  "sdwrnanm": {
+    "file": "sdwrnanm.shp",
+    "palette": "shell",
+    "frames": 91
+  },
+  "sdbtnbkgd": {
+    "file": "sdbtnbkgd.shp",
+    "palette": "shell2",
+    "frames": 1
+  },
+  "sdbtnanm": {
+    "file": "sdbtnanm.shp",
+    "palette": "sdbtnanm",
+    "frames": 17
+  },
+  "sdbtm": {
+    "file": "sdbtm.shp",
+    "palette": "shell",
+    "frames": 1
+  }
 }

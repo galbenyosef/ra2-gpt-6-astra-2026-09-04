@@ -3,7 +3,7 @@ import { APP_BASE, appUrl, scopedCache } from './urls';
 /** Original data is only ever written to this browser's origin-private storage. */
 export const ORIGINAL_CACHE = scopedCache('ra2-originals-v2');
 export const ARCHIVE_CACHE = scopedCache('ra2-download-v1');
-export const ORIGINAL_VERSION = 4;
+export const ORIGINAL_VERSION = 5;
 export const SOURCE_PAGE_URL = 'https://archive.org/details/red-alert-2-multiplayer';
 export const SOURCE_URL = 'https://archive.org/download/red-alert-2-multiplayer/Red-Alert-2-Multiplayer.exe';
 export const SOURCE_BYTES = 206530229;

@@ -113,6 +113,7 @@ export const UNIT_DEFS: Record<string, Definition> = Object.fromEntries(vehicles
 export const CATALOG: Record<string, Definition> = { ...BUILDING_DEFS, ...UNIT_DEFS };
 export const CATEGORIES: ProductionCategory[] = ['structure', 'defense', 'infantry', 'vehicle', 'aircraft', 'naval'];
 export const CATEGORY_NAMES: Record<ProductionCategory, string> = { structure: '建筑', defense: '防御', infantry: '步兵', vehicle: '战车', aircraft: '空军', naval: '海军' };
-export const PLAYER_COLORS = ['#f5d42a', '#ef494c', '#4895ef', '#55bc64', '#ef903c', '#b270de', '#55cbd2', '#eaa5d3'];
+// Original rules.ini [Colors], mpAllowedColors order; HSV components use 0–255.
+export const PLAYER_COLORS = ['#e6de0d', '#ff1818', '#2269d4', '#3cd22d', '#ffa018', '#31d7e6', '#9428bd', '#ff99ea'];
 export const getDefinition = (type: string): Definition => CATALOG[type] ?? UNIT_DEFS.grizzly;
 export const countryById = (id: string): Country => COUNTRIES.find(c => c.id === id) ?? COUNTRIES[0];

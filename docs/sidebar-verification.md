@@ -3,7 +3,7 @@
 
 Allied and Soviet production sidebars now use original locally converted artwork.
 Entry, lobby, pause, help and result dialogs now also use original menu artwork.
-Game rules and battlefield rendering remain unchanged. The same HUD serves Canvas 2D and optional Bootcamp 3D.
+Production rules remain unchanged. Bottom commands now include queued waypoints. The same HUD serves Canvas 2D and optional Bootcamp 3D.
 
 ## Run locally
 
@@ -25,7 +25,7 @@ The cache must contain extracted `mixes`, `game`, `raw` and its Python `venv`.
 selects the output directory. The command verifies the existing set, exports only
 the interface atlases, verifies the result and writes readiness last. It does not download.
 Restart Vite afterwards. Without prepared output, the existing browser preparation
-flow remains available. Older browser installations are rejected by schema 4;
+flow remains available. Older browser installations are rejected by schema 5;
 preparation reuses the SHA-256-verified cached installer and reconverts locally.
 The originals cache namespace remains unchanged; original files never fall through
 to a hosted URL. Readiness checks all required faction/menu PNGs, and conversion checks

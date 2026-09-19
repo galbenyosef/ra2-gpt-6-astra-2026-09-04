@@ -23,7 +23,7 @@ try {
     await enter('skirmish',country);
     assert.equal(await page.locator('#build-list').innerText(),'','No deployment/facility placeholder');
     for(const category of ['structure','defense','infantry','vehicle'])assert.equal(await page.locator(`[data-category=${category}]`).isDisabled(),true);
-    await page.locator('#deploy').click();await tick();
+    await page.locator('[data-command=deploy]').click();await tick();
     assert.equal(await page.locator('[data-category=structure]').isEnabled(),true);
     assert.equal(await page.locator('[data-category=infantry]').isDisabled(),true);
     await page.keyboard.press('Tab');await tick();

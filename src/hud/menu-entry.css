@@ -1,16 +1,17 @@
-/* Original map panel and vertical entry commands; readable before local art is ready. */
+/* 800×600 original shell proportions, fitted to the window without cropping. */
 .mode-screen.shell {
-  width:min(1000px,100%); max-inline-size:1000px; min-height:568px; height:100%;
-  background-size:auto min(100%,568px); background-position:left center;
-  padding:32px; margin:auto; isolation:isolate;
+  width:min(1440px,94vw,calc(84dvh * 4 / 3)); max-inline-size:none;
+  aspect-ratio:4/3; height:auto; min-height:0; padding:0; gap:0;
+  position:relative; top:50%; transform:translateY(-50%); margin:0 auto;
+  display:grid; grid-template-columns:79% 21%; background:#000;
+  container-type:inline-size; isolation:isolate;
 }
-.mode-screen>.header { align-items:flex-start; }
-.mode-screen .app-title { max-width:560px; font-size:28px; text-shadow:2px 2px #000; }
-.mode-screen>h2 { font-size:16px; font-weight:400; letter-spacing:.15em; }
-.mode-options { display:flex; flex-direction:column; width:280px; margin:20px 0 0 auto; gap:24px; }
-.mode-options>button { width:100%; min-height:36px; font-size:16px; }
-.mode-tools { width:280px; margin:10px 0 0 auto; flex-direction:column; gap:10px; }
-.mode-screen>.source-code-link { margin-top:auto; }
-.mode-screen>.project-notice { margin:0; }
-
+.mode-screen .menu-monitor { margin-bottom:4cqw; }
+.mode-screen::before { display:none; }
+.mode-screen>.menu-status { position:absolute; bottom:0; left:0; width:79%; height:4cqw; background:var(--ui-lwscrnl,none) center/100% 100%; }
+.mode-screen .command-rail { min-height:0; }
+.mode-screen .mode-options,.mode-screen .mode-tools { display:contents; }
+.mode-screen .language-control { margin:0; justify-content:center; padding:5px 12px; width:100%; flex:0 0 auto; }
+.mode-screen .language-control select { width:100%; font-size:clamp(10px,1.6cqw,18px); min-height:0; height:3.5cqw; }
+.mode-screen .rail-bottom { margin-top:auto; background:var(--ui-sdbtm,none) center bottom/100% 100% no-repeat; height:8.125cqw; display:flex; align-items:flex-start; padding-top:1cqw; }
 .lobby-bottom,.map-sharing-bar { justify-content:flex-end; }

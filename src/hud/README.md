@@ -9,7 +9,10 @@ main.ts -> sidebar.ts     shell, native buttons, radar cover, power, resize/disp
         -> production.ts availability, cards, queue/ready/progress and callbacks
 availability.ts          unlocked/queued categories, shared by pointer and keyboard
 menu-skin.ts + menus.css  locally converted dialog/buttons/checkboxes
-menu-entry.css           entry menu map panel and command rail
+menu-shell.ts + CSS      CRT entry, 3-second splash and native mechanical command rail
+menu-entry.css           fitted 4:3 entry composition
+command-bar.ts + CSS     native groups/type/deploy/stop/waypoint controls
+entity-tooltip.ts        delayed visibility-aware 2D/3D names
 lobby-layout.ts + lobby.css compact player/rules panel and right map/commands
 map-picker.ts + CSS       filtered/sorted map list, guarded preview and confirmation
 options*.ts + options.css live sound, display, speed and camera controls
@@ -31,8 +34,9 @@ canvas retains the existing renderer's aspect ratio and pointer coordinate mappi
 
 Engine availability, single-building queues, unit queues, cancellation, placement,
 repair/sell and support rules remain unchanged. Main owns command callbacks; the
-sidebar owns presentation and disconnects its observer on exit. Deploy/base remain
-in the top bar and support abilities beside the debug panel. The diplomacy icon
+sidebar owns presentation and disconnects its observer on exit. Deploy and control groups use native bottom command icons; base remains the H
+shortcut. Language and settings live in the right-side ESC menu. Support abilities
+remain beside the debug panel. The diplomacy icon
 opens a read-only player/team table. Empty categories retain their disabled frame and no text; selection moves to the
 first available category when its last producer disappears. The entry, lobby,
 help, pause and result dialogs share original menu artwork. Settings immediately
@@ -43,3 +47,7 @@ See [acceptance and local screenshots](../../docs/sidebar-verification.md).
 
 Ordinary menus use labels and controls without descriptive paragraphs. Status
 text appears for loading/errors; instructions remain in the explicit help dialog.
+
+Waypoint mode (Z) appends real simulation destinations, with visible route markers.
+Ctrl/Command-click assigns teams 1–3; keyboard groups 1–9 remain available. World
+names appear after 800 ms of stationary hover and disappear under fog or on death.

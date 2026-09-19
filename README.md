@@ -1,5 +1,5 @@
 <!-- Product entry, local startup and links to detailed gameplay and verification guides. -->
-# Fan Re-created Red Alert 2
+# Rust Alarm
 
 An independent browser RTS with original artwork prepared on the player's device.
 Choose **Skirmish / 遭遇战** to fight computer opponents, or **Bootcamp / 新兵训练营**
@@ -35,8 +35,9 @@ When conversion is needed, dev/preview offers a detected local installer. Set
 This skips the archive download only; the browser still verifies and converts it.
 
 - Skirmish retains countries, teams, native maps, mining, production and combat.
-- Original-art entry, lobby, dialogs and Allied/Soviet production sidebars.
-  Live sound, display, speed and camera options work in both 2D and 3D.
+- Original-art entry, lobby and faction sidebars; a 3-second fan-remake splash.
+- ESC opens options/language controls. Native bottom icons command groups and
+  waypoints; hovering reveals unit/building names in both 2D and 3D.
 - Bootcamp defaults to traditional Canvas 2D on **every** entry. Open the lower-left
   **Debug Panel** and select **2D / 3D** to change the renderer in the same match.
 - Bootcamp has immediate production and replenished finite credits. It unlocks the
@@ -73,9 +74,9 @@ npm run preview
 For subpath hosting, set `RA2_BASE_PATH=/your-path/` on both build and preview.
 Authored GLBs are emitted at content-hashed `app/models` paths and loaded on demand.
 Original `/assets` and `/maps` remain browser-private; Vite public copying stays off.
-The footer embeds the checkout commit and its commit time. No deployment is implied.
+The footer identifies the local commit; changes do not deploy the site.
 
-[Sidebar acceptance](docs/sidebar-verification.md) · [Bootcamp acceptance](docs/bootcamp-verification.md) · [Detailed game/asset/editor guide](docs/game-guide.md) ·
+[UI acceptance](docs/menus-verification.md) · [Bootcamp acceptance](docs/bootcamp-verification.md) · [Detailed game/asset/editor guide](docs/game-guide.md) ·
 [Source map](src/README.md) · [Browser tests](scripts/README.md) · [Local model tools](tools/README.md) ·
 [Earlier verification](docs/verification.md) · [Asset workflow](.agents/skills/ra2-hd-blender/SKILL.md)
 

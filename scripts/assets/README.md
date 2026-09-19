@@ -82,12 +82,12 @@ their respective licenses. Original game media belongs to Westwood Studios / EA.
 
 ## Interface upgrades
 
-`sidebar-assets.json` lists all 20 required SHPs per faction and their frame counts.
+`sidebar-assets.json` lists all 27 required SHPs per faction and their frame counts.
 `export_sidebar.py` preserves full native atlases, including all 55 clock frames.
 TypeScript readiness checks consume the same contract. With complete older disk
 output and extracted converter cache, `npm run assets:setup -- --sidebar-only`
 updates just the UI; see [sidebar verification](../../docs/sidebar-verification.md).
-`menu-assets.json` adds dialog, three-state buttons and checkbox art. The same
+`menu-assets.json` adds dialog, button, checkbox and mechanical menu-rail art. The same
 upgrade refreshes these assets with their original palettes.
-Browser readiness schema 4 forces older caches through verified local preparation;
+Browser readiness schema 5 forces older caches through verified local preparation;
 the cached installer is reused without re-downloading.

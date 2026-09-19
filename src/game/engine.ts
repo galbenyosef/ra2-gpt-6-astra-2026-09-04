@@ -113,7 +113,6 @@ export class GameEngine {
     this.updatePower();
     this.updateFog();
     this.rebuildSpatial();
-    this.event(this.bootcamp ? '训练营已就绪。自由建造和招募，敌方不会主动进攻。' : '战场已就绪。选中基地车，按 D 或双击部署。', this.localPlayerId);
   }
 
   private initializeBootcamp(player: PlayerState, count: number) {
@@ -350,11 +349,11 @@ export class GameEngine {
         const b = this.getPlacementBounds(target.id, position.x, position.y);
         const healthRatio = e.hp / e.maxHp;
         e.type = target.id; e.kind = 'building'; e.x = b.centerX; e.y = b.centerY;
-        e.maxHp = target.hp; e.hp = target.hp * healthRatio; e.order = { kind: 'idle' }; e.path = [];
+        e.maxHp = target.hp; e.hp = target.hp * healthRatio; e.order = { kind: 'idle' }; e.path = []; e.waypoints = [];
         this.rebuildBlocked(); this.updatePower();
         this.onBuildingComplete(e); deployed++;
       } else if (e.type === 'gi' || e.type === 'desolator') {
-        e.deployed = !e.deployed; e.order = { kind: 'idle' }; e.path = []; deployed++;
+        e.deployed = !e.deployed; e.order = { kind: 'idle' }; e.path = []; e.waypoints = []; deployed++;
         if (e.type === 'desolator' && e.deployed) e.radiationUntil = this.time + 12;
       } else if (e.type === 'yuri' && e.cooldown <= 0) {
         this.psychicPulse(e, 250, 3); e.cooldown = 4; deployed++;
@@ -363,7 +362,7 @@ export class GameEngine {
         const target = getDefinition(e.type === 'construction_yard' ? 'allied_mcv' : 'soviet_mcv');
         const ratio = e.hp / e.maxHp;
         e.type = target.id; e.kind = 'unit'; e.maxHp = target.hp; e.hp = target.hp * ratio;
-        e.order = { kind: 'idle' }; e.path = [];
+        e.order = { kind: 'idle' }; e.path = []; e.waypoints = [];
         this.rebuildBlocked(); this.updatePower(); this.updateFog(); deployed++;
         this.event('建造厂已收起为基地车。', e.owner);
       } else if (isTransport(e.type)) deployed += this.unload([e.id]);
@@ -379,16 +378,17 @@ export class GameEngine {
     return undefined;
   }
 
-  commandMove(ids: number[], x: number, y: number, attackMove = false): void {
+  commandMove(ids: number[], x: number, y: number, attackMove = false, append = false): void {
     const movable = ids.map(id => this.getEntity(id)).filter((e): e is Entity => !!e && e.kind === 'unit' && !e.transportedBy);
     const columns = Math.ceil(Math.sqrt(movable.length));
     movable.forEach((e, index) => {
       const dx = movable.length > 1 ? (index % columns - (columns - 1) / 2) * 1.15 : 0;
       const dy = movable.length > 1 ? (Math.floor(index / columns) - (columns - 1) / 2) * 1.15 : 0;
       const dest = this.nearestPassable({ x: x + dx, y: y + dy }, getDefinition(e.type), 8);
+      if(append&&(e.order.kind==='move'||e.order.kind==='attackMove')){(e.waypoints??=[]).push(dest);return;}
       e.deployed = false; e.targetId = undefined;
       this.setOrder(e, { kind: attackMove ? 'attackMove' : 'move', x: dest.x, y: dest.y });
-      if (getDefinition(e.type).harvest && (this.terrainAt(x, y) === 'ore' || this.terrainAt(x, y) === 'gem')) this.setOrder(e, { kind: 'harvest', x, y });
+      if (!append && getDefinition(e.type).harvest && (this.terrainAt(x, y) === 'ore' || this.terrainAt(x, y) === 'gem')) this.setOrder(e, { kind: 'harvest', x, y });
     });
   }
   commandAttackMove(ids: number[], x: number, y: number): void { this.commandMove(ids, x, y, true); }
@@ -419,7 +419,7 @@ export class GameEngine {
   commandStop(ids: number[]): void {
     for (const id of ids) { const e = this.getEntity(id); if (e) { this.setOrder(e, { kind: 'idle' }); e.targetId = undefined; } }
   }
-  private setOrder(e: Entity, order: Order) { e.order = order; e.path = []; e.repathTimer = 0; }
+  private setOrder(e: Entity, order: Order) { e.waypoints = []; e.order = order; e.path = []; e.repathTimer = 0; }
 
   load(ids: number[], transportId: number): number {
     const transport = this.getEntity(transportId);
@@ -434,7 +434,7 @@ export class GameEngine {
       if (distance(e, transport) > 3) { this.setOrder(e, { kind: 'load', targetId: transportId }); this.lastMessage = '部队正在靠近运输载具'; continue; }
       transport.passengers ??= []; transport.passengers.push(id);
       if (e.controlledId) this.releaseMindControl(e);
-      e.transportedBy = transport.id; e.order = { kind: 'idle' }; e.path = []; count++;
+      e.transportedBy = transport.id; e.order = { kind: 'idle' }; e.path = []; e.waypoints = []; count++;
       this.refreshIFV(transport);
     }
     return count;
@@ -645,6 +645,9 @@ export class GameEngine {
     }
     if (d.damage && ((d.power ?? 0) >= 0 || this.isPowered(e.owner))) this.combat(e, dt);
   }
+  private finishMove(e:Entity) {
+    const next=e.waypoints?.shift();e.order=next?{kind:'move',...next}:{kind:'idle'};e.path=[];e.repathTimer=0;
+  }
   private updateUnit(e: Entity, dt: number) {
     const d = getDefinition(e.type);
     if (e.type === 'apocalypse' && e.hp < e.maxHp) e.hp = Math.min(e.maxHp, e.hp + 3 * dt);
@@ -673,7 +676,7 @@ export class GameEngine {
     if (e.order.kind === 'move' || e.order.kind === 'attackMove') {
       const goal = { x: e.order.x, y: e.order.y };
       this.moveToward(e, goal, dt);
-      if (distance(e, goal) < .4) { e.order = { kind: 'idle' }; e.path = []; }
+      if (distance(e, goal) < .4) this.finishMove(e);
     }
   }
   private updateCapture(e: Entity, dt: number) {
@@ -971,7 +974,7 @@ export class GameEngine {
   private updateHarvester(e: Entity, dt: number) {
     const d = getDefinition(e.type);
     if (e.order.kind === 'idle') { e.harvestTimer += dt; if (e.harvestTimer > 3) { e.harvestTimer = 0; this.assignHarvest(e); } return; }
-    if (e.order.kind === 'move') { this.moveToward(e, e.order, dt); if (distance(e, e.order) < .5) this.setOrder(e, { kind: 'idle' }); return; }
+    if (e.order.kind === 'move') { this.moveToward(e, e.order, dt); if (distance(e, e.order) < .5) this.finishMove(e); return; }
     if (e.order.kind === 'harvest') {
       const goal = { x: e.order.x, y: e.order.y };
       if (distance(e, goal) > 1) { this.moveToward(e, goal, dt); return; }

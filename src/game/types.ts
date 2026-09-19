@@ -40,7 +40,7 @@ export type Order =
 export interface Entity {
   id: number; type: string; kind: 'unit' | 'building'; owner: number;
   x: number; y: number; hp: number; maxHp: number; angle: number;
-  order: Order; path: Point[]; cooldown: number; cargo: number;
+  order: Order; path: Point[]; waypoints?: Point[]; cooldown: number; cargo: number;
   repairing: boolean; veteran: number; kills: number;
   /** Rendering metadata: a shot occurred at this game time. */
   lastShot: number; spawnedAt: number;

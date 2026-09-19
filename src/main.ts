@@ -8,6 +8,8 @@ import { Sidebar, sidebarMarkup } from './hud/sidebar';
 import { renderProduction } from './hud/production';
 import { availableTabs } from './hud/availability';
 import { loadMenuSkin } from './hud/menu-skin';
+import { monitorMarkup, railHeader, showEntrySplash } from './hud/menu-shell';
+import { mountCommandBar, updateCommandBar, selectType } from './hud/command-bar';
 import { showOptions, applyScreenSize } from './hud/options';
 import { layoutLobby } from './hud/lobby-layout';
 import { openMapPicker } from './hud/map-picker';
@@ -26,6 +28,7 @@ import { BattlefieldRenderer, type RenderMap } from './renderer';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 mountBuildVersion();
+document.title=APP_TITLE;
 registerTranslations({
   '新兵训练营':'Bootcamp', '选择模式':'Choose a mode', '返回模式选择':'Choose mode',
   '准备原版素材':'Prepare original assets', 'Alt + 左键拖动（3D）':'Alt + Left Drag (3D)', '旋转三维视角。':'Orbit the 3D camera.',
@@ -82,9 +85,11 @@ function renderModeSelect() {
   sidebar?.destroy();sidebar=undefined;
   disposeSwitch?.();disposeSwitch=undefined;disposeEditor?.();disposeEditor=undefined;
   playing=false;cancelAnimationFrame(animation);renderer?.destroy();renderer=undefined;game=undefined;
-  app.innerHTML=`<main class="shell mode-screen" data-testid="mode-screen"><header class="header"><h1 class="app-title">${APP_TITLE}</h1>${languageControl()}</header><h2>选择模式</h2>
-    <nav class="mode-options" aria-label="选择模式"><button class="primary" data-testid="mode-skirmish">遭遇战</button><button class="primary" data-testid="mode-bootcamp">新兵训练营</button></nav>
-    <div class="mode-tools"><button data-testid="mode-assets">准备原版素材</button><button data-testid="mode-editor">地图编辑器</button></div>${sourceCodeLink()}${projectNotice()}</main>`;
+  app.innerHTML=`<main class="shell mode-screen" data-testid="mode-screen">${monitorMarkup}<aside class="command-rail">${railHeader('主菜单')}
+    <nav class="mode-options" aria-label="选择模式"><button data-testid="mode-skirmish">遭遇战</button><button data-testid="mode-bootcamp">新兵训练营</button></nav>
+    <div class="mode-tools"><button data-testid="mode-editor">地图编辑器</button><button data-testid="mode-assets">游戏素材</button><button id="menu-info">信息与制作人员</button></div>${languageControl()}<div class="rail-bottom"><button id="menu-fullscreen">全屏</button></div></aside><div class="menu-status" aria-hidden="true"></div></main>`;
+  $('#menu-info').onclick=()=>{const root=showModal('信息与制作人员',`${sourceCodeLink()}${projectNotice()}`,'');root.querySelector('details')?.setAttribute('open','');};
+  $('#menu-fullscreen').onclick=()=>void (document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen()).catch(()=>toast('浏览器未能切换全屏。'));
   translateUI();bindLanguage();
   let entering=false;
   const enter=async(next:'skirmish'|'bootcamp',editor=false)=>{
@@ -191,7 +196,7 @@ async function uploadLobbyMap(input:HTMLInputElement) {
 }
 function renderSlot(s:Slot,i:number,maxPlayers:number){
   const disabled=i>=maxPlayers;const closed=s.difficulty==='closed'||disabled;
-  return `<tr class="${i===0?'human':closed?'closed-row':''}"><td>${String(i+1).padStart(2,'0')}</td><td>${i===0?'<span class="player-name">玩家</span>':`<select aria-label="玩家 ${i+1} 类型" data-slot="${i}" data-key="difficulty" ${disabled?'disabled':''}>${option('closed','— 关闭 —',closed?'closed':s.difficulty)}${option('easy','简单的电脑',s.difficulty)}${option('medium','中等的电脑',s.difficulty)}${option('hard','冷酷的电脑',s.difficulty)}</select>`}</td><td><select aria-label="玩家 ${i+1} 国家" data-slot="${i}" data-key="country" ${closed?'disabled':''}>${countryOptions(s.country,i!==0)}</select></td><td><select class="color-select" style="--player-color:${PLAYER_COLORS[s.color]}" aria-label="玩家 ${i+1} 颜色" data-slot="${i}" data-key="color" ${closed?'disabled':''}>${['金色','红色','蓝色','绿色','橙色','紫色','青色','粉色'].map((v,k)=>option(k,v,s.color)).join('')}</select></td><td><select aria-label="玩家 ${i+1} 盟友" data-slot="${i}" data-key="team" ${closed?'disabled':''}>${option(0,'—',s.team)}${[1,2,3,4].map(v=>option(v,String.fromCharCode(64+v),s.team)).join('')}</select></td><td><select aria-label="玩家 ${i+1} 位置" data-slot="${i}" data-key="position" ${closed?'disabled':''}>${option(-1,'随机',s.position)}${Array.from({length:maxPlayers},(_,v)=>option(v,String(v+1),s.position)).join('')}</select></td></tr>`;
+  return `<tr class="${i===0?'human':closed?'closed-row':''}"><td>${String(i+1).padStart(2,'0')}</td><td>${i===0?'<span class="player-name">玩家</span>':`<select aria-label="玩家 ${i+1} 类型" data-slot="${i}" data-key="difficulty" ${disabled?'disabled':''}>${option('closed','— 关闭 —',closed?'closed':s.difficulty)}${option('easy','简单的电脑',s.difficulty)}${option('medium','中等的电脑',s.difficulty)}${option('hard','冷酷的电脑',s.difficulty)}</select>`}</td><td><select aria-label="玩家 ${i+1} 国家" data-slot="${i}" data-key="country" ${closed?'disabled':''}>${countryOptions(s.country,i!==0)}</select></td><td><select class="color-select" style="--player-color:${PLAYER_COLORS[s.color]}" aria-label="玩家 ${i+1} 颜色" data-slot="${i}" data-key="color" ${closed?'disabled':''}>${['金色','红色','蓝色','绿色','橙色','天蓝色','紫色','粉色'].map((v,k)=>option(k,v,s.color)).join('')}</select></td><td><select aria-label="玩家 ${i+1} 盟友" data-slot="${i}" data-key="team" ${closed?'disabled':''}>${option(0,'—',s.team)}${[1,2,3,4].map(v=>option(v,String.fromCharCode(64+v),s.team)).join('')}</select></td><td><select aria-label="玩家 ${i+1} 位置" data-slot="${i}" data-key="position" ${closed?'disabled':''}>${option(-1,'随机',s.position)}${Array.from({length:maxPlayers},(_,v)=>option(v,String(v+1),s.position)).join('')}</select></td></tr>`;
 }
 function drawMapPreview(canvas:HTMLCanvasElement,map:MapData){
   const rect=canvas.getBoundingClientRect();const w=Math.max(360,Math.round(rect.width*2)),h=Math.max(240,Math.round(rect.height*2));canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d')!;ctx.imageSmoothingEnabled=false;
@@ -254,7 +259,7 @@ async function startGame(){
 }
 function renderGame(map:RenderMap){
   const faction=game!.players[0].faction;
-  app.innerHTML=`<main class="game-screen"><header class="game-top"><div class="left"><button id="deploy" title="部署选中单位（D）">部署</button><button id="home" title="返回基地（H）">基地</button><div class="game-heading"><h1 class="app-title">${APP_TITLE}</h1><span class="game-title">${escape(selectedMap.name)} · ${mode==='bootcamp'?'新兵训练营':'遭遇战'}</span></div></div><div class="right">${languageControl()}<span class="game-time" id="game-time">00:00</span><span class="speed-label">速度</span><button id="game-speed">${gameSpeed}×</button><button id="game-help" title="操作说明">?</button></div></header><div class="game-body"><section class="battlefield" id="battlefield"><canvas id="battlefield-canvas" tabindex="0" aria-label="即时战略战场"></canvas><div class="hud-message" id="hud-message"></div><div class="battlefield-tools" id="battlefield-tools"><div id="support-list" class="support-list"></div></div><div class="selection-info" id="selection-info"></div></section>${sidebarMarkup}</div><footer class="game-bottom"><span id="selection-label">没有选中单位</span><span id="battle-status">战场控制在线</span></footer></main>`;
+  app.innerHTML=`<main class="game-screen"><div class="game-body"><section class="battlefield" id="battlefield"><canvas id="battlefield-canvas" tabindex="0" aria-label="即时战略战场"></canvas><div class="hud-message" id="hud-message"></div><div class="battlefield-tools" id="battlefield-tools"><div id="support-list" class="support-list"></div></div><div class="selection-info" id="selection-info"></div></section>${sidebarMarkup}</div><footer class="game-bottom"><nav id="command-bar" aria-label="作战命令"></nav><span id="selection-label"></span><span id="battle-status"></span><span id="game-time">00:00</span></footer></main>`;
   applyScreenSize();
   sidebar=new Sidebar($('.ra2-sidebar'),assets,faction);
   renderer=new BattlefieldRenderer($('#battlefield-canvas'),game!,map,assets,{
@@ -271,9 +276,9 @@ function renderGame(map:RenderMap){
     }
   });renderer.attachMinimap($('#radar'));
   $('#sidebar-status').onclick=()=>showModal('外交与战况',`<table class="score-table"><thead><tr><th>指挥官</th><th>国家</th><th>关系</th></tr></thead><tbody>${game!.players.map(p=>`<tr><td>${escape(t(p.name))}</td><td>${escape(t(countryById(p.country).name))}</td><td>${game!.isAllied(0,p.id)?t('友方'):t('敌方')}</td></tr>`).join('')}</tbody></table>`,'');
-  $('#game-options').onclick=showPause;$('#game-help').onclick=showHelp;
-  $('#game-speed').onclick=()=>{gameSpeed=gameSpeed===.75?1:gameSpeed===1?1.5:gameSpeed===1.5?2:.75;game!.speed=gameSpeed;$('#game-speed').textContent=`${gameSpeed}×`;};
-  $('#repair').onclick=()=>setTool('repair');$('#sell').onclick=()=>setTool('sell');$('#home').onclick=()=>renderer!.home();$('#deploy').onclick=deploySelection;
+  $('#game-options').onclick=showPause;
+  $('#repair').onclick=()=>setTool('repair');$('#sell').onclick=()=>setTool('sell');
+  groups.clear();mountCommandBar($('#command-bar'),assets,faction,game!,renderer,groups,deploySelection);
   document.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(el=>el.onclick=()=>{category=el.dataset.category as ProductionCategory;sidebar?.resetScroll();renderBuildList();});
   const debug = mountDebugPanel($('#battlefield-tools'),game!,sound,()=>{updateUI();renderer!.draw();});
   if(game!.bootcamp)disposeSwitch=mountRendererSwitch(debug,renderer);
@@ -295,7 +300,7 @@ function renderBuildList(){
 }
 function updateSelection(){
   if(!game||!renderer)return;const entities=game.entities.filter(e=>renderer!.selection.has(e.id)&&e.hp>0);
-  $('#selection-label').textContent=entities.length===0?'没有选中单位':entities.length===1?`${getDefinition(entities[0].type).name} · ${Math.ceil(entities[0].hp)} / ${entities[0].maxHp}`:`已选择 ${entities.length} 支部队`;
+  $('#selection-label').textContent=entities.length===0?'':entities.length===1?`${getDefinition(entities[0].type).name} · ${Math.ceil(entities[0].hp)} / ${entities[0].maxHp}`:`已选择 ${entities.length} 支部队`;
   $('#selection-info').innerHTML=entities.slice(0,24).map(e=>`<div class="selected-card">${escape(getDefinition(e.type).name)}<i style="width:${Math.max(1,e.hp/e.maxHp*90)}%"></i></div>`).join('');
   translateUI($('#selection-info'));translateUI($('#selection-label'));
 }
@@ -306,7 +311,7 @@ function updateUI(){
   const events=game.events.filter(e=>e.id>lastEvent&&(e.owner===undefined||e.owner===0));for(const ev of events){notice(ev.text,ev.kind==='warning');if(ev.kind==='complete'){sound.play(`${p.faction}_${ev.text.includes('单位')||ev.text.includes('训练')?'unitready':'constructioncomplete'}`);lastComplete=ev.id;}}lastEvent=game.events.at(-1)?.id||lastEvent;
   notices=notices.filter(n=>n.until>performance.now());$('#hud-message').innerHTML=notices.slice(-3).map(n=>`<div class="notice ${n.warn?'warn':''}">${escape(n.text)}</div>`).join('');
   renderer.drawMinimap();updateSelection();renderBuildList();updateSupport();
-   $<HTMLButtonElement>('#deploy').disabled=!game.entities.some(e=>renderer!.selection.has(e.id)&&(getDefinition(e.type).kind==='unit'||(!game!.bootcamp&&e.type.includes('construction_yard'))));
+  updateCommandBar($('#command-bar'),game,renderer,groups);
   translateUI();
   if(game.status!=='playing'&&!shownResult){shownResult=true;showResult();}
 }
@@ -331,15 +336,18 @@ function playBattleSounds(){
 }
 function notice(text:string,warn=false){notices.push({text,until:performance.now()+6500,warn});}
 function toast(text:string){document.querySelector('.error-toast')?.remove();const el=document.createElement('div');el.className='error-toast';el.textContent=t(text);document.body.append(el);setTimeout(()=>el.remove(),5000);}
-function showPause(){
-  if(!game||shownResult)return;
-  showModal('游戏暂停',`<div class="pause-items"><button id="resume" class="primary">返回战场</button><button id="pause-settings">选项</button><button id="pause-help">操作说明</button><button id="surrender">${game.bootcamp?'结束训练':'投降并结束战斗'}</button><button id="leave">退出到模式选择</button></div>`,'',true);
+function showGameMenu(title:string,body:string,actions:string) {
+  const root=showModal(title,`<div class="pause-content">${body}${actions?`<div class="modal-actions">${actions}</div>`:''}</div><aside class="command-rail">${railHeader(title)}<button id="resume">返回战场</button><button id="pause-settings">选项</button><button id="pause-help">操作说明</button><button id="surrender">${game!.bootcamp?'结束训练':'投降'}</button><button id="leave">退出游戏</button>${languageControl()}<div class="rail-bottom"></div></aside>`,'');
+  root.classList.add('pause-shade');root.querySelector('.modal')!.classList.add('pause-shell');
   $('#resume').onclick=closeModal;$('#pause-help').onclick=showHelp;
   $('#pause-settings').onclick=()=>showOptions({assets,sound,renderer:renderer!,speed:gameSpeed,
-    modal:showModal,back:showPause,help:showHelp,setSpeed:value=>{gameSpeed=value;game!.speed=value;$('#game-speed').textContent=value+'×';}});
+    modal:showGameMenu,back:showPause,help:showHelp,setSpeed:value=>{gameSpeed=value;game!.speed=value;}});
   $('#surrender').onclick=()=>{closeModal();if(game!.bootcamp)renderModeSelect();else{game!.surrender(0);updateUI();}};
   $('#leave').onclick=()=>{closeModal();renderModeSelect();};
+  bindLanguageControl(root,()=>{buildSignature='';supportSignature='';updateUI();});
+  root.querySelector<HTMLButtonElement>('#resume')!.focus();return root;
 }
+function showPause(){if(game&&!shownResult)showGameMenu('游戏菜单','','');}
 function showResult(){
   if(!game)return;const won=game.winnerTeam===game.players[0].team;sound.play(`${game.players[0].faction}_${won?'victorious':'defeated'}`);
   showModal('战斗报告',`<div class="result-title">${won?'MISSION ACCOMPLISHED':'MISSION FAILED'}</div><div class="result-subtitle">${won?'胜利':'战败'}</div><table class="score-table"><thead><tr><th>指挥官</th><th>国家</th><th>击杀</th><th>损失</th><th>建造</th></tr></thead><tbody>${game.players.map(p=>`<tr><td style="color:${p.color}">${escape(p.name)}</td><td>${countryById(p.country).name}</td><td>${p.kills}</td><td>${p.losses}</td><td>${p.buildingsBuilt}</td></tr>`).join('')}</tbody></table>`,`<button id="result-back" class="primary">返回遭遇战</button>`);$('#result-back').onclick=()=>{closeModal();renderLobby();};$('#modal-x').onclick=()=>{closeModal();renderLobby();};
@@ -354,11 +362,13 @@ window.addEventListener('keydown',e=>{
   if(key==='h')renderer.home();else if(key==='d')deploySelection();else if(key==='a'){clearTools();renderer.attackMove=true;renderer.placement=undefined;$('#battlefield').classList.add('attack-mode');notice('攻击移动：左键选择目的地。');}
   else if(key==='s'||key==='g')game.commandStop([...renderer.selection]);
   else if(key==='p')showPause();
+  else if(key==='t')selectType(game,renderer);
+  else if(key==='z'){renderer.planningMode=!renderer.planningMode;updateCommandBar($('#command-bar'),game,renderer,groups);}
   else if(key==='tab'){const tabs=availableTabs(game);if(tabs.length)category=tabs[(tabs.indexOf(category)+1)%tabs.length];renderBuildList();}
-  else if(/^[1-9]$/.test(key)){if(e.ctrlKey||e.metaKey){e.preventDefault();groups.set(key,[...renderer.selection]);notice(`编队 ${key} 已建立。`);}else renderer.setSelection((groups.get(key)||[]).filter(id=>game!.entities.some(v=>v.id===id&&v.hp>0)));}
+  else if(/^[1-9]$/.test(key)){if(e.ctrlKey||e.metaKey){e.preventDefault();groups.set(key,[...renderer.selection]);notice(`编队 ${key} 已建立。`);}else renderer.setSelection((groups.get(key)||[]).filter(id=>game!.entities.some(v=>v.id===id&&v.owner===0&&v.hp>0&&!v.transportedBy)));}
 });
 window.addEventListener('keyup',e=>renderer?.keys.delete(e.key.toLowerCase()));
 window.addEventListener('blur',()=>{renderer?.keys.clear();if(playing&&!modalOpen&&!shownResult)showPause();});
 // Integration handle for deterministic browser verification and inspection.
 Object.defineProperty(window,'ra2',{get:()=>({game,renderer,map:selectedMap,assets,slots})});
-Promise.resolve().then(renderModeSelect).catch(error=>{if(error instanceof OriginalAssetsError || /素材|地图|资源/.test(error instanceof Error?error.message:String(error))){showAssetSetup(app,error instanceof Error?error.message:String(error));return;}console.error(error);app.innerHTML=`<div class="fatal"><h1>战场载入失败</h1><pre>${escape(error instanceof Error?error.message:String(error))}</pre><button onclick="location.reload()">重新载入</button></div>`;translateUI();});
+Promise.resolve().then(()=>{renderModeSelect();showEntrySplash();}).catch(error=>{if(error instanceof OriginalAssetsError || /素材|地图|资源/.test(error instanceof Error?error.message:String(error))){showAssetSetup(app,error instanceof Error?error.message:String(error));return;}console.error(error);app.innerHTML=`<div class="fatal"><h1>战场载入失败</h1><pre>${escape(error instanceof Error?error.message:String(error))}</pre><button onclick="location.reload()">重新载入</button></div>`;translateUI();});

@@ -351,3 +351,30 @@ test('CPU engineers capture neutral oil on a map without ore', () => {
   advance(engine, 100);
   assert.ok(engine.entities.some(e => e.owner === 1 && e.type === 'neutral_caoild'));
 });
+
+test('waypoints execute in order and an ordinary order replaces the remaining route', () => {
+  const engine=game();const unit=engine.spawnEntity('grizzly',0,25.5,25.5)!;
+  engine.commandMove([unit.id],29.5,25.5,false,true);
+  engine.commandMove([unit.id],29.5,30.5,false,true);
+  engine.commandMove([unit.id],34.5,30.5,false,true);
+  assert.equal(unit.waypoints?.length,2);
+  for(let i=0;i<300&&unit.waypoints?.length===2;i++)engine.step(.1);
+  assert.equal(unit.waypoints?.length,1);
+  assert.ok(Math.abs(unit.x-29.5)<.5&&Math.abs(unit.y-25.5)<1,'first corner reached before moving to the second');
+  assert.deepEqual(unit.order,{kind:'move',x:29.5,y:30.5});
+  engine.commandMove([unit.id],25.5,25.5);
+  assert.deepEqual(unit.waypoints,[]);
+  advance(engine,15);assert.equal(unit.order.kind,'idle');
+  assert.ok(Math.hypot(unit.x-25.5,unit.y-25.5)<.5);
+});
+
+test('stop cancels a planned route and harvesters can complete a multi-stop route', () => {
+  const engine=game();const unit=engine.spawnEntity('grizzly',0,25.5,25.5)!;
+  engine.commandMove([unit.id],29.5,25.5,false,true);engine.commandMove([unit.id],29.5,30.5,false,true);
+  engine.commandStop([unit.id]);advance(engine,1);
+  assert.deepEqual(unit.waypoints,[]);assert.equal(unit.order.kind,'idle');assert.equal(unit.x,25.5);
+  const miner=engine.spawnEntity('chrono_miner',0,35.5,30.5)!;
+  engine.commandMove([miner.id],38.5,30.5,false,true);engine.commandMove([miner.id],38.5,34.5,false,true);
+  for(let i=0;i<500&&miner.order.kind!=='idle';i++)engine.step(.1);
+  assert.equal(miner.order.kind,'idle');assert.ok(Math.hypot(miner.x-38.5,miner.y-34.5)<.6);
+});

@@ -1,3 +1,4 @@
+import { EntityTooltip } from './hud/entity-tooltip';
 // Shared battlefield input; each renderer supplies its own world projection without replacing simulation.
 import type {ModelLayer} from './bootcamp/model-layer.js';
 import { t } from './i18n';
@@ -34,6 +35,8 @@ export class BattlefieldRenderer {
   hoverEntity?: Entity;
   placement?: Definition;
   attackMove = false;
+  planningMode = false;
+  private tooltip:EntityTooltip;
   tool: 'select' | 'repair' | 'sell' | 'support' = 'select';
   width = 0; height = 0;
   private terrainPainter: TerrainPainter;
@@ -69,6 +72,7 @@ export class BattlefieldRenderer {
     for (const tile of map.tiles || []) this.tileLookup.set(tile.y * map.width + tile.x, tile);
     this.worldBounds = this.calculateBounds();
     this.observers = new ResizeObserver(() => this.resize()); this.observers.observe(canvas);
+    this.tooltip=new EntityTooltip(canvas);
     this.resize(); this.bind(); this.home();
   }
   private listen<K extends keyof HTMLElementEventMap>(el: HTMLElement, type: K, fn: (event: HTMLElementEventMap[K]) => void) {
@@ -77,12 +81,14 @@ export class BattlefieldRenderer {
   private bind() {
     this.listen(this.canvas, 'contextmenu', e => e.preventDefault());
     this.listen(this.canvas, 'pointerdown', e => {
+      this.tooltip.reset();
       this.canvas.focus(); this.canvas.setPointerCapture(e.pointerId);
       const p = this.eventPosition(e); this.startDrag = { ...p, cameraX: this.camera.x, cameraY: this.camera.y, button: e.button }; this.moving = false;
       if(e.button===0&&e.altKey&&this.modelLayer){this.startDrag.orbit={yaw:this.modelLayer.rig.yaw,pitch:this.modelLayer.rig.pitch};e.preventDefault();}
       if (e.button === 1) e.preventDefault();
     });
     this.listen(this.canvas, 'pointermove', e => {
+      this.tooltip.reset();
       const p = this.eventPosition(e); this.mouse = { ...p, inside: true };
       if (this.startDrag) {
         const d = this.startDrag, dx = p.x - d.x, dy = p.y - d.y;
@@ -142,7 +148,7 @@ export class BattlefieldRenderer {
     const dpr = Math.min(devicePixelRatio || 1, 2); this.canvas.width = Math.round(this.width * dpr); this.canvas.height = Math.round(this.height * dpr);
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0); this.ctx.imageSmoothingEnabled = false;
   }
-  destroy() { this.observers.disconnect(); for (const f of this.cleanup) f(); this.terrainPainter.clear(); this.tinted.clear(); }
+  destroy() { this.tooltip.destroy(); this.observers.disconnect(); for (const f of this.cleanup) f(); this.terrainPainter.clear(); this.tinted.clear(); }
   home() {
     const owned = this.game.entities.find(e => e.owner === this.localId && e.type.includes('construction_yard')) || this.game.entities.find(e => e.owner === this.localId && e.type.includes('mcv'));
     const p = owned || this.game.players.find(p => p.id === this.localId)?.spawn || this.map.spawns[0];
@@ -198,7 +204,7 @@ export class BattlefieldRenderer {
     if (!this.selection.size) return;
     if (entity) {
       this.game.commandAttack([...this.selection], entity.id); this.marker({ x: entity.x, y: entity.y }, true);
-    } else { this.game.commandMove([...this.selection], p.x, p.y); this.marker(p, false); }
+    } else { this.game.commandMove([...this.selection], p.x, p.y, false, this.planningMode); this.marker(p, false); }
     const enemy=entity && this.game.players.find(v=>v.id===entity.owner)?.team!==this.game.players.find(v=>v.id===this.localId)?.team;
     this.hooks.onCommand(enemy?'attack':'move');
   }
@@ -235,8 +241,9 @@ export class BattlefieldRenderer {
     this.draw();
   }
   draw() {
+    this.tooltip.update(this,!!this.startDrag);
     const ctx = this.ctx; ctx.fillStyle = '#060b0b'; ctx.fillRect(0, 0, this.width, this.height);
-    if(this.modelLayer){this.modelLayer.draw(this,this.orderMarker);this.drawDragRect();return;}
+    if(this.modelLayer){this.modelLayer.draw(this,this.orderMarker);this.drawRoutes();this.drawDragRect();return;}
     const corners = [[-180, -180], [this.width + 180, -180], [-180, this.height + 330], [this.width + 180, this.height + 330]].map(([x, y]) => { const p = this.screenToWorld(x, y); return this.unproject(p.x, p.y); });
     const x1 = Math.max(0, Math.floor(Math.min(...corners.map(p => p.x)))), x2 = Math.min(this.map.width - 1, Math.ceil(Math.max(...corners.map(p => p.x))));
     const y1 = Math.max(0, Math.floor(Math.min(...corners.map(p => p.y)))), y2 = Math.min(this.map.height - 1, Math.ceil(Math.max(...corners.map(p => p.y))));
@@ -332,7 +339,18 @@ export class BattlefieldRenderer {
     }
     if(this.orderMarker){const m=this.orderMarker,p=this.project(m.x,m.y);p.y-=this.elevation(m.x,m.y)*15;ctx.strokeStyle=m.attack?'#fa6253':'#76ee63';ctx.lineWidth=1;const r=10+m.age*16;ctx.globalAlpha=1-m.age;ctx.beginPath();ctx.ellipse(p.x,p.y,r,r*.5,0,0,Math.PI*2);ctx.stroke();ctx.beginPath();ctx.moveTo(p.x-5,p.y);ctx.lineTo(p.x+5,p.y);ctx.moveTo(p.x,p.y-3);ctx.lineTo(p.x,p.y+3);ctx.stroke();ctx.globalAlpha=1;}
     ctx.restore();
-    this.drawDragRect();
+    this.drawRoutes();this.drawDragRect();
+  }
+  private drawRoutes() {
+    const ctx=this.ctx;ctx.save();ctx.strokeStyle='#ffff00';ctx.fillStyle='#ffff00';ctx.lineWidth=1;ctx.font='11px Tahoma';ctx.setLineDash([4,4]);
+    for(const entity of this.game.entities) {
+      if(!this.selection.has(entity.id)||entity.owner!==this.localId||entity.hp<=0||(!this.planningMode&&!entity.waypoints?.length))continue;
+      if(entity.order.kind!=='move'&&entity.order.kind!=='attackMove')continue;
+      const points=[entity,entity.order,...entity.waypoints||[]].map(p=>this.toScreen(p.x,p.y));
+      ctx.beginPath();points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();
+      points.slice(1).forEach((p,i)=>{ctx.strokeRect(p.x-3,p.y-3,6,6);ctx.fillText(String(i+1),p.x+6,p.y-6);});
+    }
+    ctx.restore();
   }
   private drawDragRect(){const ctx=this.ctx;if(this.dragRect){const r=this.dragRect;ctx.fillStyle='#89df7312';ctx.fillRect(r.x,r.y,r.w,r.h);ctx.strokeStyle='#a0f184';ctx.lineWidth=1;ctx.strokeRect(r.x+.5,r.y+.5,r.w,r.h);}}
   private spriteKey(def: Definition) { const snow = `${def.sprite}-snow`; return this.map.theater?.toLowerCase() === 'snow' && this.assets.sprite(snow) ? snow : def.sprite; }

@@ -1,0 +1,38 @@
+/* Mechanical rail from local SHP atlases; CRT surround is CSS, with original map art. */
+.command-rail { background:#171717 var(--ui-sdbtnbkgd,none) top/100% auto repeat-y; display:flex; flex-direction:column; }
+.rail-preview { aspect-ratio:168/199; flex:none; background:var(--ui-sdtp,none) 0 0/200% 100% no-repeat; }
+.rail-preview h2 { margin:0; height:20%; display:flex; align-items:center; justify-content:center; color:#ffff00; font:bold clamp(11px,1.7cqw,21px) 'Arial Narrow',sans-serif; }
+:is(.mode-screen,.pause-shell) .command-rail button {
+  flex:none; width:92.857%; height:5.25cqw; min-height:0; margin:0 0 0 7.143%; padding:0 8% 0 0;
+  border:0; border-radius:0; box-shadow:none; background:#260000 var(--ui-sdbtnanm,none) 13.333333% 0/1600% 200% no-repeat;
+  font:bold clamp(10px,1.9cqw,23px) 'Arial Narrow',sans-serif; color:#ffff00; text-shadow:1px 1px #500; letter-spacing:-.02em;
+}
+:is(.mode-screen,.pause-shell) .command-rail button:hover { background-position:20% 0; color:#ffff00; text-shadow:1px 1px #500; }
+:is(.mode-screen,.pause-shell) .command-rail button:active { background-position:26.666667% 0; color:#111; }
+:is(.mode-screen,.pause-shell) .command-rail button:focus-visible { outline:2px solid yellow; outline-offset:-5px; }
+.menu-monitor { position:relative; padding:3% 3.5%; overflow:hidden; border:3px ridge #d1d2d2; border-radius:9px; background:linear-gradient(135deg,#e0e1e1,#686b6b 14%,#aaa 43%,#414345 69%,#dadbdc); box-shadow:inset 0 0 10px #fff8; }
+.monitor-glass { position:relative; height:100%; overflow:hidden; display:flex; align-items:center; justify-content:center; border:clamp(9px,2cqw,28px) solid #212123; border-radius:21% / 16%; background:#190000 var(--ui-mnscrnl,none) center/cover; box-shadow:0 0 12px 7px #161616,inset 0 0 32px 12px #000; }
+.monitor-glass::after { content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit; box-shadow:inset 0 0 28px 14px #000; background:repeating-linear-gradient(0deg,#0002 0 1px,transparent 1px 3px); }
+.radar-sweep { position:absolute; width:110%; aspect-ratio:1; border:2px solid #e5331d; border-radius:50%; opacity:.6; background:repeating-radial-gradient(circle,transparent 0 16%,#ff382980 16.3% 16.6%,transparent 17% 26%),conic-gradient(from 0deg,transparent 0 290deg,#f51b0077 355deg,#ff3c1c 360deg); animation:menu-radar 18s linear infinite; }
+.rust-logo { position:relative; z-index:1; width:90%; margin:0; text-align:center; text-transform:uppercase; font:900 clamp(36px,14cqw,180px)/.95 Impact,'Arial Black',sans-serif; letter-spacing:-.03em; color:#d92f18!important; -webkit-text-stroke:1px #f3d877; text-shadow:2px 3px #6d220c,3px 5px #c0bba3,5px 9px 4px #000; }
+.rust-logo span { display:block; }
+.entry-splash { position:fixed; inset:0; z-index:200; background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px; }
+.splash-monitor { width:min(800px,85vw); aspect-ratio:632/568; max-height:82dvh; container-type:inline-size; }
+.splash-monitor>.menu-monitor { height:100%; }
+.entry-splash footer { color:#b8b8b8; text-align:center; font:12px/1.5 Tahoma,sans-serif; max-width:90vw; }
+.pause-shade { padding:0; background:#000b; }
+.modal.pause-shell { position:relative; width:100vw; height:100dvh; max-height:none; display:grid; grid-template-columns:minmax(0,1fr) 168px; padding:0; border:0; box-shadow:none; background:transparent; }
+.pause-shell .modal-title,.pause-shell>.modal-actions { display:none; }
+.pause-shell>.modal-body { grid-column:1/-1; grid-row:1; display:grid; grid-template-columns:minmax(0,1fr) 168px; padding:0; background:transparent; overflow:visible; }
+.pause-shell .pause-content { width:min(720px,calc(100% - 48px)); min-height:326px; max-height:calc(100dvh - 48px); align-self:center; justify-self:center; padding:24px; background:#000 var(--ui-pudlgbgn,none) center/100% 100% no-repeat; overflow:auto; border:2px ridge #999; }
+.pause-shell .pause-content:empty { visibility:hidden; }
+.pause-shell .command-rail { grid-column:2; grid-row:1; background-color:#111; }
+.pause-shell .rail-bottom { flex:1; min-height:40px; background:var(--ui-sdbtm,none) center bottom/100% auto no-repeat; }
+.pause-shell .language-control { display:block; flex:0 0 auto; width:100%; padding:12px; }
+.pause-shell .language-control select { width:100%; min-width:0; }
+.pause-shell .command-rail button { height:42px; font-size:14px; }
+.pause-shell .rail-preview h2 { font-size:14px; }
+.pause-shell .command-rail { overflow-y:auto; }
+body:has(.entry-splash)>.build-version { visibility:hidden; }
+@keyframes menu-radar { to { transform:rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { .radar-sweep { animation:none; } }

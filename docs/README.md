@@ -6,7 +6,7 @@ game-guide.md                  gameplay, assets and editor
 verification.md                earlier application acceptance
 bootcamp*-verification.md      model switching, terrain and training
 sidebar-verification.md        native faction chrome and production
-menus-verification.md          entry, dialogs and live options
+menus-verification.md          Rust Alarm entry/ESC, commands, hover and live options
 ```
 
 Run commands from the repository root. Original-media evidence stays in ignored

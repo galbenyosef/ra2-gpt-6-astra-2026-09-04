@@ -24,3 +24,8 @@ are rejected. Skirmish follows the existing AI, prerequisites and victory rules.
 Run `node --import tsx --test src/game/*.test.ts`. The existing simulation class
 exceeds the standard file-length limit; preserving its private state boundaries
 avoids an unrelated engine rewrite during this integration.
+
+`commandMove(..., append=true)` queues destinations in entity waypoints. Arrival
+advances the queue; ordinary orders, stop, deployment and boarding cancel it.
+The renderer draws routes from this shared state in either presentation. Player
+colors use the original rules.ini HSV values and multiplayer ordering.

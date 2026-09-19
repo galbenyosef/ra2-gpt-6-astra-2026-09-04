@@ -43,12 +43,12 @@ try {
     for(const size of [{width:1280,height:800},{width:1024,height:600}]){
       await page.setViewportSize(size);await tick();await geometry();await shot(`after-${faction}-${size.width}`);
     }
-    await page.locator('[data-language-control]').selectOption('zh-CN');await tick();
+    await page.locator('#game-options').click();await page.locator('[data-language-control]').selectOption('zh-CN');await page.locator('#resume').click();await tick();
     assert.equal(await page.getByTestId('sidebar-options').getAttribute('aria-label'),'选项');
     await shot(`after-${faction}-zh`);
     await page.getByTestId('sidebar-options').click();await page.locator('#resume').click();
     await page.getByTestId('sidebar-status').click();await page.locator('#modal-x').click();
-    await page.locator('[data-language-control]').selectOption('en');await tick();
+    await page.locator('#game-options').click();await page.locator('[data-language-control]').selectOption('en');await page.locator('#resume').click();await tick();
     await card('barracks').click();await tick();assert.equal(await card('barracks').locator('.ready-text').count(),1);
     await shot(`ready-${faction}`);
     await card('barracks').click();
@@ -82,7 +82,7 @@ try {
   }
   for(const faction of ['allied','soviet']){
     await page.setViewportSize({width:1024,height:600});await enter('skirmish',faction);
-    await page.locator('#deploy').click();await tick();
+    await page.locator('[data-command=deploy]').click();await tick();
     const id=faction==='allied'?'power_plant':'tesla_reactor';
     await page.evaluate(()=>{window.ra2.game.paused=true;});
     await card(id).click();await tick();
@@ -101,6 +101,7 @@ try {
     },faction);await tick();
     await tab('defense').click();assert.equal(await tab('structure').evaluate(el=>el.classList.contains('has-ready')),true);
     await tab('structure').click();
+    await page.setViewportSize({width:1024,height:540});await tick();
     await page.getByTestId('production-next').click();await tick();
     assert.ok(await page.getByTestId('production-list').evaluate(el=>el.scrollTop>0));
     await page.getByTestId('production-previous').click();await tick();
