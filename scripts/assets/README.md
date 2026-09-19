@@ -79,3 +79,13 @@ preparation and actual gameplay; evidence remains under ignored `.cache/`.
 under LGPL 2.1-or-later and the unRAR restriction; its package includes licenses and
 source/build references. [Pyodide](https://pyodide.org/) and its packages retain
 their respective licenses. Original game media belongs to Westwood Studios / EA.
+
+## Sidebar upgrades
+
+`sidebar-assets.json` lists all 20 required SHPs per faction and their frame counts.
+`export_sidebar.py` preserves full native atlases, including all 55 clock frames.
+TypeScript readiness checks consume the same contract. With complete older disk
+output and extracted converter cache, `npm run assets:setup -- --sidebar-only`
+updates just the UI; see [sidebar verification](../../docs/sidebar-verification.md).
+Browser readiness schema 3 forces older caches through verified local preparation;
+the cached installer is reused without re-downloading.

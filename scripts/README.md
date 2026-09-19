@@ -53,3 +53,7 @@ after pan, and shared-state 2D/3D roundtrips. Evidence stays under
 `.cache/bootcamp/highland` (override with `RA2_EVIDENCE_DIR`). On a Vite dev server,
 `RA2_HIGHLAND_BASELINE=1` disables the correction only in that browser and must fail
 the same pixel test; it does not modify source or shared game state.
+
+`browser_sidebar.mjs` launches isolated Chrome at port 4226 by default and checks
+both native skins, two sizes, bilingual controls, production/repair/sale and 2D/3D.
+Evidence stays in `.cache/sidebar/evidence/`; see `docs/sidebar-verification.md`.

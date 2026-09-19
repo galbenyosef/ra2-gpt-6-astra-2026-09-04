@@ -2,7 +2,7 @@
 const BASE = new URL(self.registration.scope).pathname;
 const cacheName = name => BASE === '/' ? name : name + ':' + BASE;
 const ORIGINALS = cacheName('ra2-originals-v2');
-const APP = cacheName('ra2-app-v6');
+const APP = cacheName('ra2-app-v7');
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(APP);

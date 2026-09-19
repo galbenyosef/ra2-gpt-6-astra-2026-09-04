@@ -3,7 +3,7 @@
 
 An independent browser RTS with original artwork prepared on the player's device.
 Choose **Skirmish / 遭遇战** to fight computer opponents, or **Bootcamp / 新兵训练营**
-to freely build and recruit supported units on an authored asset training field.
+to freely build and recruit supported units on an asset training field.
 
 Created by [Victor Zhou](https://zzn.im) on 2026-09-04 using
 ChatGPT 6 Astra, with the original result at [v0.1.0](https://github.com/xinbenlv/ra2-gpt-6-astra-2026-09-04/commit/3b9e9eaa2aa3b13db1f1bb1daca0f833d48986bf).
@@ -11,7 +11,7 @@ ChatGPT 6 Astra, with the original result at [v0.1.0](https://github.com/xinbenl
 ## Play
 
 [Play the published version](https://xinbenlv.github.io/ra2-gpt-6-astra-2026-09-04/).
-Bootcamp in this checkout is **v0.4.2**; a local implementation does not update that site.
+Bootcamp in this checkout is **v0.5.0**; a local implementation does not update that site.
 
 ```sh
 npm ci
@@ -19,11 +19,10 @@ npm run dev
 ```
 
 Open the printed localhost URL. Choose a mode. If originals are not prepared, use
-the browser's consent/download or local installer import flow. Files are verified,
-converted and stored locally; the published app never hosts or uploads original media.
+the browser's consent/download or local installer import flow. Files are verified and converted locally; the published app never hosts or uploads original media.
 
-Local dev automatically reuses complete converted `public/assets/` and `public/maps/`
-from this checkout or the shared main checkout, including Bootcamp worktrees. The
+Local dev reuses complete converted `public/assets/` and `public/maps/`
+from this checkout or the shared main checkout, across worktrees. The
 terminal prints `Reusing prepared originals`: no installer download, parsing or
 conversion is needed. Image/audio loading still occurs. Set
 `RA2_PUBLIC_DIR=/absolute/path/to/public` to select another prepared directory, or
@@ -35,8 +34,9 @@ When conversion is needed, dev/preview offers a detected local installer. Set
 `RA2_LOCAL_INSTALLER=/path/to/Red-Alert-2-Multiplayer.exe` for another location.
 This skips the archive download only; the browser still verifies and converts it.
 
-- Skirmish retains nine countries, configurable teams/opponents, native maps, fog,
-  terrain, mining, production, combat, superweapons and victory conditions.
+- Skirmish retains countries, teams, native maps, mining, production and combat.
+- Allied/Soviet production sidebars use native original-art frames, power pips,
+  two-column cameos and production clocks in both 2D and 3D.
 - Bootcamp defaults to traditional Canvas 2D on **every** entry. Open the lower-left
   **Debug Panel** and select **2D / 3D** to change the renderer in the same match.
 - Bootcamp has immediate production and replenished finite credits. It unlocks the
@@ -48,15 +48,13 @@ This skips the archive download only; the browser still verifies and converts it
   3D adds worn roads, wet sand/shallow water and mineral stones that deplete with mining.
 - The 3D view renders terrain and actors with authored GLBs. Selection,
   commands, IDs, positions, health, teams, resources and time survive switching.
-  Failed model loading or WebGL context loss returns to usable 2D with a clear message.
+  Failed model loading or WebGL context loss returns to 2D.
 - Map editor, portable `.ra2map` sharing and original `.map` imports remain available.
 
 ## Models and limits
 
-Supported: Tanya, Apocalypse, Allied Construction Yard, Nuclear Reactor, Soviet
-Refinery, War Miner, Rocketeer, Conscript, approved Rhino v4, Destroyer, Allied
-Barracks and Giant Squid. Environment assets and unfinished third-batch references
-are not recruitable. The UI and engine enforce the same verified catalog.
+The UI and engine enforce the same [12-model catalog](src/bootcamp/README.md).
+Environment assets and unfinished references are not recruitable.
 
 3D supports isometric, perspective and top views: Alt + left drag orbits, middle
 drag pans, and the wheel zooms. See [rendering limits](src/bootcamp/README.md) for
@@ -77,12 +75,12 @@ Authored GLBs are emitted at content-hashed `app/models` paths and loaded on dem
 Original `/assets` and `/maps` remain browser-private; Vite public copying stays off.
 The footer embeds the checkout commit and its commit time. No deployment is implied.
 
-[Bootcamp acceptance](docs/bootcamp-verification.md) · [Detailed game/asset/editor guide](docs/game-guide.md) ·
+[Sidebar acceptance](docs/sidebar-verification.md) · [Bootcamp acceptance](docs/bootcamp-verification.md) · [Detailed game/asset/editor guide](docs/game-guide.md) ·
 [Source map](src/README.md) · [Browser tests](scripts/README.md) · [Local model tools](tools/README.md) ·
 [Earlier verification](docs/verification.md) · [Asset workflow](.agents/skills/ra2-hd-blender/SKILL.md)
 
-Local screenshots and animation evidence include original media and stay under
-ignored `.cache/bootcamp/evidence/`; they are not published as README media.
+Original-media screenshots stay in ignored `.cache/bootcamp/evidence/` and
+`.cache/sidebar/evidence/`; they are not published as README media.
 
 ## Rights and contact
 

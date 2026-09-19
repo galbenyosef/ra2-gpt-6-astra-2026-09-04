@@ -1,3 +1,5 @@
+// Verified browser preparation; only complete native sidebar atlases are marked ready.
+import { missingSidebarAssets } from './hud/skin';
 import SevenZip from '7z-wasm';
 import sevenWasm from '7z-wasm/7zz.wasm?url';
 import { scopedCache } from './urls';
@@ -8,7 +10,7 @@ import { ARCHIVE_CACHE, ORIGINAL_CACHE, ORIGINAL_VERSION, READY_URL, SOURCE_BYTE
 // This is Internet Archive's own CORS endpoint. No application proxy or asset mirror.
 const DOWNLOAD_URL = 'https://cors.archive.org/cors/red-alert-2-multiplayer/Red-Alert-2-Multiplayer.exe';
 const PYODIDE_URL = 'https://cdn.jsdelivr.net/pyodide/v0.29.4/full/pyodide.mjs';
-const pythonSources = import.meta.glob('../scripts/{assets,maps}/*.py', {query:'?raw',import:'default',eager:true}) as Record<string,string>;
+const pythonSources = import.meta.glob('../scripts/{assets,maps}/*.{py,json}', {query:'?raw',import:'default',eager:true}) as Record<string,string>;
 const notify = (stage:string,percent?:number,message?:string) => postMessage({type:'progress',stage,percent,message} satisfies SetupProgress);
 const mime = (name:string) => name.endsWith('.png')?'image/png':name.endsWith('.wav')?'audio/wav':name.endsWith('.json')?'application/json':'text/plain';
 
@@ -100,6 +102,8 @@ async function install(localFile?: Blob) {
   const required=new Set(files);
   const collect=(value:unknown):void=>{if(typeof value==='string' && /^\/(?:assets|maps)\//.test(value))required.add(value);else if(Array.isArray(value))value.forEach(collect);else if(value && typeof value==='object')Object.values(value).forEach(collect);};
   for(const file of ['/assets/manifest.json','/assets/terrain/manifest-tiles.json','/assets/scenery/manifest-scenery.json','/maps/catalog.json']){const response=await cache.match(file);if(!response)throw new Error('Missing original metadata: '+file);collect(await response.json());}
+  const manifest=await (await cache.match('/assets/manifest.json'))!.json();
+  if(missingSidebarAssets(manifest.ui || {}).length)throw new Error('Sidebar conversion is incomplete. Please retry.');
   for(const map of listMaps())required.add('/maps/'+map.filename);
   if(files.length<3000 || ![...required].every(file=>keys.has(file)))throw new Error('Browser storage verification failed. Please retry.');
   await cache.put(READY_URL,Response.json({version:ORIGINAL_VERSION,sourceSha256:SOURCE_SHA256,files,installedAt:new Date().toISOString()}));

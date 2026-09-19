@@ -8,6 +8,7 @@ main.ts -> mode menu -> asset preparation -> lobby/editor -> battle
   game/                deterministic simulation, data and tests
   renderer.ts          original terrain, controls, sprites, minimap and HUD
   bootcamp/            training map, verified GLBs, rotating camera and switch lifecycle
+  hud/                 native faction sidebar frames, geometry and production cards
   assets.ts            browser original-art/audio consumers
   asset-setup/worker   local download and conversion
   maps/custom-*        original and portable editor maps
@@ -27,4 +28,4 @@ fallback. Static sites retain the normal download and file picker flows.
 
 Several existing modules (`engine.ts`, CSS and the compact main UI templates) exceed
 the normal byte/line guideline. Their tightly coupled legacy state is retained for
-this integration; new render lifecycle/model code is split into the Bootcamp folder.
+this integration; new render lifecycle/model code is split into Bootcamp and native sidebar code into `hud/`.

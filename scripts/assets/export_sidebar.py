@@ -1,14 +1,21 @@
 """Convert original faction sidebar chrome and cursor SHP animations."""
 import json
+from pathlib import Path
 import export_assets as e
 
 def main():
  e.manifest=json.loads((e.OUT/'manifest.json').read_text())
  for side in ['sidec01','sidec02']:
   pal=bytes(v*4 for v in e.M[side].get('sidebar.pal'))
-  for name in ['tab01','tab02','tab03','side1','side2','side3','radar','top','repair','sell','map','pause','sidebar','silo','power','powerp','powerb','bpower','batt','build','clock','pwrbar','radaract','radaroff','radaron']:
-   b=e.M[side].get(name+'.shp')
-   if b:e.export(side+'-'+name,b,pal,kind='ui',maxframes=40,shadow=False,anchor=(0,0))
+  required=json.loads(Path(__file__).with_name('sidebar-assets.json').read_text())
+  for name,frames in required.items():
+   # Prefer the selected faction; some distributions place extra frames in CD MIX.
+   source,b=next(((key,e.M[key].get(name+'.shp')) for key in [side+'cd',side] if key in e.M and e.M[key].get(name+'.shp')), (None,None))
+   if not b:raise RuntimeError(f'Missing required sidebar asset: {side}/{name}.shp')
+   entry=e.export(side+'-'+name,b,pal,kind='ui',maxframes=frames,shadow=False,anchor=(0,0))
+   if entry['frames']!=frames:raise RuntimeError(f'Incomplete sidebar frames: {side}/{name}')
+   entry['originalFile']=name+'.shp'
+   entry['originalArchive']=source+'.mix'
  for name,pal,archive in [('mnscrnl','shell','neutral'),('mnscrns','shell','neutral'),('glsl','gls','local')]:
   b=e.M[archive].get(name+'.shp');pb=e.find(pal+'.pal')
   if b and pb:e.export(name,b,bytes(v*4 for v in pb),kind='ui',shadow=False,anchor=(0,0))

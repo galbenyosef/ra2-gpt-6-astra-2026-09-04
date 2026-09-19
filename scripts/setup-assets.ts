@@ -1,4 +1,5 @@
 /** Download and convert original RA2 data. The Windows installer is never run. */
+import { missingSidebarAssets } from '../src/hud/skin';
 import { spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createReadStream, createWriteStream } from 'node:fs';
@@ -24,7 +25,7 @@ export interface AssetReadiness {
 }
 
 /** Validate metadata and every referenced image, native map and sound; no mutations. */
-export async function checkAssetsReady(publicDir = publicDirectory()): Promise<AssetReadiness> {
+export async function checkAssetsReady(publicDir = publicDirectory(), requireSidebar = true): Promise<AssetReadiness> {
   const missing: string[] = [];
   const files = new Set<string>();
   const documents = new Map<string, unknown>();
@@ -42,6 +43,7 @@ export async function checkAssetsReady(publicDir = publicDirectory()): Promise<A
   for (const [key, minimum] of [['sprites', 130], ['cameos', 130], ['ui', 47], ['sounds', 1375], ['music', 3], ['overlays', 978]] as const) {
     if (Object.keys(record(manifest[key])).length < minimum) missing.push(`assets/manifest.json:${key} (expected at least ${minimum})`);
   }
+  if (requireSidebar) for (const key of missingSidebarAssets(record(manifest.ui))) missing.push(`assets/manifest.json:ui.${key}`);
   if (record(manifest.source).sha256 !== SOURCE_SHA256) missing.push('assets/manifest.json:source.sha256');
   const sprites = record(manifest.sprites);
   for (const name of ['fv-turret0', 'fv-turret1', 'fv-turret2', 'fv-turret3']) {
@@ -166,12 +168,24 @@ async function writeReady(publicDir: string, checked: AssetReadiness): Promise<v
 
 async function install(): Promise<void> {
   const args = new Set(process.argv.slice(2));
-  for (const arg of args) if (!['--check', '--force', '--help'].includes(arg)) throw new Error(`Unknown argument: ${arg}. Use --check, --force, or --help.`);
+  for (const arg of args) if (!['--check', '--force', '--help', '--sidebar-only'].includes(arg)) throw new Error(`Unknown argument: ${arg}. Use --check, --force, --sidebar-only, or --help.`);
   if (args.has('--help')) {
-    console.log('Usage: npm run assets:setup [-- --force]\n       npm run assets:check\n\nDownloads the verified original archive and converts it locally without running Windows executables.\nRequires Python 3.10+, 7zz (or 7z), FFmpeg; uv is optional.\nOverrides: RA2_ASSET_CACHE, RA2_PUBLIC_DIR, RA2_PYTHON, RA2_7ZIP, RA2_FFMPEG.');
+    console.log('Usage: npm run assets:setup [-- --force | --sidebar-only]\n       npm run assets:check\n\nDownloads the verified original archive and converts it locally without running Windows executables.\nRequires Python 3.10+, 7zz (or 7z), FFmpeg; uv is optional.\nOverrides: RA2_ASSET_CACHE, RA2_PUBLIC_DIR, RA2_PYTHON, RA2_7ZIP, RA2_FFMPEG.');
     return;
   }
   const destination = publicDirectory();
+  if (args.has('--sidebar-only')) {
+    const base = await checkAssetsReady(destination, false);
+    if (!base.ready) throw new Error('Sidebar-only upgrade needs complete existing originals. Run the full setup first.');
+    const cache = configuredPath('RA2_ASSET_CACHE', '.cache/ra2-assets');
+    const python = process.env.RA2_PYTHON || path.join(cache, 'venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python');
+    await run(python, ['scripts/assets/export_sidebar.py'], {...process.env, RA2_ASSET_CACHE:cache, RA2_PUBLIC_DIR:destination});
+    const upgraded = await checkAssetsReady(destination);
+    if (!upgraded.ready) throw new Error(`Sidebar upgrade is incomplete: ${upgraded.missing.join(', ')}`);
+    await writeReady(destination, upgraded);
+    progress('complete', 'Original sidebar upgraded; existing maps, sprites and sound retained.', 100);
+    return;
+  }
   const checked = await checkAssetsReady(destination);
   if (args.has('--check')) {
     console.log(JSON.stringify(checked));

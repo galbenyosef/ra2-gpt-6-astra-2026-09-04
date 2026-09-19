@@ -4,7 +4,8 @@ import { mountBuildVersion } from './build-version';
 import { APP_TITLE } from './project';
 import { projectNotice, sourceCodeLink } from './project-notice';
 import { mountRendererSwitch } from './bootcamp/switcher';
-import { bootcampTypes } from './bootcamp/catalog.js';
+import { Sidebar, sidebarMarkup } from './hud/sidebar';
+import { renderProduction } from './hud/production';
 import { mountDebugPanel } from './debug-panel';
 import { appUrl } from './urls';
 import { t, registerTranslations, localizeElement, languageControl, bindLanguageControl } from './i18n';
@@ -39,7 +40,7 @@ registerTranslations({
   '上传 .ra2map / .map / .mpr':'Upload .ra2map / .map / .mpr',
   '地图已加入遭遇战。':'Map added to skirmish.',
 });
-for (const [name, file] of Object.entries({ 'menu-map':'mnscrnl', 'loading-art':'glsl', 'allied-sidebar':'sidec01-top', 'soviet-sidebar':'sidec02-top' }))
+for (const [name, file] of Object.entries({ 'menu-map':'mnscrnl', 'loading-art':'glsl' }))
   document.documentElement.style.setProperty(`--${name}`, `url("${appUrl(`/assets/ui/${file}.png`)}")`);
 registerTranslations(Object.fromEntries(COUNTRIES.map(country => [country.name, country.nameEn])));
 const nameCounts = new Map<string, number>();
@@ -57,6 +58,7 @@ interface Slot { country: CountryId | 'random'; difficulty: Difficulty | 'closed
 const slots: Slot[] = Array.from({length:8},(_,i)=>({country:i===0?'america':i===1?'russia':'random',difficulty:i===0?'human':i===1?'medium':'closed',color:i,team:0,position:i===0?0:i===1?4:-1}));
 let mode: 'skirmish' | 'bootcamp' = 'skirmish';
 let loaded = false;
+let sidebar: Sidebar | undefined;
 let disposeSwitch: (()=>void) | undefined;
 let selectedMapId = 'mp22s8';
 let selectedMap: MapData;
@@ -75,6 +77,7 @@ let disposeEditor: (() => void) | undefined;
 const groups = new Map<string, number[]>();
 
 function renderModeSelect() {
+  sidebar?.destroy();sidebar=undefined;
   disposeSwitch?.();disposeSwitch=undefined;disposeEditor?.();disposeEditor=undefined;
   playing=false;cancelAnimationFrame(animation);renderer?.destroy();renderer=undefined;game=undefined;
   app.innerHTML=`<main class="shell mode-screen" data-testid="mode-screen"><header class="header"><h1 class="app-title">${APP_TITLE}</h1>${languageControl()}</header><h2>选择模式</h2>
@@ -116,6 +119,7 @@ function countryOptions(value: string, random = true) {
 }
 function option(value: number | string, text: string, current: number | string) { return `<option value="${value}" ${value===current?'selected':''}>${text}</option>`; }
 function renderLobby() {
+  sidebar?.destroy();sidebar=undefined;
   disposeSwitch?.();disposeSwitch=undefined;
   disposeEditor?.();disposeEditor=undefined;
   playing = false; shownResult = false; cancelAnimationFrame(animation); renderer?.destroy();renderer=undefined;game=undefined;
@@ -243,7 +247,8 @@ async function startGame(){
 }
 function renderGame(map:RenderMap){
   const faction=game!.players[0].faction;
-  app.innerHTML=`<main class="game-screen"><header class="game-top"><div class="left"><button id="game-options">选项 <small>Esc</small></button><div class="game-heading"><h1 class="app-title">${APP_TITLE}</h1><span class="game-title">${escape(selectedMap.name)} · ${mode==='bootcamp'?'新兵训练营':'遭遇战'}</span></div></div><div class="right">${languageControl()}<span class="game-time" id="game-time">00:00</span><span class="speed-label">速度</span><button id="game-speed">${gameSpeed}×</button><button id="game-help" title="操作说明">?</button></div></header><div class="game-body"><section class="battlefield" id="battlefield"><canvas id="battlefield-canvas" tabindex="0" aria-label="即时战略战场"></canvas><div class="hud-message" id="hud-message"></div><div class="battlefield-tools" id="battlefield-tools"><div class="hud-objective" id="hud-objective"></div></div><div class="selection-info" id="selection-info"></div></section><aside class="sidebar ${faction}"><div class="sidebar-brand"><span class="faction-symbol">${faction==='soviet'?'★':'◆'}</span>${faction==='soviet'?'SOVIET':'ALLIED'}<span class="eyebrow">COMMAND</span></div><div class="credits"><small>$</small><span id="money">${credits.toLocaleString()}</span></div><div class="radar"><canvas id="radar" aria-label="战场雷达"></canvas><span class="radar-label">TACTICAL RADAR</span></div><div class="power-line"><span>ϟ</span><div class="power-bar" id="power-bar"><i></i></div><span class="power-readout" id="power-readout">0 / 0</span></div><div class="sidebar-tools"><button id="repair" title="修理建筑">维修</button><button id="sell" title="出售建筑">出售</button><button id="deploy" title="部署选中单位（D）">部署</button><button id="home" title="返回基地（H）">基地</button></div><nav class="build-tabs" aria-label="建造分类"><button data-category="structure" class="active" title="建筑"><span>▥</span><small>建筑</small></button><button data-category="defense" title="防御"><span>⌖</span><small>防御</small></button><button data-category="infantry" title="步兵"><span>♟</span><small>步兵</small></button><button data-category="vehicle" title="战车 / 飞机 / 舰艇"><span>▰</span><small>载具</small></button></nav><div class="build-list" id="build-list"></div><div id="support-list" class="support-list"></div><div class="build-detail" id="build-detail"><strong>建造面板</strong><br>选择建筑或部队开始生产。</div></aside></div><footer class="game-bottom"><span id="selection-label">没有选中单位</span><span class="hotkeys">左键选择 · 右键命令 · D 部署 · H 基地 · 滚轮缩放</span><span id="battle-status">战场控制在线</span></footer></main>`;
+  app.innerHTML=`<main class="game-screen"><header class="game-top"><div class="left"><button id="deploy" title="部署选中单位（D）">部署</button><button id="home" title="返回基地（H）">基地</button><div class="game-heading"><h1 class="app-title">${APP_TITLE}</h1><span class="game-title">${escape(selectedMap.name)} · ${mode==='bootcamp'?'新兵训练营':'遭遇战'}</span></div></div><div class="right">${languageControl()}<span class="game-time" id="game-time">00:00</span><span class="speed-label">速度</span><button id="game-speed">${gameSpeed}×</button><button id="game-help" title="操作说明">?</button></div></header><div class="game-body"><section class="battlefield" id="battlefield"><canvas id="battlefield-canvas" tabindex="0" aria-label="即时战略战场"></canvas><div class="hud-message" id="hud-message"></div><div class="battlefield-tools" id="battlefield-tools"><div class="hud-objective" id="hud-objective"></div><div id="support-list" class="support-list"></div></div><div class="selection-info" id="selection-info"></div></section>${sidebarMarkup}</div><footer class="game-bottom"><span id="selection-label">没有选中单位</span><span class="hotkeys">左键选择 · 右键命令 · D 部署 · H 基地 · 滚轮缩放</span><span id="battle-status">战场控制在线</span></footer></main>`;
+  sidebar=new Sidebar($('.ra2-sidebar'),assets,faction);
   renderer=new BattlefieldRenderer($('#battlefield-canvas'),game!,map,assets,{
     onSelection:()=>{updateSelection();const selected=game!.entities.find(e=>renderer?.selection.has(e.id));if(selected)sound.voice(selected.type,'select');},onCommand:(kind)=>{const selected=game!.entities.find(e=>renderer?.selection.has(e.id));if(kind==='deploy')sound.play('uplace');else if(selected)sound.voice(selected.type,kind==='attack'?'attack':'move');if(renderer&&!renderer.attackMove)$('#battlefield').classList.remove('attack-mode');},onNotice:text=>{notice(text);clearTools();},
     onPlace:(x,y)=>{
@@ -257,39 +262,27 @@ function renderGame(map:RenderMap){
       return false;
     }
   });renderer.attachMinimap($('#radar'));
+  $('#sidebar-status').onclick=()=>showModal('外交与战况',`<table class="score-table"><thead><tr><th>指挥官</th><th>国家</th><th>关系</th></tr></thead><tbody>${game!.players.map(p=>`<tr><td>${escape(t(p.name))}</td><td>${escape(t(countryById(p.country).name))}</td><td>${game!.isAllied(0,p.id)?t('友方'):t('敌方')}</td></tr>`).join('')}</tbody></table>`,'');
   $('#game-options').onclick=showPause;$('#game-help').onclick=showHelp;
   $('#game-speed').onclick=()=>{gameSpeed=gameSpeed===.75?1:gameSpeed===1?1.5:gameSpeed===1.5?2:.75;game!.speed=gameSpeed;$('#game-speed').textContent=`${gameSpeed}×`;};
   $('#repair').onclick=()=>setTool('repair');$('#sell').onclick=()=>setTool('sell');$('#home').onclick=()=>renderer!.home();$('#deploy').onclick=deploySelection;
-  document.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(el=>el.onclick=()=>{category=el.dataset.category as ProductionCategory;renderBuildList();});
+  document.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(el=>el.onclick=()=>{category=el.dataset.category as ProductionCategory;sidebar?.resetScroll();renderBuildList();});
   const debug = mountDebugPanel($('#battlefield-tools'),game!,sound,()=>{updateUI();renderer!.draw();});
   if(game!.bootcamp)disposeSwitch=mountRendererSwitch(debug,renderer);
   renderer.canvas.dataset.renderer='2d';
   renderBuildList();updateUI();bindLanguage();
 }
-function setTool(tool:'repair'|'sell'){if(!renderer)return;const next=renderer.tool===tool?'select':tool;clearTools();renderer.tool=next;renderer.placement=undefined;renderer.attackMove=false;$('#repair').classList.toggle('active',renderer.tool==='repair');$('#sell').classList.toggle('active',renderer.tool==='sell');$('#battlefield').className='battlefield '+(renderer.tool==='select'?'':`${renderer.tool}-mode`);}
-function clearTools(){if(!renderer)return;renderer.tool='select';renderer.placement=undefined;renderer.attackMove=false;supportMode=undefined;$('#repair')?.classList.remove('active');$('#sell')?.classList.remove('active');$('#battlefield').className='battlefield';}
+function setTool(tool:'repair'|'sell'){if(!renderer)return;const next=renderer.tool===tool?'select':tool;clearTools();renderer.tool=next;renderer.placement=undefined;renderer.attackMove=false;$('#repair').classList.toggle('active',renderer.tool==='repair');$('#sell').classList.toggle('active',renderer.tool==='sell');sidebar?.update(game!,category,renderer.tool);$('#battlefield').className='battlefield '+(renderer.tool==='select'?'':`${renderer.tool}-mode`);}
+function clearTools(){if(!renderer)return;renderer.tool='select';renderer.placement=undefined;renderer.attackMove=false;supportMode=undefined;$('#repair')?.classList.remove('active');$('#sell')?.classList.remove('active');sidebar?.update(game!,category,renderer.tool);$('#battlefield').className='battlefield';}
 function deploySelection(){if(!game||!renderer)return;game.deploy([...renderer.selection]);game.unload([...renderer.selection]);renderBuildList();updateSelection();sound.play(`${game.players[0].faction}_newconstructionoptions`);}
-function cameoUrl(cameo:string,sprite:string){const key=cameo.replace(/icon$/,'');const item=assets.manifest.cameos?.[key]||assets.manifest.cameos?.[sprite];return typeof item==='string'?item:item?.src;}
 function renderBuildList(){
-  if(!game||!renderer)return;if(document.querySelector('.build-item:active'))return;const p=game.players[0];
-  document.querySelectorAll<HTMLButtonElement>('[data-category]').forEach(el=>el.classList.toggle('active',el.dataset.category===category));
-  const all=Object.values(CATALOG).filter(d=>!d.neutral&&(category==='vehicle'?['vehicle','aircraft','naval'].includes(d.category):d.category===category)&&(game!.bootcamp?bootcampTypes.has(d.id):(d.faction===p.faction||d.faction==='both')&&(!d.country||d.country===p.country)&&!d.id.includes('construction_yard')));
-  const hasYard=game.entities.some(e=>e.owner===0&&e.type.includes('construction_yard')&&e.hp>0);
-  if(!game.bootcamp&&!hasYard&&(category==='structure'||category==='defense')){buildSignature='';$('#build-list').innerHTML='<div class="empty-production"><span>⌘</span><strong>等待基地部署</strong><p>选中基地车<br>双击或按 D 展开</p></div>';translateUI($('#build-list'));return;}
-  const unlocked = new Set(game.getAvailable(0).map(d=>d.id));
-  const canSee=all.filter(d=>unlocked.has(d.id)||p.queues[d.category].some(q=>q.type===d.id)||d.category==='structure'||d.category==='defense').filter(d=>superweapons||!['chronosphere','weather_control','iron_curtain','nuclear_silo'].includes(d.id));
-  const signature=category+canSee.map(d=>`${d.id}:${game!.canBuild(0,d.id)}:${p.queues[d.category].map(q=>q.type+q.ready).join(',')}`).join('|');
-  if(signature===buildSignature){document.querySelectorAll<HTMLElement>('[data-build]').forEach(el=>{const def=CATALOG[el.dataset.build!],first=p.queues[def.category][0],mask=el.querySelector<HTMLElement>('.progress-mask');if(mask&&first?.type===def.id)mask.style.setProperty('--progress',`${Math.round(first.progress*100)}%`);});return;}buildSignature=signature;
-  $('#build-list').innerHTML=canSee.map(d=>{const q=p.queues[d.category],items=q.filter(v=>v.type===d.id),first=q[0]?.type===d.id?q[0]:undefined;const ready=items.some(v=>v.ready),can=game!.canBuild(0,d.id)||items.length>0;const url=cameoUrl(d.cameo,d.sprite);return `<button class="build-item ${can?'':'locked'} ${items.length?'queued':''}" data-testid="build-item" data-build="${d.id}" aria-label="${escape(d.name)}，${d.cost} 资金${ready?'，就绪':''}" title="${escape(d.name)} — $${d.cost}\n${escape(d.description)}\n${escape(game!.getBuildReason(0,d.id))}">${url?`<img src="${url}" alt="${escape(d.name)}" draggable="false"/>`:`<div class="placeholder-cameo">${d.name.slice(0,2)}</div>`}<span class="cost">${d.cost}</span>${first&&!ready?`<span class="progress-mask" style="--progress:${Math.round(first.progress*100)}%"></span>`:''}${items.length>1?`<span class="queue-count">${items.length}</span>`:''}${ready?'<span class="ready-text">就 绪</span>':''}<span class="item-name">${escape(d.name)}</span></button>`;}).join('');
-  if(!canSee.length && game.bootcamp)$('#build-list').innerHTML='<p class="empty-production">该分类尚无已验证的 3D 模型。</p>';
-  else if(!canSee.length)$('#build-list').innerHTML='<div class="empty-production"><strong>尚无生产设施</strong><p>先在建筑页建造对应的兵营、战车工厂或船坞。</p></div>';
-  document.querySelectorAll<HTMLButtonElement>('[data-build]').forEach(el=>{
-    const id=el.dataset.build!,d=CATALOG[id];
-    el.onclick=()=>{const item=game!.players[0].queues[d.category].find(q=>q.type===id&&q.ready);if(item){clearTools();renderer!.placement=d;renderer!.tool='select';$('#battlefield').className='battlefield build-mode';notice(`选择 ${d.name} 的建造位置。右键取消。`);}else{if(!game!.build(0,id)){notice(game!.getBuildReason(0,id)||'当前无法生产。',true);}else sound.play(`${p.faction}_${d.kind==='building'?'building':d.category==='infantry'?'training':'unitready'}`);renderBuildList();}};
-    el.oncontextmenu=e=>{e.preventDefault();game!.cancelBuild(0,d.category);renderBuildList();};
-    el.onmouseenter=()=>{$('#build-detail').innerHTML=`<strong>${escape(d.name)} · $${d.cost}</strong><br>${escape(d.description)}`;translateUI($('#build-detail'));};
-  });
-  translateUI($('#build-list'));
+  if(!game||!renderer||!sidebar)return;
+  buildSignature=renderProduction({game,assets,category,superweapons,clock:sidebar.ui.gclock2,
+    onBuild:id=>{const d=CATALOG[id],p=game!.players[0];if(!game!.build(0,id))notice(game!.getBuildReason(0,id)||'当前无法生产。',true);else sound.play(`${p.faction}_${d.kind==='building'?'building':d.category==='infantry'?'training':'unitready'}`);renderBuildList();},
+    onReady:id=>{const d=CATALOG[id];clearTools();renderer!.placement=d;renderer!.tool='select';$('#battlefield').className='battlefield build-mode';notice(`选择 ${d.name} 的建造位置。右键取消。`);},
+    onCancel:kind=>{game!.cancelBuild(0,kind);renderBuildList();},
+  },buildSignature);
+  sidebar.update(game,category,renderer.tool);sidebar.refresh();
 }
 function updateSelection(){
   if(!game||!renderer)return;const entities=game.entities.filter(e=>renderer!.selection.has(e.id)&&e.hp>0);
@@ -298,8 +291,7 @@ function updateSelection(){
   translateUI($('#selection-info'));translateUI($('#selection-label'));
 }
 function updateUI(){
-  if(!game||!renderer)return;const p=game.players[0];$('#money').textContent=Math.floor(p.credits).toLocaleString();
-  $('#power-readout').textContent=`${p.powerConsumed} / ${p.powerProduced}`;$('#power-bar').classList.toggle('low',p.powerConsumed>p.powerProduced);$('#power-bar i').style.width=`${Math.min(100,p.powerProduced?100*p.powerConsumed/p.powerProduced:0)}%`;
+  if(!game||!renderer)return;const p=game.players[0];
   const mins=Math.floor(game.time/60),secs=Math.floor(game.time%60);$('#game-time').textContent=`${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
   $('#battle-status').textContent=game.paused?'已暂停':p.powerConsumed>p.powerProduced?'电力不足':`剩余阵营 ${new Set(game.players.filter(v=>!v.defeated).map(v=>v.team)).size}`;
   const hasYard=game.entities.some(e=>e.owner===0&&e.type.includes('construction_yard')&&e.hp>0),hasRefinery=game.entities.some(e=>e.owner===0&&e.type.includes('refinery')&&e.hp>0);
