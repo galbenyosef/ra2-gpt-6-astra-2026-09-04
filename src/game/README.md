@@ -21,6 +21,11 @@ updates are disabled, including retaliation and pursuit. Automatic elimination i
 disabled in training. Unsupported transformations (yard to MCV) and support units
 are rejected. Skirmish follows the existing AI, prerequisites and victory rules.
 
+The Debug Panel applies credits, map reveal and instant production independently to
+the friendly side or enemy side. Friendly includes the local player and allied players.
+Credit removal stops at zero. A manual credit adjustment persists in Bootcamp while
+production remains free. Audio muting remains global.
+
 Run `node --import tsx --test src/game/*.test.ts`. The existing simulation class
 exceeds the standard file-length limit; preserving its private state boundaries
 avoids an unrelated engine rewrite during this integration.

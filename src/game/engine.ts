@@ -35,9 +35,12 @@ export class GameEngine {
   status: 'playing' | 'victory' | 'defeat' = 'playing';
   winnerTeam: number | null = null;
   lastMessage = '';
-  debugRevealMap = false;
-  private instantProduction = false;
-  get debugInstantProduction(): boolean { return this.instantProduction; }
+  private debugRevealPlayers = new Set<number>();
+  private instantProductionPlayers = new Set<number>();
+  private debugAdjustedCredits = new Set<number>();
+  get debugRevealMap(): boolean { return this.getDebugMapReveal(this.localPlayerId); }
+  set debugRevealMap(enabled: boolean) { this.setDebugMapReveal(enabled); }
+  get debugInstantProduction(): boolean { return this.getDebugInstantProduction(this.localPlayerId); }
   ore: Float32Array;
   private blocked: Uint8Array;
   private nextId = 1;
@@ -53,9 +56,9 @@ export class GameEngine {
 
   constructor(options: GameOptions) {
     this.mode = options.mode ?? 'skirmish';
-    this.instantProduction = this.bootcamp;
     this.map = { ...options.map, cells: [...options.map.cells] };
     this.localPlayerId = options.localPlayerId ?? options.players.find(p => !p.ai)?.id ?? 0;
+    if (this.bootcamp) this.instantProductionPlayers.add(this.localPlayerId);
     this.fogOfWar = options.fogOfWar ?? true;
     this.superweapons = options.superweapons ?? true;
     this.shortGame = options.shortGame ?? true;
@@ -164,13 +167,24 @@ export class GameEngine {
   }
 
   getPlayer(id = this.localPlayerId): PlayerState | undefined { return id === -1 ? this.neutralPlayer : this.players.find(p => p.id === id); }
-  grantDebugCredits(): void {
-    const player = this.getPlayer();
-    if (player && !player.defeated && this.status === 'playing') player.credits += 10000;
+  adjustDebugCredits(amount: number, playerId = this.localPlayerId): void {
+    const player = this.getPlayer(playerId);
+    if (!Number.isFinite(amount) || !player || player.defeated || this.status !== 'playing') return;
+    this.debugAdjustedCredits.add(playerId);
+    player.credits = clamp(player.credits + amount, 0, Number.MAX_SAFE_INTEGER);
   }
-  setDebugInstantProduction(enabled: boolean): void {
-    this.instantProduction = this.bootcamp || enabled;
-    const player = this.getPlayer();
+  grantDebugCredits(playerId = this.localPlayerId): void { this.adjustDebugCredits(10000, playerId); }
+  deductDebugCredits(playerId = this.localPlayerId): void { this.adjustDebugCredits(-10000, playerId); }
+  getDebugMapReveal(playerId: number): boolean { return this.debugRevealPlayers.has(playerId); }
+  setDebugMapReveal(enabled: boolean, playerId = this.localPlayerId): void {
+    if (enabled) this.debugRevealPlayers.add(playerId);
+    else this.debugRevealPlayers.delete(playerId);
+  }
+  getDebugInstantProduction(playerId: number): boolean { return this.instantProductionPlayers.has(playerId); }
+  setDebugInstantProduction(enabled: boolean, playerId = this.localPlayerId): void {
+    if (enabled) this.instantProductionPlayers.add(playerId);
+    else this.instantProductionPlayers.delete(playerId);
+    const player = this.getPlayer(playerId);
     if (!enabled || !player || player.defeated || this.status !== 'playing') return;
     // Complete already-paid queues as well as future purchases. Buildings still need placement.
     const rounds = Math.max(...CATEGORIES.map(category => player.queues[category].length));
@@ -188,11 +202,11 @@ export class GameEngine {
     return this.map.cells[ty * this.map.width + tx] ?? 'void';
   }
   visible(playerId: number, x: number, y: number): boolean {
-    if (!this.fogOfWar || (this.debugRevealMap && playerId === this.localPlayerId)) return this.terrainAt(x, y) !== 'void';
+    if (!this.fogOfWar || this.getDebugMapReveal(playerId)) return this.terrainAt(x, y) !== 'void';
     return !!this.getPlayer(playerId)?.fog[Math.floor(y) * this.map.width + Math.floor(x)];
   }
   explored(playerId: number, x: number, y: number): boolean {
-    if (!this.fogOfWar || (this.debugRevealMap && playerId === this.localPlayerId)) return this.terrainAt(x, y) !== 'void';
+    if (!this.fogOfWar || this.getDebugMapReveal(playerId)) return this.terrainAt(x, y) !== 'void';
     return !!this.getPlayer(playerId)?.explored[Math.floor(y) * this.map.width + Math.floor(x)];
   }
   isPowered(playerId: number): boolean {
@@ -243,10 +257,11 @@ export class GameEngine {
     const reason = this.getBuildReason(playerId, type);
     if (reason) { this.lastMessage = reason; return false; }
     const p = this.getPlayer(playerId)!, d = getDefinition(type);
-    p.credits = this.bootcamp && playerId === this.localPlayerId ? BOOTCAMP_CREDITS : p.credits - d.cost;
-    p.queues[d.category].push({ type, progress: 0, duration: d.buildTime, ready: false, paid: d.cost });
+    const free = this.bootcamp && playerId === this.localPlayerId;
+    p.credits = free ? (this.debugAdjustedCredits.has(playerId) ? p.credits : BOOTCAMP_CREDITS) : p.credits - d.cost;
+    p.queues[d.category].push({ type, progress: 0, duration: d.buildTime, ready: false, paid: free ? 0 : d.cost });
     this.lastMessage = `${d.name}：开始生产`;
-    if ((this.bootcamp || this.instantProduction) && playerId === this.localPlayerId) this.advanceProduction(p, 0);
+    if (this.getDebugInstantProduction(playerId)) this.advanceProduction(p, 0);
     return true;
   }
   cancelBuild(playerId: number, category: ProductionCategory): boolean {
@@ -567,7 +582,7 @@ export class GameEngine {
   }
   private tick(dt: number) {
     this.time += dt;
-    if (this.bootcamp) this.getPlayer()!.credits = BOOTCAMP_CREDITS;
+    if (this.bootcamp && !this.debugAdjustedCredits.has(this.localPlayerId)) this.getPlayer()!.credits = BOOTCAMP_CREDITS;
     this.visibilityTimer -= dt; this.economyTimer -= dt;
     if (this.visibilityTimer <= 0) { this.visibilityTimer = .4; this.updateFog(); this.rebuildSpatial(); }
     if (this.economyTimer <= 0) { this.economyTimer = 1; this.updatePower(); this.checkVictory(); }
@@ -606,7 +621,7 @@ export class GameEngine {
       const producers = Math.min(3, this.entities.filter(e => e.owner === p.id && getDefinition(e.type).producer === category).length);
       const powered = this.isPowered(p.id) ? 1 : .35;
       const difficulty = !p.ai ? 1 : p.difficulty === 'easy' ? .75 : p.difficulty === 'hard' ? 1.15 : 1;
-      item.progress = (this.bootcamp || this.instantProduction) && p.id === this.localPlayerId ? 1
+      item.progress = this.getDebugInstantProduction(p.id) ? 1
         : Math.min(1, item.progress + dt / item.duration * powered * difficulty * (1 + Math.max(0, producers - 1) * .2));
       if (item.progress < 1) continue;
       if (d.kind === 'building') { item.ready = true; this.event(`${d.name}已就绪，请选择放置位置。`, p.id, 'complete'); }

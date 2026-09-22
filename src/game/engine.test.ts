@@ -58,16 +58,20 @@ test('canceling a queued item refunds exactly its paid cost', () => {
   assert.equal(engine.getPlayer(0)!.queues.structure.length, 0);
 });
 
-test('debug credits are additive and target the configured local player', () => {
+test('debug credits can be added and removed independently for each side', () => {
   const engine = game({ localPlayerId: 1 });
   engine.grantDebugCredits(); engine.grantDebugCredits();
   assert.equal(engine.getPlayer(1)!.credits, 40000);
   assert.equal(engine.getPlayer(0)!.credits, 20000);
+  engine.deductDebugCredits(1);
+  engine.adjustDebugCredits(-50000, 0);
+  assert.equal(engine.getPlayer(1)!.credits, 30000);
+  assert.equal(engine.getPlayer(0)!.credits, 0);
   engine.status = 'defeat'; engine.grantDebugCredits();
-  assert.equal(engine.getPlayer(1)!.credits, 40000);
+  assert.equal(engine.getPlayer(1)!.credits, 30000);
 });
 
-test('debug reveal survives fog updates, affects only the local player and restores fog when disabled', () => {
+test('debug reveal survives fog updates and can target friendly and enemy players independently', () => {
   const engine = game({ fogOfWar: true, localPlayerId: 1 });
   assert.equal(engine.visible(1, 30, 30), false);
   assert.equal(engine.explored(1, 30, 30), false);
@@ -77,10 +81,15 @@ test('debug reveal survives fog updates, affects only the local player and resto
   assert.equal(engine.explored(1, 30, 30), true);
   assert.equal(engine.visible(0, 30, 30), false);
   assert.equal(engine.explored(0, 30, 30), false);
+  engine.setDebugMapReveal(true, 0);
+  assert.equal(engine.visible(0, 30, 30), true);
+  assert.equal(engine.explored(0, 30, 30), true);
   assert.equal(engine.visible(1, -1, 0), false);
   engine.debugRevealMap = false;
   assert.equal(engine.visible(1, 30, 30), false);
   assert.equal(engine.explored(1, 30, 30), false);
+  assert.equal(engine.visible(0, 30, 30), true);
+  engine.setDebugMapReveal(false, 0);
   assert.equal(game().debugRevealMap, false);
 });
 
@@ -93,6 +102,9 @@ test('instant production completes paid queues and recruitment without bypassing
   assert.equal(engine.getPlayer(0)!.queues.structure[0].ready, true);
   assert.equal(engine.getPlayer(0)!.credits, paidCredits);
   assert.equal(engine.getPlayer(1)!.queues.structure[0].ready, false);
+  engine.setDebugInstantProduction(true, 1);
+  assert.equal(engine.getPlayer(1)!.queues.structure[0].ready, true);
+  engine.setDebugInstantProduction(false, 1);
   assert.equal(engine.build(0, 'war_factory'), false);
   assert.equal(engine.canPlace(0, 'power_plant', 12, 12), false);
   assert.ok(engine.place(0, 'power_plant', 17, 10));

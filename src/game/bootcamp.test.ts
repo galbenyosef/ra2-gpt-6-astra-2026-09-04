@@ -101,8 +101,7 @@ for (const type of Object.keys(expectedSprites)) {
     for (const building of engine.entities.filter(e => e.owner === 0 && e.kind === 'building')) engine.sell(building.id);
     const before = new Set(engine.entities.map(e => e.id));
     player.credits = 0;
-    engine.setDebugInstantProduction(false);
-    assert.equal(engine.debugInstantProduction, true, 'training production cannot be accidentally disabled');
+    assert.equal(engine.debugInstantProduction, true, 'training production starts in instant mode');
     assert.equal(engine.build(0, type), true, engine.lastMessage);
     if (def.kind === 'building') {
       assert.equal(player.queues[def.category][0]?.ready, true);
@@ -227,6 +226,16 @@ test('credits remain finite and replenished after sustained construction, repair
   assert.ok(Number.isSafeInteger(player.credits));
   assert.ok(player.credits >= BOOTCAMP_CREDITS - 100, 'repair expenses cannot drain the replenishing funds');
   assert.equal(engine.status, 'playing');
+});
+
+test('manual debug credit adjustments persist without making Bootcamp production cost money', () => {
+  const engine = training(), player = engine.getPlayer()!;
+  engine.deductDebugCredits();
+  assert.equal(player.credits, BOOTCAMP_CREDITS - 10000);
+  advance(engine, 1);
+  assert.equal(player.credits, BOOTCAMP_CREDITS - 10000);
+  assert.ok(engine.build(0, 'tanya'));
+  assert.equal(player.credits, BOOTCAMP_CREDITS - 10000);
 });
 
 test('Bootcamp opponents remain real, passive targets while friendly movement and combat still work', () => {
