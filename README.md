@@ -73,6 +73,8 @@ This skips the archive download only; the browser still verifies and converts it
   commands, IDs, positions, health, teams, resources and time survive switching.
   Failed model loading or WebGL context loss returns to 2D.
 - Map editor, portable `.ra2map` sharing and original `.map` imports remain available.
+- Players can save and load Skirmish or Bootcamp, including imported maps.
+  The pause menu manages local saves and `.rustalarm-save` backups. See [save controls](docs/save-games.md).
 
 ## Models and limits
 

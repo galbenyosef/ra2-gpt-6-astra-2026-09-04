@@ -81,3 +81,9 @@ exercise real nested-worker Bink encoding. Evidence stays in `.cache/menu-video/
 
 `browser_menu_cache.mjs` checks source-only static hosting on port 4229: missing
 assets open preparation; cached native art/video work after a cold worker start.
+
+`RA2_BROWSER_URL=http://127.0.0.1:4237/ python3 scripts/browser_saves.py` uses
+Python Playwright and Chrome with a temporary profile. The script verifies saves
+across browser restarts, both modes, native/imported maps, file backups, transaction
+rollback, confirmations, languages and failed-load recovery. Evidence stays in
+`.cache/saves/evidence/`. The development server must have prepared local assets.

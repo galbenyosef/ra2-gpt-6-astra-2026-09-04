@@ -3,6 +3,7 @@
 
 ```text
 game-guide.md                  gameplay, assets and editor
+save-games.md                  save controls, format and regression checks
 verification.md                earlier application acceptance
 bootcamp*-verification.md      model switching, terrain and training
 sidebar-verification.md        native faction chrome and production

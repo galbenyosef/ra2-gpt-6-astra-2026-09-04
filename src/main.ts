@@ -26,6 +26,9 @@ import { readSkirmishMap } from './map-files';
 import { mountMapEditor } from './map-editor';
 import { GameEngine, COUNTRIES, CATALOG, CATEGORY_NAMES, PLAYER_COLORS, countryById, getDefinition, type CountryId, type Difficulty, type PlayerConfig, type ProductionCategory, type Entity } from './game';
 import { BattlefieldRenderer, type RenderMap } from './renderer';
+import { showSaveMenu } from './hud/save-menu';
+import { createSaveGame, validateSaveGame, type SaveGame } from './save-game';
+import { savedLobbyMap } from './save-map';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 mountBuildVersion();
@@ -71,6 +74,7 @@ let game: GameEngine | undefined, renderer: BattlefieldRenderer | undefined;
 let category: ProductionCategory = 'structure';
 let playing = false, animation = 0, lastTick = 0, lastUI = 0, lastEvent = 0, lastComplete = 0;
 let modalOpen = false, modalOwnsPause = false;
+let modalLocked = false;
 let modalReturnFocus:HTMLElement | undefined;
 let supportMode: string | undefined;
 let lastSoundEffect = 0;
@@ -87,7 +91,7 @@ function renderModeSelect() {
   disposeSwitch?.();disposeSwitch=undefined;disposeEditor?.();disposeEditor=undefined;
   playing=false;cancelAnimationFrame(animation);renderer?.destroy();renderer=undefined;game=undefined;
   app.innerHTML=`<main class="shell mode-screen" data-testid="mode-screen">${monitorMarkup}<aside class="command-rail">${railHeader('主菜单')}
-    <nav class="mode-options" aria-label="选择模式"><button data-testid="mode-skirmish">遭遇战</button><button data-testid="mode-bootcamp">新兵训练营</button></nav>
+    <nav class="mode-options" aria-label="选择模式"><button data-testid="mode-skirmish">遭遇战</button><button data-testid="mode-bootcamp">新兵训练营</button><button data-testid="mode-load">取档</button></nav>
     <div class="mode-tools"><button data-testid="mode-editor">地图编辑器</button><button data-testid="mode-assets">游戏素材</button><button id="menu-info">信息与制作人员</button></div>${languageControl()}<div class="rail-bottom"><button id="menu-fullscreen">全屏</button></div></aside><div class="menu-status" aria-hidden="true"></div></main>`;
   const menuRoot=$<HTMLElement>('.mode-screen');
   void loadMenuSkin().then(src=>{if(menuRoot.isConnected&&!entering)disposeMenuVideo=mountMenuVideo(menuRoot,src);});
@@ -106,6 +110,7 @@ function renderModeSelect() {
   };
   $('[data-testid="mode-skirmish"]').onclick=()=>void enter('skirmish');
   $('[data-testid="mode-bootcamp"]').onclick=()=>void enter('bootcamp');
+  $('[data-testid="mode-load"]').onclick=()=>openSaves(false);
   $('[data-testid="mode-editor"]').onclick=()=>void enter('skirmish',true);
   $('[data-testid="mode-assets"]').onclick=()=>{disposeMenuVideo?.();disposeMenuVideo=undefined;showAssetSetup(app);addSetupBack();};
 }
@@ -233,7 +238,61 @@ function showModal(title:string,body:string,actions:string,small=false){
   };
   translateUI(el);el.querySelector<HTMLButtonElement>('button')?.focus();return el;
 }
-function closeModal(){document.querySelector('.modal-shade')?.remove();modalOpen=false;if(modalReturnFocus?.isConnected)modalReturnFocus.focus({preventScroll:true});modalReturnFocus=undefined;if(game&&modalOwnsPause){game.paused=false;modalOwnsPause=false;}}
+function closeModal(){if(modalLocked)return;document.querySelector('.modal-shade')?.remove();modalOpen=false;if(modalReturnFocus?.isConnected)modalReturnFocus.focus({preventScroll:true});modalReturnFocus=undefined;if(game&&modalOwnsPause){game.paused=false;modalOwnsPause=false;}}
+
+function openSaves(saving: boolean) {
+  showSaveMenu({ saving, playing, modal: showModal, back: () => playing ? showPause() : closeModal(),
+    capture: name => createSaveGame(name, game!, renderer!.map, {
+      camera: { ...renderer!.camera }, zoom: renderer!.zoom, selection: [...renderer!.selection],
+      groups: [...groups].map(([key, ids]) => [key, [...ids]]), category,
+    }), load: loadSavedMatch });
+}
+
+async function loadSavedMatch(value: SaveGame): Promise<void> {
+  const save = validateSaveGame(value);
+  modalLocked = true;
+  try {
+    await prepareGame();
+    if (!loaded) throw new Error('请先准备游戏素材。');
+    const lobbyMap = savedLobbyMap(save);
+    const previous = { game, renderer, sidebar, disposeSwitch, mode, category, gameSpeed, shownResult,
+      lastEvent, lastComplete, lastSoundEffect, buildSignature, notices, supportMode,
+      groups: [...groups], nodes: [...app.childNodes] };
+    const definitions = Object.fromEntries(Object.entries(CATALOG).filter(([, definition]) => definition.neutral));
+    const next = GameEngine.fromSnapshot(save.engine);
+    try {
+      game = next; renderer = undefined; sidebar = undefined; disposeSwitch = undefined;
+      mode = next.mode; gameSpeed = next.speed; shownResult = false; category = save.view.category;
+      lastEvent = next.events.at(-1)?.id ?? 0; lastComplete = lastEvent;
+      lastSoundEffect = save.engine.nextEffect - 1; buildSignature = ''; notices = []; supportMode = undefined;
+      renderGame(save.map);
+      const view = renderer as BattlefieldRenderer | undefined;
+      if (!view) throw new Error('存档数据无效。');
+      Object.assign(view.camera, save.view.camera); view.zoom = save.view.zoom;
+      view.selection = new Set(save.view.selection);
+      for (const [key, ids] of save.view.groups) groups.set(key, [...ids]);
+      updateUI(); view.draw();
+    } catch (error) {
+      disposeSwitch?.(); sidebar?.destroy(); renderer?.destroy();
+      app.replaceChildren(...previous.nodes);
+      game = previous.game; renderer = previous.renderer; sidebar = previous.sidebar; disposeSwitch = previous.disposeSwitch;
+      mode = previous.mode; category = previous.category; gameSpeed = previous.gameSpeed; shownResult = previous.shownResult;
+      lastEvent = previous.lastEvent; lastComplete = previous.lastComplete; lastSoundEffect = previous.lastSoundEffect;
+      buildSignature = previous.buildSignature; notices = previous.notices; supportMode = previous.supportMode;
+      groups.clear(); for (const [key, ids] of previous.groups) groups.set(key, ids);
+      for (const [id, definition] of Object.entries(CATALOG)) if (definition.neutral) delete CATALOG[id];
+      Object.assign(CATALOG, definitions); renderer?.resize();
+      throw error;
+    }
+    cancelAnimationFrame(animation); previous.disposeSwitch?.(); previous.sidebar?.destroy(); previous.renderer?.destroy();
+    disposeMenuVideo?.(); disposeMenuVideo = undefined;
+    registerImportedMap(lobbyMap); selectedMap = lobbyMap; selectedMapId = lobbyMap.id;
+    slots.forEach((slot, index) => { if (index >= lobbyMap.players) slot.difficulty = 'closed'; if (slot.position >= lobbyMap.players) slot.position = -1; });
+    playing = true; lastTick = performance.now(); lastUI = 0;
+    modalLocked = false; closeModal(); game!.paused = false; showPause();
+    sound.setMusic(sound.musicEnabled); animation = requestAnimationFrame(frame);
+  } finally { modalLocked = false; }
+}
 function openMapChooser(){
   openMapPicker({selected:selectedMap,modal:showModal,preview:drawMapPreview,
     choose:useLobbyMap,cancel:closeModal,upload:input=>void uploadLobbyMap(input)});
@@ -335,9 +394,10 @@ function playBattleSounds(){
 function notice(text:string,warn=false){notices.push({text,until:performance.now()+6500,warn});}
 function toast(text:string){document.querySelector('.error-toast')?.remove();const el=document.createElement('div');el.className='error-toast';el.textContent=t(text);document.body.append(el);setTimeout(()=>el.remove(),5000);}
 function showGameMenu(title:string,body:string,actions:string) {
-  const root=showModal(title,`<div class="pause-content">${body}${actions?`<div class="modal-actions">${actions}</div>`:''}</div><aside class="command-rail">${railHeader(title)}<button id="resume">返回战场</button><button id="pause-settings">选项</button><button id="pause-help">操作说明</button><button id="surrender">${game!.bootcamp?'结束训练':'投降'}</button><button id="leave">退出游戏</button>${languageControl()}<div class="rail-bottom"></div></aside>`,'');
+  const root=showModal(title,`<div class="pause-content">${body}${actions?`<div class="modal-actions">${actions}</div>`:''}</div><aside class="command-rail">${railHeader(title)}<button id="resume">返回战场</button><button id="pause-save">存档</button><button id="pause-load">取档</button><button id="pause-settings">选项</button><button id="pause-help">操作说明</button><button id="surrender">${game!.bootcamp?'结束训练':'投降'}</button><button id="leave">退出游戏</button>${languageControl()}<div class="rail-bottom"></div></aside>`,'');
   root.classList.add('pause-shade');root.querySelector('.modal')!.classList.add('pause-shell');
   $('#resume').onclick=closeModal;$('#pause-help').onclick=showHelp;
+  $('#pause-save').onclick=()=>openSaves(true);$('#pause-load').onclick=()=>openSaves(false);
   $('#pause-settings').onclick=()=>showOptions({assets,sound,renderer:renderer!,speed:gameSpeed,
     modal:showGameMenu,back:showPause,help:showHelp,setSpeed:value=>{gameSpeed=value;game!.speed=value;}});
   $('#surrender').onclick=()=>{closeModal();if(game!.bootcamp)renderModeSelect();else{game!.surrender(0);updateUI();}};
@@ -351,6 +411,7 @@ function showResult(){
   showModal('战斗报告',`<div class="result-title">${won?'MISSION ACCOMPLISHED':'MISSION FAILED'}</div><div class="result-subtitle">${won?'胜利':'战败'}</div><table class="score-table"><thead><tr><th>指挥官</th><th>国家</th><th>击杀</th><th>损失</th><th>建造</th></tr></thead><tbody>${game.players.map(p=>`<tr><td style="color:${p.color}">${escape(p.name)}</td><td>${countryById(p.country).name}</td><td>${p.kills}</td><td>${p.losses}</td><td>${p.buildingsBuilt}</td></tr>`).join('')}</tbody></table>`,`<button id="result-back" class="primary">返回遭遇战</button>`);$('#result-back').onclick=()=>{closeModal();renderLobby();};$('#modal-x').onclick=()=>{closeModal();renderLobby();};
 }
 window.addEventListener('keydown',e=>{
+  if(modalLocked){e.preventDefault();return;}
   const target=e.target as HTMLElement;if(e.key!=='Escape'&&['INPUT','SELECT','TEXTAREA'].includes(target.tagName))return;
   if(e.key==='Escape'){e.preventDefault();if(modalOpen){closeModal();if(shownResult)renderLobby();return;}if(renderer&&(renderer.placement||renderer.tool!=='select'||renderer.attackMove)){clearTools();return;}if(playing)showPause();return;}
   if(!playing||!game||!renderer||modalOpen)return;

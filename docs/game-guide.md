@@ -37,7 +37,7 @@ The sharing acceptance script uses two separate Chromium profiles copied from an
 
 ## Play
 
-[Play on GitHub Pages](https://xinbenlv.github.io/ra2-gpt-6-astra-2026-09-04/) — hosted on the default `github.io` domain, with no custom domain.
+[Play on GitHub Pages](https://ra2.apps.zzn.im/). GitHub Pages serves the game at the configured custom domain.
 
 The fixed bottom-right label identifies the code currently running: a six-character Git commit hash and its commit time in UTC. These values are embedded during the build, so a cached page keeps its own version label. Online navigation revalidates the page; offline play retains the last loaded version and installed original assets.
 
@@ -81,7 +81,7 @@ RA2_BASE_PATH=/ra2-gpt-6-astra-2026-09-04/ npm run preview
 
 The service worker, application files, original-asset URLs and offline cache respect that base. Browser caches are separated by app path, so this site does not take over other projects on the same `github.io` origin.
 
-The **Deploy GitHub Pages** workflow runs on pushes to `main` or manual dispatch. It tests the source, builds for the Pages base path, verifies the source-only boundary, then uploads only `dist/` and deploys it. No custom domain or `CNAME` file is used.
+The **Deploy GitHub Pages** workflow runs on pushes to `main` or manual dispatch. It tests the source, builds for the Pages base path, verifies the source-only boundary, then uploads only `dist/` and deploys it. The repository Pages settings configure the custom domain.
 
 Every build excludes original resources, **even when the developer has already extracted them into `public/`**. Vite's automatic public-directory copying is disabled. The build contains the app, conversion code, 7-Zip WebAssembly, a service worker and an application-shell manifest. Static hosting supports the complete browser preparation flow.
 
@@ -121,6 +121,11 @@ Every build excludes original resources, **even when the developer has already e
 
 Short game eliminates a player after all buildings and MCVs are destroyed. With short game disabled, all units and buildings must be destroyed.
 
+Players can use **Save Game / 存档** and **Load Game / 取档** in the pause menu.
+The main menu also provides **Load Game**. Local saves retain Skirmish and Bootcamp
+progress after a browser restart. Players can export and import `.rustalarm-save`
+backups. See [save controls and limits](save-games.md).
+
 ## Debug Panel
 
 Open **Debug Panel** in the bottom-left corner during a skirmish:
@@ -138,7 +143,7 @@ This is an independent playable rewrite, not the original executable or a frame-
 
 Combat numbers, armor interactions, production timing, mining and AI tactics are simplified. Aircraft rearming, full projectile behavior, submarine stealth, Mirage disguise, all Spy effects, building garrisons and bridge destruction are incomplete. Voxel geometry and palettes are original, with approximate projection and lighting; some building machinery is composited into static layers.
 
-Native map geometry, overlays, scenery and starts are read, but triggers, map-specific rules, mission logic and every special mode are not fully compatible. Only the three original RA2 theaters are supported; Yuri's Revenge theaters and mod-specific assets are not. There is no online multiplayer, saved game or original replay compatibility.
+Native map geometry, overlays, scenery and starts are read, but triggers, map-specific rules, mission logic and every special mode are not fully compatible. Only the three original RA2 theaters are supported; Yuri's Revenge theaters and mod-specific assets are not. There is no online multiplayer or original RA2 save/replay compatibility.
 
 ## Source-only publication
 

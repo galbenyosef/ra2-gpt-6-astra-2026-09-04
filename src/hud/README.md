@@ -20,6 +20,7 @@ entity-tooltip.ts        delayed visibility-aware 2D/3D names
 lobby-layout.ts + lobby.css compact player/rules panel and right map/commands
 map-picker.ts + CSS       filtered/sorted map list, guarded preview and confirmation
 options*.ts + options.css live sound, display, speed and camera controls
+save-menu.ts + save-menu.css local save list, confirmations and file import/export
 skin.ts                  atlas frames, geometry and readiness contract
 sidebar.css              native pixel sizes and control states
 scripts/assets/*-assets.json -> Python converter + TypeScript validation

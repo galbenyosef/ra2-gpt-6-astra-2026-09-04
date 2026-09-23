@@ -7,6 +7,8 @@ index.ts -> types.ts + data.ts + engine.ts
 engine.ts -> pathfinding.ts
 engine.test.ts -> normal skirmish and debug behavior
 bootcamp.test.ts -> model whitelist, training rules and skirmish isolation
+snapshot.ts + snapshot-validation.ts -> explicit state contract and validation
+snapshot.test.ts -> independent restoration and identical simulation continuation
 ```
 
 `GameOptions.mode` defaults to `skirmish`. Bootcamp uses the verified model catalog
@@ -36,3 +38,9 @@ avoids an unrelated engine rewrite during this integration.
 advances the queue; ordinary orders, stop, deployment and boarding cancel it.
 The renderer draws routes from this shared state in either presentation. Player
 colors use the original rules.ini HSV values and multiplayer ordering.
+
+`captureSnapshot()` copies all simulation state, including timers, random state,
+debug flags and neutral definitions. `fromSnapshot()` validates the complete snapshot
+before restoring the engine. The spatial snapshot retains bucket order and removed
+entities until the next scheduled refresh. Restoration rebuilds the entity lookup
+and building occupancy without advancing time or updating fog.

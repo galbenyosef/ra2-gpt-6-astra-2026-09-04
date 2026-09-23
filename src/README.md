@@ -14,6 +14,7 @@ main.ts -> asset readiness/preparation -> mode menu -> lobby/editor -> battle
   maps/custom-*        original and portable editor maps
   map-editor*          editor UI and terrain painting
   i18n.ts / urls.ts    locale and deployment-path boundaries
+  save-game.ts / save-storage.ts / save-map.ts  versioned saves, IndexedDB and restored map metadata
 ```
 
 Bootcamp and skirmish share the lobby and engine. All new production restrictions

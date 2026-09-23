@@ -3,6 +3,8 @@
 import { bootcampTypes, BOOTCAMP_CREDITS } from '../bootcamp/catalog.js';
 import { CATALOG, CATEGORIES, countryById, getDefinition, PLAYER_COLORS } from './data';
 import { findPath } from './pathfinding';
+import { copySaveData, type EngineSnapshot } from './snapshot';
+import { validateEngineSnapshot } from './snapshot-validation';
 import type { Definition, Effect, Entity, GameEvent, GameMap, GameOptions, Order, PlayerState, Point, ProductionCategory, Terrain } from './types';
 
 const distance = (a: Point, b: Point) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -54,6 +56,49 @@ export class GameEngine {
   private entityMap = new Map<number, Entity>();
   private spatial = new Map<number, Entity[]>();
   private neutralPlayer: PlayerState;
+
+  captureSnapshot(): EngineSnapshot {
+    const retired = new Map<number, Entity>();
+    for (const bucket of this.spatial.values()) for (const entity of bucket)
+      if (!this.entityMap.has(entity.id)) retired.set(entity.id, entity);
+    const types = new Set([...this.entities, ...retired.values()].map(e => e.type));
+    const { width, height, cells, spawns, id, name, theater } = this.map;
+    return copySaveData({
+      mode: this.mode, map: { width, height, cells, spawns, id, name, theater },
+      localPlayerId: this.localPlayerId, fogOfWar: this.fogOfWar, superweapons: this.superweapons, shortGame: this.shortGame,
+      players: this.players, neutralPlayer: this.neutralPlayer, entities: this.entities, effects: this.effects, events: this.events,
+      time: this.time, paused: this.paused, speed: this.speed, status: this.status, winnerTeam: this.winnerTeam, lastMessage: this.lastMessage,
+      ore: this.ore, debugRevealPlayers: [...this.debugRevealPlayers], instantProductionPlayers: [...this.instantProductionPlayers],
+      debugAdjustedCredits: [...this.debugAdjustedCredits], nextId: this.nextId, nextEffect: this.nextEffect, nextEvent: this.nextEvent,
+      randomState: this.randomState, visibilityTimer: this.visibilityTimer, economyTimer: this.economyTimer,
+      alarmAt: { base: this.alarmAt.base === -Infinity ? null : this.alarmAt.base,
+        miner: this.alarmAt.miner === -Infinity ? null : this.alarmAt.miner },
+      spatial: [...this.spatial].map(([key, bucket]) => [key, bucket.map(e => e.id)]), spatialRetired: [...retired.values()],
+      neutralDefinitions: [...types].filter(type => CATALOG[type]?.neutral).map(type => CATALOG[type]),
+    });
+  }
+
+  static fromSnapshot(value: unknown): GameEngine {
+    const s = validateEngineSnapshot(value);
+    // An empty player list avoids new-match spawning and its side effects.
+    const engine = new GameEngine({ mode: s.mode, map: s.map, players: [], localPlayerId: s.localPlayerId,
+      fogOfWar: s.fogOfWar, superweapons: s.superweapons, shortGame: s.shortGame });
+    for (const definition of s.neutralDefinitions) CATALOG[definition.id] = definition;
+    engine.players.push(...s.players); engine.neutralPlayer = s.neutralPlayer;
+    engine.entities = s.entities; engine.effects = s.effects; engine.events = s.events; engine.ore = s.ore;
+    engine.time = s.time; engine.paused = s.paused; engine.speed = s.speed; engine.status = s.status;
+    engine.winnerTeam = s.winnerTeam; engine.lastMessage = s.lastMessage;
+    engine.debugRevealPlayers = new Set(s.debugRevealPlayers); engine.instantProductionPlayers = new Set(s.instantProductionPlayers);
+    engine.debugAdjustedCredits = new Set(s.debugAdjustedCredits);
+    engine.nextId = s.nextId; engine.nextEffect = s.nextEffect; engine.nextEvent = s.nextEvent; engine.randomState = s.randomState;
+    engine.visibilityTimer = s.visibilityTimer; engine.economyTimer = s.economyTimer;
+    engine.alarmAt = { base: s.alarmAt.base ?? -Infinity, miner: s.alarmAt.miner ?? -Infinity };
+    engine.entityMap = new Map(s.entities.map(e => [e.id, e]));
+    const spatialEntities = new Map([...engine.entityMap, ...s.spatialRetired.map(e => [e.id, e] as const)]);
+    engine.spatial = new Map(s.spatial.map(([key, ids]) => [key, ids.map(id => spatialEntities.get(id)!)]));
+    engine.rebuildBlocked();
+    return engine;
+  }
 
   constructor(options: GameOptions) {
     this.mode = options.mode ?? 'skirmish';
