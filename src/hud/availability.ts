@@ -10,5 +10,5 @@ export function productionItems(game:GameEngine, category:ProductionCategory) {
     (unlocked.has(d.id)||queues[d.category].some(q=>q.type===d.id)));
 }
 export function availableTabs(game:GameEngine) {
-  return productionTabs.filter(category=>productionItems(game,category).length>0);
+  return productionTabs.filter(category=>productionItems(game,category).length>0 || category==='defense' && game.getSupport(0).length>0);
 }

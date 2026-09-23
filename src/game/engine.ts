@@ -234,6 +234,7 @@ export class GameEngine {
       if (d.neutral) return false;
       if (this.bootcamp) return bootcampTypes.has(d.id);
       if (d.id.includes('construction_yard')) return false;
+      if (d.kind === 'building' && this.has(playerId, d.id)) return false;
       if (d.faction !== 'both' && d.faction !== p.faction) return false;
       if (d.country && d.country !== p.country) return false;
       if (!this.superweapons && ['chronosphere', 'weather_control', 'iron_curtain', 'nuclear_silo'].includes(d.id)) return false;
@@ -245,6 +246,7 @@ export class GameEngine {
     const p = this.getPlayer(playerId), def = CATALOG[type];
     if (!p || !def || p.defeated || this.status !== 'playing') return '无法生产';
     if (this.bootcamp && !bootcampTypes.has(type)) return '训练营尚无此型号的 3D 模型';
+    if (!this.bootcamp && def.kind === 'building' && this.has(playerId, type)) return '该建筑已建造';
     if (!this.getAvailable(playerId).some(d => d.id === type)) return '需要前置建筑';
     if (this.bootcamp && def.kind === 'unit' && !this.trainingSpawn(playerId, def)) return '没有适合该单位的空闲地形';
     if (!this.bootcamp && p.credits < def.cost) return '资金不足';

@@ -31,16 +31,18 @@ reserves the scroll arrows' full height. A ResizeObserver adjusts row count only
 Below 311px sidebar height the containing game region scrolls, rather than scaling art.
 
 Normal/pressed/disabled frames are 0/1/2 where available. Tabs flash frame 3 for a
-ready item in another category. Progress uses all 55 `gclock2` frames at 50% opacity;
+ready item in another category. The defense tab shows unlocked support abilities
+above defense buildings, including superweapons after their buildings are placed.
+Progress uses all 55 `gclock2` frames at 50% opacity;
 ready labels and quantities remain localized DOM text. Power uses original colored
 pips; the radar cover is frame 0 offline and the final frame online. The minimap
 canvas retains the existing renderer's aspect ratio and pointer coordinate mapping.
 
-Engine availability, single-building queues, unit queues, cancellation, placement,
-repair/sell and support rules remain unchanged. Main owns command callbacks; the
+Engine availability limits skirmish players to one active building of each type.
+Single-building queues, unit queues, cancellation, placement, repair/sell and support
+rules still apply. Main owns command callbacks; the
 sidebar owns presentation and disconnects its observer on exit. Deploy and control groups use native bottom command icons; base remains the H
-shortcut. Language and settings live in the right-side ESC menu. Support abilities
-remain beside the debug panel. The diplomacy icon
+shortcut. Language and settings live in the right-side ESC menu. The diplomacy icon
 opens a read-only player/team table. Empty categories retain their disabled frame and no text; selection moves to the
 first available category when its last producer disappears. The entry, lobby,
 help, pause and result dialogs share original menu artwork. Settings immediately

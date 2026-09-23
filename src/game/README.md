@@ -20,6 +20,8 @@ Bootcamp opponents remain actual damageable entities. Their AI and autonomous un
 updates are disabled, including retaliation and pursuit. Automatic elimination is
 disabled in training. Unsupported transformations (yard to MCV) and support units
 are rejected. Skirmish follows the existing AI, prerequisites and victory rules.
+Each player may keep one active building of each type, including defenses and
+superweapon buildings. A player may rebuild a building after losing or selling it.
 
 The Debug Panel applies credits, map reveal and instant production independently to
 the friendly side or enemy side. Friendly includes the local player and allied players.

@@ -58,6 +58,27 @@ test('canceling a queued item refunds exactly its paid cost', () => {
   assert.equal(engine.getPlayer(0)!.queues.structure.length, 0);
 });
 
+test('a skirmish player can keep only one active building of each type', () => {
+  const engine = game(); deploy(engine);
+  engine.setDebugInstantProduction(true);
+  assert.ok(engine.build(0, 'power_plant'));
+  assert.ok(engine.place(0, 'power_plant', 17, 10));
+  const plant = engine.ownEntities(0).find(e => e.type === 'power_plant')!;
+  const credits = engine.getPlayer(0)!.credits;
+  assert.equal(engine.canBuild(0, 'power_plant'), false);
+  assert.equal(engine.getBuildReason(0, 'power_plant'), '该建筑已建造');
+  assert.equal(engine.getAvailable(0, 'structure').some(d => d.id === 'power_plant'), false);
+  assert.equal(engine.build(0, 'power_plant'), false);
+  assert.equal(engine.getPlayer(0)!.credits, credits);
+  assert.ok(engine.build(0, 'barracks'));
+  assert.ok(engine.place(0, 'barracks', 18, 6));
+  assert.ok(engine.build(0, 'pillbox'));
+  assert.ok(engine.place(0, 'pillbox', 20, 9));
+  assert.equal(engine.canBuild(0, 'pillbox'), false, 'defenses follow the same limit');
+  assert.ok(engine.sell(plant.id));
+  assert.equal(engine.canBuild(0, 'power_plant'), true, 'lost buildings can be replaced');
+});
+
 test('debug credits can be added and removed independently for each side', () => {
   const engine = game({ localPlayerId: 1 });
   engine.grantDebugCredits(); engine.grantDebugCredits();
