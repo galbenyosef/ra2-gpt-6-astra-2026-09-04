@@ -76,8 +76,6 @@
 .ra2-power { width:16px; background:#070707; z-index:1; }
 .ra2-pips i { display:block; position:absolute; inset-inline-start:0; background-repeat:no-repeat; }
 .ra2-sidebar [hidden] { display:none!important; }
-/* Existing commands/support stay reachable outside the original production slots. */
-.battlefield-tools .support-list { pointer-events:auto; max-width:260px; }
 @media(max-height:420px) { .game-body { overflow-y:auto; } }
 
 /* Keep the shared build identity clear of the native scroll buttons. */

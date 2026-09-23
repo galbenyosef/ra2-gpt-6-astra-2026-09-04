@@ -51,7 +51,7 @@ const nameCounts = new Map<string, number>();
 for (const definition of Object.values(CATALOG)) nameCounts.set(definition.name, (nameCounts.get(definition.name) ?? 0) + 1);
 registerTranslations(Object.fromEntries(Object.values(CATALOG).map(definition => [definition.name, nameCounts.get(definition.name)! > 1 ? definition.nameEn.replace(/^(Allied|Soviet) /, '') : definition.nameEn])));
 function translateUI(root: ParentNode = app) { localizeElement(root); }
-function bindLanguage() { bindLanguageControl(app, () => { buildSignature='';supportSignature='';if(playing)updateUI(); }); }
+function bindLanguage() { bindLanguageControl(app, () => { buildSignature='';if(playing)updateUI(); }); }
 const assets = new Assets();
 const sound = new SoundSystem(assets);
 sound.musicEnabled = true;
@@ -77,7 +77,6 @@ let lastSoundEffect = 0;
 let notices: {text:string;until:number;warn:boolean}[] = [];
 let shownResult = false;
 let buildSignature = '';
-let supportSignature = '';
 let disposeMenuVideo: (()=>void) | undefined;
 let disposeEditor: (() => void) | undefined;
 const groups = new Map<string, number[]>();
@@ -254,7 +253,7 @@ async function startGame(){
     const map:RenderMap={...selectedMap,cells:selectedMap.cells.map((t,i)=>selectedMap.valid[i]&&isWithinPlayableArea(selectedMap,i%selectedMap.width,Math.floor(i/selectedMap.width))?t:'void'),spawns:active.map(s=>selectedMap.spawns[s.position>=0?s.position:available.shift()!]),terrainObjects:selectedMap.scenery,structures:[]};
     const neutralStructures=selectedMap.structures.filter(s=>isWithinPlayableArea(selectedMap,s.x,s.y)).map(s=>{const sprite=assets.scenery[`${selectedMap.theater}:${s.type.toLowerCase()}`];const foundation: [number,number]=sprite?.foundation||[1,1];return {nativeType:s.type,x:s.x+foundation[0]/2,y:s.y+foundation[1]/2,health:s.health,foundation};});
     game=new GameEngine({mode,map,players:configs,startingCredits:credits,startingUnits:mode==='bootcamp'?8:startingUnits,fogOfWar:fog,superweapons,shortGame,neutralStructures,localPlayerId:0,seed:Date.now()});game.speed=gameSpeed;
-    category='structure';lastSoundEffect=0;buildSignature='';supportSignature='';lastEvent=0;lastComplete=0;notices=[];groups.clear();supportMode=undefined;
+    category='structure';lastSoundEffect=0;buildSignature='';lastEvent=0;lastComplete=0;notices=[];groups.clear();supportMode=undefined;
     sound.setMusic(sound.musicEnabled);renderGame(map);playing=true;lastTick=performance.now();lastUI=0;shownResult=false;
     sound.play(`${configs[0].country==='russia'||countryById(configs[0].country).faction==='soviet'?'soviet':'allied'}_establishingbattlefieldcontrol`);
     const mcv=game.entities.find(e=>e.owner===0&&e.type.includes('mcv'));if(mcv)renderer!.setSelection([mcv.id]);
@@ -263,7 +262,7 @@ async function startGame(){
 }
 function renderGame(map:RenderMap){
   const faction=game!.players[0].faction;
-  app.innerHTML=`<main class="game-screen"><div class="game-body"><section class="battlefield" id="battlefield"><canvas id="battlefield-canvas" tabindex="0" aria-label="即时战略战场"></canvas><div class="hud-message" id="hud-message"></div><div class="battlefield-tools" id="battlefield-tools"><div id="support-list" class="support-list"></div></div><div class="selection-info" id="selection-info"></div></section>${sidebarMarkup}</div><footer class="game-bottom"><nav id="command-bar" aria-label="作战命令"></nav><span id="selection-label"></span><span id="battle-status"></span><span id="game-time">00:00</span></footer></main>`;
+  app.innerHTML=`<main class="game-screen"><div class="game-body"><section class="battlefield" id="battlefield"><canvas id="battlefield-canvas" tabindex="0" aria-label="即时战略战场"></canvas><div class="hud-message" id="hud-message"></div><div class="battlefield-tools" id="battlefield-tools"></div><div class="selection-info" id="selection-info"></div></section>${sidebarMarkup}</div><footer class="game-bottom"><nav id="command-bar" aria-label="作战命令"></nav><span id="selection-label"></span><span id="battle-status"></span><span id="game-time">00:00</span></footer></main>`;
   applyScreenSize();
   sidebar=new Sidebar($('.ra2-sidebar'),assets,faction);
   renderer=new BattlefieldRenderer($('#battlefield-canvas'),game!,map,assets,{
@@ -299,6 +298,7 @@ function renderBuildList(){
     onBuild:id=>{const d=CATALOG[id],p=game!.players[0];if(!game!.build(0,id))notice(game!.getBuildReason(0,id)||'当前无法生产。',true);else sound.play(`${p.faction}_${d.kind==='building'?'building':d.category==='infantry'?'training':'unitready'}`);renderBuildList();},
     onReady:id=>{const d=CATALOG[id];clearTools();renderer!.placement=d;renderer!.tool='select';$('#battlefield').className='battlefield build-mode';notice(`选择 ${d.name} 的建造位置。右键取消。`);},
     onCancel:kind=>{game!.cancelBuild(0,kind);renderBuildList();},
+    onSupport:id=>{clearTools();supportMode=id;renderer!.tool='support';notice('在战场上选择支援目标。');},
   },buildSignature);
   sidebar.update(game,category,renderer.tool);sidebar.refresh();
 }
@@ -314,16 +314,10 @@ function updateUI(){
   $('#battle-status').textContent=game.paused?'已暂停':p.powerConsumed>p.powerProduced?'电力不足':`剩余阵营 ${new Set(game.players.filter(v=>!v.defeated).map(v=>v.team)).size}`;
   const events=game.events.filter(e=>e.id>lastEvent&&(e.owner===undefined||e.owner===0));for(const ev of events){notice(ev.text,ev.kind==='warning');if(ev.kind==='complete'){sound.play(`${p.faction}_${ev.text.includes('单位')||ev.text.includes('训练')?'unitready':'constructioncomplete'}`);lastComplete=ev.id;}}lastEvent=game.events.at(-1)?.id||lastEvent;
   notices=notices.filter(n=>n.until>performance.now());$('#hud-message').innerHTML=notices.slice(-3).map(n=>`<div class="notice ${n.warn?'warn':''}">${escape(n.text)}</div>`).join('');
-  renderer.drawMinimap();updateSelection();renderBuildList();updateSupport();
+  renderer.drawMinimap();updateSelection();renderBuildList();
   updateCommandBar($('#command-bar'),game,renderer,groups);
   translateUI();
   if(game.status!=='playing'&&!shownResult){shownResult=true;showResult();}
-}
-function updateSupport(){
-  if(!game)return;const p=game.players[0],owned=game.entities.filter(e=>e.owner===0&&e.hp>0),has=(id:string)=>owned.some(e=>e.type===id);
-  const supports=game.getSupport(0);
-  const signature=JSON.stringify(supports.map(a=>[a.id,a.ready,Math.ceil(a.remaining)]));if(signature===supportSignature)return;supportSignature=signature;
-  $('#support-list').innerHTML=supports.map(a=>`<button data-support="${a.id}" ${a.ready?'':'disabled'}>${a.name}<small>${a.ready?'就绪':`${Math.ceil(a.remaining)}s`}</small></button>`).join('');document.querySelectorAll<HTMLButtonElement>('[data-support]').forEach(b=>b.onclick=()=>{clearTools();supportMode=b.dataset.support;renderer!.tool='support';renderer!.placement=undefined;notice('在战场上选择支援目标。');});
 }
 function frame(now:number){
   if(!playing||!game||!renderer)return;const dt=Math.min((now-lastTick)/1000,.08);lastTick=now;
@@ -348,7 +342,7 @@ function showGameMenu(title:string,body:string,actions:string) {
     modal:showGameMenu,back:showPause,help:showHelp,setSpeed:value=>{gameSpeed=value;game!.speed=value;}});
   $('#surrender').onclick=()=>{closeModal();if(game!.bootcamp)renderModeSelect();else{game!.surrender(0);updateUI();}};
   $('#leave').onclick=()=>{closeModal();renderModeSelect();};
-  bindLanguageControl(root,()=>{buildSignature='';supportSignature='';updateUI();});
+  bindLanguageControl(root,()=>{buildSignature='';updateUI();});
   root.querySelector<HTMLButtonElement>('#resume')!.focus();return root;
 }
 function showPause(){if(game&&!shownResult)showGameMenu('游戏菜单','','');}
