@@ -44,6 +44,15 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory(prefix='rustal
         page.locator('#save-name').fill('Training checkpoint')
         page.locator('#save-new').click()
         page.get_by_text('Game saved.', exact=True).wait_for()
+        expected_version = json.loads(Path('package.json').read_text())['version']
+        expected_commit = page.locator('[data-build-version]').get_attribute('data-build-version')[:6]
+        assert 'v' + expected_version in page.locator('.save-build').inner_text()
+        assert expected_commit in page.locator('.save-build').inner_text()
+        assert page.locator('.save-overview').get_attribute('aria-label') == 'Map overview'
+        assert page.locator('.save-overview').evaluate('''canvas => {
+          const pixels = canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+          return new Set(Array.from(pixels)).size > 10;
+        }''')
         before = page.evaluate('JSON.stringify(window.ra2.game.captureSnapshot(), (k,v) => ArrayBuffer.isView(v) ? Array.from(v) : v)')
         page.screenshot(path=str(EVIDENCE / 'save-en.png'))
         with page.expect_download() as downloaded:
@@ -53,6 +62,9 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory(prefix='rustal
         exported = json.loads(backup.read_text())
         assert exported['name'] == 'Training checkpoint'
         assert exported['format'] == 'rustalarm-save'
+        assert exported['gameVersion'] == expected_version
+        assert exported['commitHash'] == expected_commit
+        assert len(exported['overview']['pixels']) == exported['overview']['width'] * exported['overview']['height']
 
         # Closing and reopening the browser proves persistence beyond a page session.
         context.close()
@@ -64,6 +76,8 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory(prefix='rustal
         page.goto(URL)
         page.wait_for_load_state('networkidle')
         page.get_by_test_id('mode-load').click()
+        assert expected_commit in page.locator('.save-build').inner_text()
+        assert page.locator('.save-overview').count() == 1
         page.locator('[data-save-id]').first.click()
         page.locator('#save-load').click()
         page.locator('#resume').wait_for(timeout=60000)
@@ -142,9 +156,14 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory(prefix='rustal
         assert page.locator('#save-new').inner_text() == '新建存档'
         assert page.locator('#save-delete').inner_text() == '删除存档'
         assert page.locator('#save-status').inner_text() == '存档已导入。'
+        assert page.locator('.save-overview').first.get_attribute('aria-label') == '地图总览'
         page.set_viewport_size({'width': 760, 'height': 600})
         page.screenshot(path=str(EVIDENCE / 'save-zh.png'))
         assert page.locator('.save-dialog').evaluate('(el) => el.getBoundingClientRect().right <= innerWidth')
+        page.set_viewport_size({'width': 390, 'height': 700})
+        assert page.locator('.save-list').evaluate('(el) => el.scrollWidth <= el.clientWidth')
+        page.screenshot(path=str(EVIDENCE / 'save-mobile.png'))
+        page.set_viewport_size({'width': 760, 'height': 600})
         page.locator('.modal-shade [data-language-control]').select_option('en')
         page.locator('#save-delete').click()
         page.locator('#save-cancel').click()
@@ -218,7 +237,34 @@ with sync_playwright() as playwright, tempfile.TemporaryDirectory(prefix='rustal
             page.locator('#result-back').click()
             page.locator('#start').click()
             page.locator('#battlefield-canvas').wait_for()
+        # Existing IndexedDB records lack both build metadata and an overview.
+        page.goto(URL)
+        legacy = dict(exported, name='Legacy checkpoint')
+        for key in ['gameVersion', 'commitHash', 'overview']:
+            legacy.pop(key)
+        page.evaluate('''data => new Promise((resolve,reject) => {
+          const request = indexedDB.open('rustalarm-saves',1);
+          request.onsuccess = () => {
+            const db=request.result, tx=db.transaction('saves','readwrite');
+            tx.objectStore('saves').put({data, summary:{id:'legacy-checkpoint',name:data.name,
+              savedAt:data.savedAt,mapName:data.map.name,mode:data.engine.mode,
+              country:data.engine.players[0].country,elapsed:data.engine.time}});
+            tx.oncomplete=()=>{db.close();resolve();};
+            tx.onabort=()=>{db.close();reject(tx.error);};
+          };
+          request.onerror=()=>reject(request.error);
+        })''', legacy)
+        page.get_by_test_id('mode-load').click()
+        legacy_row = page.locator('[data-save-id="legacy-checkpoint"]')
+        assert 'Version not recorded' in legacy_row.inner_text()
+        assert 'Commit not recorded' in legacy_row.inner_text()
+        assert legacy_row.locator('.save-overview').count() == 1
+        legacy_row.click()
+        page.screenshot(path=str(EVIDENCE / 'save-legacy.png'))
+        page.locator('#save-load').click()
+        page.locator('#resume').wait_for(timeout=60000)
+        assert page.evaluate('window.ra2.game.mode') == 'bootcamp'
         assert errors == [], errors
-        print('PASS both modes, native/imported maps, browser restart, file import/export, overwrite rollback, deletion, locales and failed-load recovery')
+        print('PASS save versions, six-character commits, map overviews, legacy saves, both modes, native/imported maps, browser restart, file backups, rollback, locales and narrow screens')
     finally:
         context.close()

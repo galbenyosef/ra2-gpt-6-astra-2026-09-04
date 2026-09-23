@@ -28,6 +28,41 @@ test('portable JSON restores typed arrays and self-contained imported map data',
   assert.ok(decoded.engine.ore instanceof Float32Array);
 });
 
+test('saves keep the game version, six-character commit and map overview across export', () => {
+  const { game, map } = fixture();
+  const save = createSaveGame('Recognizable save', game, map);
+  assert.match(save.gameVersion!, /^\d+\.\d+\.\d+/);
+  save.commitHash = 'a1b2c3';
+  const decoded = decodeSaveGame(encodeSaveGame(save));
+  assert.equal(decoded.gameVersion, save.gameVersion);
+  assert.equal(decoded.commitHash, 'a1b2c3');
+  assert.equal(decoded.overview.pixels.length, decoded.overview.width * decoded.overview.height);
+  assert.ok(new Set(decoded.overview.pixels).size > 1);
+  assert.deepEqual(decoded.overview, save.overview);
+  for (const change of [
+    (s: any) => { s.commitHash = 'abcdef0'; },
+    (s: any) => { s.commitHash = '<html>'; },
+    (s: any) => { s.gameVersion = ''; },
+    (s: any) => { s.overview.pixels.pop(); },
+    (s: any) => { s.overview.pixels[0] = 0x1000000; },
+    (s: any) => { s.overview.width = 10000; },
+  ]) {
+    const invalid = structuredClone(save); change(invalid);
+    assert.throws(() => validateSaveGame(invalid));
+  }
+});
+
+test('legacy saves get a map overview without inventing their original game version', () => {
+  const { game, map } = fixture();
+  const legacy = JSON.parse(encodeSaveGame(createSaveGame('Old save', game, map)));
+  delete legacy.gameVersion; delete legacy.commitHash; delete legacy.overview;
+  const restored = decodeSaveGame(JSON.stringify(legacy));
+  assert.equal(restored.gameVersion, null);
+  assert.equal(restored.commitHash, null);
+  assert.ok(new Set(restored.overview.pixels).size > 1);
+  assert.deepEqual(GameEngine.fromSnapshot(restored.engine).captureSnapshot(), game.captureSnapshot());
+});
+
 test('portable save rejects unsupported versions, malformed arrays and invalid references', () => {
   const { game, map } = fixture();
   const save = createSaveGame('Test', game, map);

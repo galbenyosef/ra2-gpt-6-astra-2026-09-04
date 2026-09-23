@@ -14,7 +14,7 @@ sprite-* + hd-actions + sound                    -> presentation data contracts
 sidebar-layout                                  -> native footer bounds and menu/sidebar atlas completeness
 sidebar-production                              -> support abilities unlock the defense tab
 i18n + urls                                     -> language and base-path behavior
-save-game                                      -> portable saves, validation and restored map geometry
+save-game + save-overview                       -> portable saves, build identity, visible map previews and legacy compatibility
 ```
 
 Run `npm test`. Local-installer tests use synthetic sparse files and a temporary

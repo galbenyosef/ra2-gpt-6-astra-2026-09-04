@@ -87,3 +87,4 @@ Python Playwright and Chrome with a temporary profile. The script verifies saves
 across browser restarts, both modes, native/imported maps, file backups, transaction
 rollback, confirmations, languages and failed-load recovery. Evidence stays in
 `.cache/saves/evidence/`. The development server must have prepared local assets.
+The script also checks saved build identity, map overviews, old saves and narrow screens.

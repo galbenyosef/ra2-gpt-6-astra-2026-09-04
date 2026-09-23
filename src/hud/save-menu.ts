@@ -19,6 +19,8 @@ registerTranslations({
   '请关闭其他游戏页面后重试存档。':'Close other game pages and try again.',
   '存档已不存在。请刷新存档列表。':'This save no longer exists. Refresh the save list.',
   '请先准备游戏素材。':'Prepare the game assets first.',
+  '地图总览':'Map overview', '版本未记录':'Version not recorded', '提交未记录':'Commit not recorded',
+  '地图预览不可用':'Map preview unavailable',
 });
 
 interface SaveMenuContext {
@@ -76,7 +78,23 @@ export function showSaveMenu(context: SaveMenuContext): void {
       button.setAttribute('aria-pressed', String(selected?.id === row.id));
       const country = COUNTRIES.find(country => country.id === row.country);
       const elapsed = `${Math.floor(row.elapsed / 60)}:${String(Math.floor(row.elapsed % 60)).padStart(2, '0')}`;
-      button.innerHTML = `<strong>${escape(row.name)}</strong><span>${escape(t(row.mapName))} · ${t(row.mode === 'bootcamp' ? '新兵训练营' : '遭遇战')} · ${escape(t(country?.name ?? row.country))}</span><span>${escape(new Date(row.savedAt).toLocaleString())} · ${elapsed}</span>`;
+      const version = row.gameVersion ? `v${row.gameVersion}` : t('版本未记录');
+      const commit = row.commitHash ? `commit ${row.commitHash}` : t('提交未记录');
+      button.innerHTML = `<span class="save-details"><strong>${escape(row.name)}</strong><span>${escape(t(row.mapName))} · ${t(row.mode === 'bootcamp' ? '新兵训练营' : '遭遇战')} · ${escape(t(country?.name ?? row.country))}</span><span>${escape(new Date(row.savedAt).toLocaleString())} · ${elapsed}</span><span class="save-build">${escape(version)} · ${escape(commit)}</span></span>`;
+      if (row.overview) {
+        const canvas = document.createElement('canvas'); canvas.className = 'save-overview';
+        canvas.width = row.overview.width; canvas.height = row.overview.height;
+        canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', t('地图总览'));
+        const ctx = canvas.getContext('2d')!, image = ctx.createImageData(canvas.width, canvas.height);
+        row.overview.pixels.forEach((color, index) => {
+          image.data[index * 4] = color >> 16 & 255; image.data[index * 4 + 1] = color >> 8 & 255;
+          image.data[index * 4 + 2] = color & 255; image.data[index * 4 + 3] = 255;
+        });
+        ctx.putImageData(image, 0, 0); button.prepend(canvas);
+      } else {
+        const missing = document.createElement('span'); missing.className = 'save-overview-missing';
+        missing.textContent = t('地图预览不可用'); button.prepend(missing);
+      }
       button.onclick = () => { selected = row; if (saving) get<HTMLInputElement>('save-name').value = row.name; renderRows(); get<HTMLButtonElement>('save-' + (saving ? 'overwrite' : 'load')).focus(); };
       container.append(button);
     }

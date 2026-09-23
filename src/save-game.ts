@@ -2,6 +2,8 @@ import type { GameEngine } from './game/engine';
 import type { RenderMap } from './renderer';
 import type { ProductionCategory } from './game/types';
 import { CATEGORIES } from './game/data';
+import { BUILD_INFO } from './build-info';
+import { createSaveOverview, type SaveOverview } from './save-overview';
 import { copySaveData, stringifySaveData, type EngineSnapshot } from './game/snapshot';
 import { checkSaveTree, finite, integer, list, point, record, requireSave, textValue, validateEngineSnapshot, validateGameMap } from './game/snapshot-validation';
 
@@ -13,6 +15,7 @@ export interface SavedView {
 export type SavedMap = RenderMap & { originalSize?: number[]; localSize?: number[]; origin?: { x: number; y: number }; nameEn?: string };
 export interface SaveGame {
   format: 'rustalarm-save'; schemaVersion: 1; simulationVersion: 1;
+  gameVersion: string | null; commitHash: string | null; overview: SaveOverview;
   name: string; savedAt: string; map: SavedMap; engine: EngineSnapshot; view: SavedView;
 }
 
@@ -24,8 +27,11 @@ function captureMap(map: SavedMap): SavedMap {
 }
 
 export function createSaveGame(name: string, game: GameEngine, map: RenderMap, view?: SavedView): SaveGame {
+  const engine = game.captureSnapshot();
   const result: SaveGame = { format: 'rustalarm-save', schemaVersion: 1, simulationVersion: 1,
-    name: name.trim(), savedAt: new Date().toISOString(), map: captureMap(map), engine: game.captureSnapshot(),
+    gameVersion: BUILD_INFO.version, commitHash: /^[a-f0-9]{40}$/.test(BUILD_INFO.hash) ? BUILD_INFO.hash.slice(0, 6) : null,
+    overview: createSaveOverview(map, engine),
+    name: name.trim(), savedAt: new Date().toISOString(), map: captureMap(map), engine,
     view: copySaveData(view ?? { camera: { x: 0, y: 0 }, zoom: 1, selection: [], groups: [], category: 'structure' }) };
   return validateSaveGame(result);
 }
@@ -81,6 +87,11 @@ export function validateSaveGame(value: unknown): SaveGame {
   textValue(value.name, 80); requireSave(value.name.trim().length > 0);
   textValue(value.savedAt, 40); requireSave(Number.isFinite(Date.parse(value.savedAt)));
   const save = copySaveData(value) as SaveGame;
+  save.gameVersion ??= null; save.commitHash ??= null;
+  if (save.gameVersion !== null) {
+    textValue(save.gameVersion, 80); requireSave(/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(save.gameVersion));
+  }
+  if (save.commitHash !== null) { textValue(save.commitHash, 6); requireSave(/^[a-f0-9]{6}$/.test(save.commitHash)); }
   save.engine = validateEngineSnapshot(save.engine);
   requireSave(save.engine.status === 'playing');
   // The application controller currently assigns the human player ID zero.
@@ -89,6 +100,10 @@ export function validateSaveGame(value: unknown): SaveGame {
   requireSave(save.map.width === save.engine.map.width && save.map.height === save.engine.map.height
     && save.map.theater === save.engine.map.theater && save.map.cells.every((cell, index) => cell === save.engine.map.cells[index]));
   requireSave(stringifySaveData(save.map.spawns) === stringifySaveData(save.engine.map.spawns));
+  if (save.overview === undefined) save.overview = createSaveOverview(save.map, save.engine);
+  record(save.overview); integer(save.overview.width, 1, 160); integer(save.overview.height, 1, 100);
+  list(save.overview.pixels, 16000); requireSave(save.overview.pixels.length === save.overview.width * save.overview.height);
+  for (const color of save.overview.pixels) integer(color, 0, 0xffffff);
   record(save.view); record(save.view.camera);
   finite(save.view.camera.x, -100000, 100000); finite(save.view.camera.y, -100000, 100000); finite(save.view.zoom, .45, 1.7);
   requireSave(CATEGORIES.includes(save.view.category)); list(save.view.selection); list(save.view.groups, 9);

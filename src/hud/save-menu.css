@@ -2,8 +2,13 @@
 .save-name-label { margin-bottom:-6px; }
 .save-menu input[type=text] { width:100%; padding:6px 8px; }
 .save-list { display:grid; gap:6px; max-height:38dvh; overflow:auto; }
-.save-list button { display:grid; gap:3px; width:100%; text-align:left; min-height:68px; padding:8px 12px; }
+.save-list button { display:grid; grid-template-columns:160px minmax(0,1fr); align-items:center; gap:12px; width:100%; text-align:left; padding:8px 12px; }
 .save-list button[aria-pressed=true] { outline:2px solid #ffff00; outline-offset:-2px; }
+.save-details { display:grid; gap:4px; min-width:0; overflow-wrap:anywhere; }
+.save-overview, .save-overview-missing { width:160px; height:100px; background:#07130e; border:1px solid #70835a6b; }
+.save-overview { image-rendering:pixelated; }
+.save-overview-missing { display:grid; place-items:center; text-align:center; }
+.save-build { color:inherit; }
 .save-list strong { overflow-wrap:anywhere; font-size:15px; }
 .save-list span { font-size:12px; }
 .save-list p { margin:12px 0; }
@@ -16,5 +21,7 @@
 .save-dialog .language-control { padding:0; }
 @media(max-width:650px) {
   .save-list { max-height:32dvh; }
+  .save-list button { grid-template-columns:96px minmax(0,1fr); gap:8px; padding:8px; }
+  .save-overview, .save-overview-missing { width:96px; height:60px; }
   .save-actions button { flex:1 1 40%; }
 }

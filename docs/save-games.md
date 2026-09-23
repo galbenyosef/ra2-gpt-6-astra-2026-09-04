@@ -9,6 +9,11 @@ Skirmish and Bootcamp support manual saves while a match remains active.
 
 Players can select an existing save and confirm **Overwrite** or **Delete**.
 The save list shows the name, map, mode, country, save date and elapsed game time.
+Each new save also records the game version and six-character commit hash from the
+running build. The list displays both values beside a map overview.
+The overview shows explored terrain and visible units at the time of saving.
+Old saves remain loadable. The list generates missing overviews and labels missing
+version information as **Not recorded / 未记录**.
 
 ## Players can load a save from either menu
 
@@ -22,7 +27,7 @@ control groups and the 2D camera. Bootcamp starts in 2D after loading.
 Players can then select 3D in the Debug Panel.
 
 The save includes map data for native and imported maps. Each browser still needs
-the normal game assets. Saves contain no pictures, audio or models.
+the normal game assets. Saves contain no original artwork, audio or models.
 
 ## Players can export saves as portable files
 
@@ -39,12 +44,18 @@ to another browser. The current release supports files up to 32 MB.
 
 `save-game.ts` defines the `rustalarm-save` envelope with schema version 1 and
 simulation version 1. The validator rejects unsupported versions and malformed data.
+The optional version metadata does not determine compatibility. The schema and
+simulation versions continue to control compatibility.
 Future incompatible gameplay changes must update the simulation version or provide
 an explicit migration. Original RA2 save files use a different format.
 
 IndexedDB stores the snapshot and list metadata in one transaction. The transaction
 must complete before the interface reports success. JSON export converts typed
 arrays into numeric arrays. Import validation restores the specified array types.
+The `gameVersion` and `commitHash` fields identify the build that created the save.
+An unavailable value uses `null`; importing an old save never assigns the current
+build to that save. The `overview` field stores a 160 × 100 array of RGB colors.
+The overview needs no original artwork or external URLs.
 
 The engine snapshot includes identifiers, random state, periodic timers and spatial
 buckets. Removed entities can remain in a bucket until the next refresh, so the

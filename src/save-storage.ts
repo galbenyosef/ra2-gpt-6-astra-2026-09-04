@@ -1,8 +1,10 @@
 import { validateSaveGame, type SaveGame } from './save-game';
+import type { SaveOverview } from './save-overview';
 
 export interface SaveSummary {
   id: string; name: string; savedAt: string; mapName: string;
   mode: 'skirmish' | 'bootcamp'; country: string; elapsed: number;
+  gameVersion?: string | null; commitHash?: string | null; overview?: SaveOverview;
 }
 interface StoredSave { summary: SaveSummary; data: SaveGame }
 const DATABASE = 'rustalarm-saves';
@@ -47,13 +49,22 @@ async function transaction<T>(mode: IDBTransactionMode, operation: (store: IDBOb
 
 export async function listSaves(): Promise<SaveSummary[]> {
   const records = await transaction<StoredSave[]>('readonly', store => store.getAll());
-  return records.map(record => record.summary).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+  return records.map(record => {
+    if (record.summary.overview) return record.summary;
+    // Older records can show an overview without rewriting the original save.
+    try { return summarizeSave(record.summary.id, validateSaveGame(record.data)); }
+    catch { return record.summary; }
+  }).sort((a, b) => b.savedAt.localeCompare(a.savedAt));
+}
+
+function summarizeSave(id: string, data: SaveGame): SaveSummary {
+  return { id, name: data.name, savedAt: data.savedAt, mapName: data.map.name ?? data.map.id ?? '',
+    mode: data.engine.mode, country: data.engine.players.find(player => player.id === data.engine.localPlayerId)!.country, elapsed: data.engine.time,
+    gameVersion: data.gameVersion, commitHash: data.commitHash, overview: data.overview };
 }
 
 export async function writeSave(value: SaveGame, id: string = crypto.randomUUID()): Promise<SaveSummary> {
-  const data = validateSaveGame(value);
-  const summary: SaveSummary = { id, name: data.name, savedAt: data.savedAt, mapName: data.map.name ?? data.map.id ?? '',
-    mode: data.engine.mode, country: data.engine.players.find(player => player.id === data.engine.localPlayerId)!.country, elapsed: data.engine.time };
+  const data = validateSaveGame(value), summary = summarizeSave(id, data);
   await transaction('readwrite', store => store.put({ summary, data } satisfies StoredSave));
   return summary;
 }
