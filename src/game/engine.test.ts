@@ -79,6 +79,31 @@ test('a skirmish player can keep only one active building of each type', () => {
   assert.equal(engine.canBuild(0, 'power_plant'), true, 'lost buildings can be replaced');
 });
 
+test('a placed weather controller charges its support and pauses without power', () => {
+  const engine = game({ startingCredits: 50000 }); deploy(engine);
+  const plants = [engine.spawnEntity('power_plant', 0, 6, 8), engine.spawnEntity('power_plant', 0, 9, 8)];
+  engine.spawnEntity('battle_lab', 0, 17, 12);
+  engine.setDebugInstantProduction(true);
+  assert.ok(engine.build(0, 'weather_control'));
+  assert.ok(engine.place(0, 'weather_control', 22, 12), engine.lastMessage);
+  const support = () => engine.getSupport(0).find(ability => ability.id === 'lightning')!;
+  assert.equal(support().total, 240);
+  assert.equal(support().remaining, 240);
+  assert.equal(support().ready, false);
+  advance(engine, 1);
+  assert.ok(support().remaining < 240);
+  const remaining = support().remaining;
+  for (const plant of plants) assert.ok(engine.sell(plant.id));
+  advance(engine, 1);
+  assert.equal(support().remaining, remaining);
+  assert.equal(support().ready, false);
+  engine.spawnEntity('power_plant', 0, 6, 8);
+  engine.spawnEntity('power_plant', 0, 9, 8);
+  advance(engine, 240);
+  assert.equal(support().remaining, 0);
+  assert.equal(support().ready, true);
+});
+
 test('debug credits can be added and removed independently for each side', () => {
   const engine = game({ localPlayerId: 1 });
   engine.grantDebugCredits(); engine.grantDebugCredits();
